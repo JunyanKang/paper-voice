@@ -1,0 +1,20 @@
+{
+  "name": "paper-voice",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "build": "python3 scripts/build.py"
+  },
+  "description": "Free local natural English PDF narration and synchronized translation for Zotero",
+  "author": "Junyan Kang",
+  "license": "MIT",
+  "homepage": "https://github.com/JunyanKang/paper-voice",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JunyanKang/paper-voice.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JunyanKang/paper-voice/issues"
+  }
+}

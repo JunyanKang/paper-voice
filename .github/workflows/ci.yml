@@ -1,0 +1,24 @@
+name: Check and build
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm test
+      - run: npm run build
+      - run: python3 scripts/release_metadata.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paper-voice-plugin
+          path: |
+            dist/Paper Voice/*.xpi
+            dist/Paper Voice/updates.json

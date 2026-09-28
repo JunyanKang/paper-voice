@@ -1,0 +1,9 @@
+.DS_Store
+.build/
+dist/
+test-profile/
+test-library/
+test-results/
+__pycache__/
+*.pyc
+node_modules/
