@@ -146,7 +146,7 @@ var PaperVoiceTranslation = {
    box.style.cssText='position:absolute;z-index:20;box-sizing:border-box;padding:12px 14px;background:light-dark(#f8faf5,#24372f);color:light-dark(#253c33,#edf2e9);border:0;border-radius:12px;font:14px/1.65 system-ui,sans-serif;box-shadow:0 4px 20px #15342922;overflow:auto;scrollbar-width:none;overflow-wrap:anywhere;';
    const original={height:frame.style.height,width:frame.style.width,display:frame.style.display};
    const pdfWindow=reader._internalReader._primaryView._iframeWindow;
-   c=this.caption={box,frame,original,reader,pdfWindow,inline:true,gutter:0,timer:null};
+   c=this.caption={box,frame,original,reader,pdfWindow,inline:true,timer:null};
    frame.parentElement.append(box);
    c.layout=()=>{if(c.timer!==null)return;c.timer=this.host.setTimeout(()=>{c.timer=null;this.positionTranslation(c);},35);};
    pdfWindow.addEventListener('scroll',c.layout,true);pdfWindow.addEventListener('resize',c.layout);
@@ -166,43 +166,23 @@ var PaperVoiceTranslation = {
   // Hide only when the source is outside the viewport; never turn into a fixed bottom subtitle.
   if(last.bottom<0||first.top>fr.height){box.style.visibility='hidden';return;}
   box.style.visibility='visible';
-  if(!c.gutter){
-   const width=Math.min(360,fr.width-28),left=Math.max(12,Math.min(first.left,fr.width-width-12)),top=last.bottom+8;
-   box.style.width=width+'px';box.style.maxHeight='none';
-   const height=box.getBoundingClientRect().height;
-   const intersects=Array.from(match.page.querySelectorAll('.textLayer span[role="presentation"]')).some(span=>{
-    const r=span.getBoundingClientRect();return r.width>0&&r.height>0&&r.left<left+width&&r.right>left&&r.top<top+height+6&&r.bottom>top-2;
-   });
-   let blank=false;
-   if(!intersects&&top>0&&top+height<fr.height-12){
-    try{
-     const canvas=match.page.querySelector('canvas'),r=canvas.getBoundingClientRect(),sx=canvas.width/r.width,sy=canvas.height/r.height;
-     if(left>=r.left&&top>=r.top&&left+width<=r.right&&top+height<=r.bottom){
-      const pixels=canvas.getContext('2d').getImageData(Math.floor((left-r.left)*sx),Math.floor((top-r.top)*sy),Math.ceil(width*sx),Math.ceil(height*sy));
-      blank=true;
-      for(let y=0;y<pixels.height&&blank;y+=4)for(let x=0;x<pixels.width;x+=4){const i=(y*pixels.width+x)*4;if(pixels.data[i+3]>20&&Math.min(pixels.data[i],pixels.data[i+1],pixels.data[i+2])<235){blank=false;break;}}
-     }
-    }catch(_){}
-   }
-   if(blank){
-    c.inline=true;box.dataset.placement='below-source';box.style.left=(fr.left-parent.left+left)+'px';box.style.top=(fr.top-parent.top+top)+'px';return;
-   }
-   // Keep a stable margin for the rest of this reading session, so replacing a sentence
-   // does not repeatedly resize the PDF or cover dense text, figures or the next line.
-   c.gutter=Math.min(240,Math.max(184,parent.width*.27));c.inline=false;c.needsFocus=true;
-   frame.style.width='calc(100% - '+c.gutter+'px)';frame.style.display='block';
-   this.positionTranslation(c);c.layout();return;
-  }
-  box.dataset.placement='source-margin';box.style.width=(c.gutter-16)+'px';box.style.maxHeight=Math.max(80,fr.height-24)+'px';
+  // Follow the current source directly. Covering subsequent unread text is intentional;
+  // the original PDF viewport keeps its full width and height.
+  const width=Math.min(420,fr.width-24),left=Math.max(12,Math.min(last.left,fr.width-width-12));
+  box.style.width=width+'px';box.style.maxHeight=Math.max(56,fr.height*.55)+'px';
   const height=box.getBoundingClientRect().height;
-  box.style.left=(fr.right-parent.left+8)+'px';
-  box.style.top=(fr.top-parent.top+Math.max(12,Math.min(last.bottom+8,fr.height-height-12)))+'px';
-  if(c.needsFocus){c.needsFocus=false;this.focusReadingPosition(match);}
+  let top=last.bottom+8;c.inline=true;box.dataset.placement='below-source';
+  if(top+height>fr.height-12&&first.top-height-8>=12){
+   top=first.top-height-8;box.dataset.placement='above-source';
+  }else if(top+height>fr.height-12){
+   box.style.maxHeight=Math.max(56,fr.height-top-12)+'px';
+  }
+  box.style.left=(fr.left-parent.left+left)+'px';box.style.top=(fr.top-parent.top+top)+'px';
  },
  hideTranslation() {
   const c=this.caption;if(!c)return;this.caption=null;
   c.pdfWindow.removeEventListener('scroll',c.layout,true);c.pdfWindow.removeEventListener('resize',c.layout);
   if(c.timer!==null)this.host.clearTimeout(c.timer);c.observer?.disconnect();
-  c.box.remove();c.frame.style.height=c.original.height;c.frame.style.width=c.original.width;c.frame.style.display=c.original.display;
+  c.box.remove();
  },
 };
