@@ -81,6 +81,21 @@ var PaperVoiceTranslation = {
   }
   return null;
  },
+ readingBlocks(match) {
+  // DOM reading order can jump from the foot of the left column to the top of
+  // the right. Treat those as separate anchors, not one tall bounding box.
+  const blocks=[];
+  for(const rect of match.rects){
+   const block=blocks.at(-1),previous=block?.rects.at(-1);
+   const gap=block?Math.max(rect.left-block.right,block.left-rect.right):0;
+   const lineHeight=Math.max(rect.height,previous?.height||0);
+   const columnJump=block&&gap>lineHeight&&
+    (rect.top<previous.top-lineHeight*.6||Math.abs(rect.top-previous.top)<lineHeight*.5&&gap>lineHeight*2);
+   if(!block||columnJump)blocks.push({left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,rects:[rect]});
+   else {block.left=Math.min(block.left,rect.left);block.right=Math.max(block.right,rect.right);block.top=Math.min(block.top,rect.top);block.bottom=Math.max(block.bottom,rect.bottom);block.rects.push(rect);}
+  }
+  return blocks;
+ },
  async highlightSentence(reader,unit,generation) {
   this.clearSentenceHighlight();
   const active={markers:[],reader,unit:{...unit,text:unit.sentenceText||unit.text,anchorOffset:unit.sentenceOffset},focusUnit:unit};
@@ -119,10 +134,10 @@ var PaperVoiceTranslation = {
   const win=match.view._iframeWindow,viewer=win.PDFViewerApplication?.pdfViewer;
   const container=viewer?.container||match.doc.scrollingElement;if(!container)return;
   const bounds=container.getBoundingClientRect(),height=container.clientHeight||win.innerHeight;
-  const first=match.rects[0],last=match.rects.at(-1),top=first.top-bounds.top;
+  const block=this.readingBlocks(match)[0],top=block.top-bounds.top;
   // Keep the spoken passage near the upper-middle, leaving space for following lines.
   // A comfort band avoids tiny scrolls at every sentence and permits ordinary browsing.
-  if(top<height*.22||top>height*.50||last.bottom-bounds.top>height*.78){
+  if(top<height*.22||top>height*.50||block.bottom-bounds.top>height*.78){
    const target=container.scrollTop+top-height*.34;
    const reduced=win.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
    // Zotero's privileged/plugin realm must pass a content-realm options dictionary.
@@ -162,18 +177,29 @@ var PaperVoiceTranslation = {
   const {box,frame,reader}=c,match=this.findSentence(reader,c.unit);
   if(!match){box.style.visibility='hidden';return;}
   const fr=frame.getBoundingClientRect(),parent=frame.parentElement.getBoundingClientRect();
-  const first=match.rects[0],last=match.rects.at(-1);
-  // Hide only when the source is outside the viewport; never turn into a fixed bottom subtitle.
-  if(last.bottom<0||first.top>fr.height){box.style.visibility='hidden';return;}
+  const blocks=this.readingBlocks(match);
+  // Prefer the leading visible part of this spoken chunk. In a two-column
+  // sentence, the final DOM rectangle may be at the top of the opposite column.
+  const block=blocks.find(part=>part.rects.some(r=>r.bottom>0&&r.top<fr.height&&r.right>0&&r.left<fr.width));
+  if(!block){box.style.visibility='hidden';return;}
+  const sentence=c.unit.sentenceText&&c.unit.sentenceText!==c.unit.text?
+   this.findSentence(reader,{...c.unit,text:c.unit.sentenceText,anchorOffset:c.unit.sentenceOffset}):match;
+  const columns=sentence?this.readingBlocks(sentence):blocks;
+  let columnLeft=12,columnRight=fr.width-12;
+  for(const other of columns){
+   if(other.left>=block.right+4)columnRight=Math.min(columnRight,(block.right+other.left)/2-6);
+   if(other.right<=block.left-4)columnLeft=Math.max(columnLeft,(other.right+block.left)/2+6);
+  }
   box.style.visibility='visible';
   // Follow the current source directly. Covering subsequent unread text is intentional;
   // the original PDF viewport keeps its full width and height.
-  const width=Math.min(420,fr.width-24),left=Math.max(12,Math.min(last.left,fr.width-width-12));
+  const left=Math.max(columnLeft,Math.min(block.left,columnRight-48));
+  const width=Math.max(1,Math.min(420,columnRight-left));
   box.style.width=width+'px';box.style.maxHeight=Math.max(56,fr.height*.55)+'px';
   const height=box.getBoundingClientRect().height;
-  let top=last.bottom+8;c.inline=true;box.dataset.placement='below-source';
-  if(top+height>fr.height-12&&first.top-height-8>=12){
-   top=first.top-height-8;box.dataset.placement='above-source';
+  let top=block.bottom+8;c.inline=true;box.dataset.placement='below-source';
+  if(top+height>fr.height-12&&block.top-height-8>=12){
+   top=block.top-height-8;box.dataset.placement='above-source';
   }else if(top+height>fr.height-12){
    box.style.maxHeight=Math.max(56,fr.height-top-12)+'px';
   }
