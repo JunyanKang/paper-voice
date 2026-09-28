@@ -11,7 +11,7 @@
 3. Zotero → 工具（Tools）→ 插件（Plugins）→ 齿轮 → Install Plugin From File，选择 `paper-voice-1.1.0.xpi`。
 4. 打开 PDF。右下角出现书页精灵；点击它展开控制面板。
 
-语音包安装到 Mac 的 `~/Library/Application Support/Zotero/paper-voice-engine`，或 Windows 的 `%APPDATA%\Zotero\Zotero\paper-voice-engine`。安装器保留已有版本的带日期备份，不修改文献数据库、PDF 或批注。Intel Mac、Windows ARM 与旧版 Zotero 尚未验证。
+语音包安装到 Mac 的 `~/Library/Application Support/Zotero/paper-voice-engine`，或 Windows 的 `%APPDATA%\Zotero\Zotero\paper-voice-engine`。安装器保留已有版本的带日期备份，不修改文献数据库、PDF 或批注。Windows 原生测试环境为 Server 2022 x64，使用静音媒体解码与计时，实体扬声器输出尚未实测。Intel Mac、Windows ARM 与旧版 Zotero 尚未验证。
 
 ## 使用方式
 
