@@ -9,7 +9,7 @@ var PaperVoiceTranslation = {
   if(enabled && this.currentUnit && this.currentReader && ['playing','paused','loading'].includes(this.state)){
     const reader=this.currentReader,unit=this.currentUnit,ticket=this.translationTicket,generation=this.generation;
     this.showTranslation(reader,unit,'正在翻译…');
-    this.translate(unit.text).then(result=>{if(ticket===this.translationTicket&&generation===this.generation&&this.get('translation',false))this.showTranslation(reader,unit,result.text,result.source);},error=>{if(ticket===this.translationTicket&&generation===this.generation)this.showTranslation(reader,unit,error.message||'翻译暂不可用');});
+    this.translate(unit.translationText||unit.text).then(result=>{if(ticket===this.translationTicket&&generation===this.generation&&this.get('translation',false))this.showTranslation(reader,unit,result.text,result.source);},error=>{if(ticket===this.translationTicket&&generation===this.generation)this.showTranslation(reader,unit,error.message||'翻译暂不可用');});
   }
  },
  async translate(text) {
@@ -98,7 +98,7 @@ var PaperVoiceTranslation = {
  },
  async highlightSentence(reader,unit,generation) {
   this.clearSentenceHighlight();
-  const active={markers:[],reader,unit:{...unit,text:unit.sentenceText||unit.text,anchorOffset:unit.sentenceOffset},focusUnit:unit};
+  const active={markers:[],reader,unit:{...unit,text:unit.highlightText||unit.sentenceText||unit.text,anchorOffset:unit.highlightOffset??unit.sentenceOffset},focusUnit:unit};
   this.sentenceHighlight=active;
   let match;
   // Navigate each spoken unit when its page is absent/offscreen, including selected passages.
@@ -112,7 +112,8 @@ var PaperVoiceTranslation = {
   if(!match||this.sentenceHighlight!==active)return;
   const win=match.doc.defaultView;active.win=win;
   const focus=this.findSentence(reader,unit)||match;
-  this.focusReadingPosition(focus);
+  await this.focusReadingPosition(focus);
+  if(this.sentenceHighlight!==active||generation!==this.generation||this.dead)return;
   const draw=()=>{
    active.timer=null;if(this.sentenceHighlight!==active)return;
    active.markers.forEach(marker=>marker.remove());active.markers=[];
@@ -130,18 +131,34 @@ var PaperVoiceTranslation = {
   if(viewerRoot){active.observer=new this.host.MutationObserver(active.redraw);active.observer.observe(viewerRoot,{childList:true,subtree:true});}
   draw();
  },
- focusReadingPosition(match) {
+ async focusReadingPosition(match) {
   const win=match.view._iframeWindow,viewer=win.PDFViewerApplication?.pdfViewer;
   const container=viewer?.container||match.doc.scrollingElement;if(!container)return;
-  const bounds=container.getBoundingClientRect(),height=container.clientHeight||win.innerHeight;
+  const bounds=container.getBoundingClientRect(),height=container.clientHeight||win.innerHeight,width=container.clientWidth||win.innerWidth;
   const block=this.readingBlocks(match)[0],top=block.top-bounds.top;
+  const left=block.left-bounds.left,right=block.right-bounds.left;
+  const targetLeft=left<width*.08||right>width*.92?Math.max(0,container.scrollLeft+left-width*.12):container.scrollLeft;
   // Keep the spoken passage near the upper-middle, leaving space for following lines.
   // A comfort band avoids tiny scrolls at every sentence and permits ordinary browsing.
-  if(top<height*.22||top>height*.50||block.bottom-bounds.top>height*.78){
+  if(top<height*.22||top>height*.50||block.bottom-bounds.top>height*.78||targetLeft!==container.scrollLeft){
    const target=container.scrollTop+top-height*.34;
    const reduced=win.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+   const distant=Math.abs(target-container.scrollTop)>height*.6||Math.abs(targetLeft-container.scrollLeft)>width*.35;
+   this.caption?.layout();
    // Zotero's privileged/plugin realm must pass a content-realm options dictionary.
-   container.scrollTo(Components.utils.cloneInto({top:Math.max(0,target),left:container.scrollLeft,behavior:reduced?'instant':'smooth'},win));
+   container.scrollTo(Components.utils.cloneInto({top:Math.max(0,target),left:targetLeft,behavior:reduced||distant?'instant':'smooth'},win));
+   // Begin the new audio only after its source is in place. Native smooth
+   // scrolling may take almost a second; cap it, then settle the final pixels.
+   const generation=this.generation;
+   for(let i=0;i<12;i++){
+    await Zotero.Promise.delay(40);
+    if(this.generation!==generation||this.dead)return;
+    const expectedTop=Math.max(0,Math.min(target,container.scrollHeight-height)),expectedLeft=Math.max(0,Math.min(targetLeft,container.scrollWidth-width));
+    if(Math.abs(container.scrollTop-expectedTop)<1&&Math.abs(container.scrollLeft-expectedLeft)<1)break;
+   }
+   if(this.generation!==generation||this.dead)return;
+   container.scrollTo(Components.utils.cloneInto({top:Math.max(0,target),left:targetLeft,behavior:'instant'},win));
+   await Zotero.Promise.delay(40);
   }
  },
  clearSentenceHighlight() {
@@ -158,22 +175,33 @@ var PaperVoiceTranslation = {
   if(!c){
    const box=doc.createElement('div');box.dataset.paperVoice='translation';box.className='pv-caption';
    box.setAttribute('role','status');box.setAttribute('aria-label','跟读译文');
-   box.style.cssText='position:absolute;z-index:20;box-sizing:border-box;padding:12px 14px;background:light-dark(#f8faf5,#24372f);color:light-dark(#253c33,#edf2e9);border:0;border-radius:12px;font:14px/1.65 system-ui,sans-serif;box-shadow:0 4px 20px #15342922;overflow:auto;scrollbar-width:none;overflow-wrap:anywhere;';
+   box.style.cssText='position:absolute;z-index:20;box-sizing:border-box;padding:12px 14px;background:light-dark(#f8faf5,#24372f);color:light-dark(#253c33,#edf2e9);border:0;border-radius:12px;font:14px/1.65 system-ui,sans-serif;box-shadow:0 4px 20px #15342922;overflow:auto;scrollbar-width:none;overflow-wrap:anywhere;transition:opacity 120ms ease;';
    const original={height:frame.style.height,width:frame.style.width,display:frame.style.display};
    const pdfWindow=reader._internalReader._primaryView._iframeWindow;
    c=this.caption={box,frame,original,reader,pdfWindow,inline:true,timer:null};
    frame.parentElement.append(box);
-   c.layout=()=>{if(c.timer!==null)return;c.timer=this.host.setTimeout(()=>{c.timer=null;this.positionTranslation(c);},35);};
+   // Scroll/zoom generates many intermediate geometries. Fade out at the old
+   // position and anchor once after settling, instead of flipping above/below
+   // or chasing partial text layers during the animation.
+   if(pdfWindow.matchMedia?.('(prefers-reduced-motion: reduce)').matches)box.style.transition='none';
+   c.layout=()=>{
+    c.moving=true;box.style.opacity='0';box.style.pointerEvents='none';
+    if(c.timer!==null)this.host.clearTimeout(c.timer);
+    c.timer=this.host.setTimeout(()=>{c.timer=null;c.moving=false;if(this.caption!==c)return;this.positionTranslation(c);box.style.opacity='1';box.style.pointerEvents='';},160);
+   };
    pdfWindow.addEventListener('scroll',c.layout,true);pdfWindow.addEventListener('resize',c.layout);
    // PDF.js rebuilds its text layer asynchronously after viewport/zoom changes.
    const viewerRoot=pdfWindow.PDFViewerApplication?.pdfViewer?.viewer;
    if(viewerRoot){c.observer=new this.host.MutationObserver(c.layout);c.observer.observe(viewerRoot,{childList:true,subtree:true});}
+   c.layout();
   }
+  if(c.unit&&c.unit!==unit)c.layout();
   c.unit=unit;c.box.textContent=text;c.box.title=source||'跟读译文';c.box.dataset.provider=source;
   this.positionTranslation(c);
  },
  positionTranslation(c) {
   if(this.caption!==c)return;
+  if(c.moving)return;
   const {box,frame,reader}=c,match=this.findSentence(reader,c.unit);
   if(!match){box.style.visibility='hidden';return;}
   const fr=frame.getBoundingClientRect(),parent=frame.parentElement.getBoundingClientRect();

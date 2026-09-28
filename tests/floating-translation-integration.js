@@ -23,6 +23,11 @@ try{
  check('Rebuilt PDF text layer automatically restores the anchored translation',c.box.style.visibility==='visible');
  const width=frame.style.width,node=c.box;p.showTranslation(r,{text:'Photoreceptors and glial cells cooperate during development.',pageIndex:0},'感光细胞和胶质细胞在发育过程中相互协作。','腾讯');await Zotero.Promise.delay(200);
  check('Sentence changes reuse the floating card without resizing the PDF',p.caption.box===node&&frame.style.width===width&&p.caption.box.textContent==='感光细胞和胶质细胞在发育过程中相互协作。');
+ const oldTop=c.box.style.top,oldLeft=c.box.style.left;
+ for(let i=0;i<5;i++){c.layout();p.positionTranslation(c);await Zotero.Promise.delay(35);}
+ check('Repeated scroll events fade the caption without changing its intermediate position',c.moving&&c.box.style.opacity==='0'&&c.box.style.top===oldTop&&c.box.style.left===oldLeft);
+ await Zotero.Promise.delay(250);
+ check('Caption reanchors and fades in once after scrolling settles',!c.moving&&c.box.style.opacity==='1'&&c.box.style.visibility==='visible');
  p.hideTranslation();check('Turning translation off restores the exact original reader size',frame.style.width===originalWidth&&frame.style.height===originalHeight&&!p.caption);
  report.passed=true;return report;
 }finally{p.stop();p.set('translation',false);p.syncSettings();await IOUtils.writeUTF8(p.testPath('test-results/floating-translation.json'),JSON.stringify(report,null,2));}

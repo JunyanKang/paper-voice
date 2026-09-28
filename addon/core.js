@@ -53,6 +53,17 @@ var PaperVoiceCore = (() => {
     return Array.from(mask.matchAll(/[^.!?]+(?:[.!?]+(?=\s|$)|$)/g),m=>text.slice(m.index,m.index+m[0].length).trim()).filter(Boolean);
   }
   function abbreviationPattern(){return /\b(?:i\s*\.\s*e\s*\.|e\s*\.\s*g\s*\.|et\s+al\s*\.|(?:figs?|eqs?|dr|prof|vs)\.)/gi;}
+  function figureReferencePattern() {
+    const label='(?:(?:supplementary|supplemental|supp\\.?|supporting(?:\\s+information)?|extended(?:\\s+data)?)\\s+)?(?:fig(?:ure)?s?|tables?)\\.?';
+    const id='(?:S?\\d+[a-z]?|[IVX]+)';
+    const next='(?:'+id+'|[a-z])';
+    return new RegExp('\\b'+label+'\\s*'+id+'\\b(?:\\s*(?:[,;–−-]|and|&)\\s*'+next+'\\b)*','gi');
+  }
+  function isFigureCitation(inside) {
+    const text=inside.replace(/^\s*(?:see\s+)?(?:also\s+)?(?:e\.g\.,?\s*)?/i,'');
+    const remainder=text.replace(figureReferencePattern(),'');
+    return remainder!==text&&/^[\s,;.\/&]*(?:and[\s,;.]*)?$/i.test(remainder);
+  }
   function isAuthorCitation(inside) {
     const author="[\\p{Lu}][\\p{L}'’.-]+(?:\\s+(?:[\\p{Lu}][\\p{L}'’.-]+|(?:and|&)\\s+[\\p{Lu}][\\p{L}'’.-]+|et\\s+al\\.?))*";
     const citation=new RegExp('^'+author+',?\\s*(?:18|19|20)\\d{2}[a-z]?(?:\\s*,\\s*(?:18|19|20)\\d{2}[a-z]?)*$','u');
@@ -61,8 +72,9 @@ var PaperVoiceCore = (() => {
   function protectedTextRanges(text){
     const ranges=[];
     for(const m of text.matchAll(/\(([^()]*)\)|[\[【][\d\s,;–−-]+[\]】]/g)){
-      if(!m[1]||isAuthorCitation(m[1]))ranges.push({start:m.index,end:m.index+m[0].length});
+      if(!m[1]||isAuthorCitation(m[1])||isFigureCitation(m[1]))ranges.push({start:m.index,end:m.index+m[0].length});
     }
+    for(const m of text.matchAll(figureReferencePattern()))ranges.push({start:m.index,end:m.index+m[0].length});
     for(const m of text.matchAll(abbreviationPattern()))ranges.push({start:m.index,end:m.index+m[0].length});
     return ranges;
   }
@@ -110,7 +122,8 @@ var PaperVoiceCore = (() => {
       if(/\b[\p{L}]$/u.test(before))return whole;
       return '';
     });
-    text=text.replace(/\(([^()]+)\)/g,(whole,inside)=>isAuthorCitation(inside)?'':whole);
+    text=text.replace(/\(([^()]+)\)/g,(whole,inside)=>isAuthorCitation(inside)||isFigureCitation(inside)?'':whole);
+    text=text.replace(figureReferencePattern(),'');
     text=text.replace(/([\p{L}]{3,}[.,;:!?)]*)\s*([⁰¹²³⁴⁵⁶⁷⁸⁹]+(?:\s*[,–−⁻-]\s*[⁰¹²³⁴⁵⁶⁷⁸⁹]+)*)/gu,(whole,word)=>scientificUnits.test(word)?whole:word);
     text=text.replace(/\band\s*\/\s*or\b/gi,'and or')
       .replace(/\bi\s*\.\s*e\s*\./gi,'that is')
@@ -126,6 +139,65 @@ var PaperVoiceCore = (() => {
       offset+=anchorText(part).length;return unit;
     });});
   }
+  function pdfLayout(items,pageIndex) {
+    const text=pdfText(items),breaks=[];let offset=0,previous=null;
+    for(const item of items){
+      if(!anchorText(item.str))continue;
+      const [,,,scale,x,y]=item.transform||[],height=Math.abs(item.height||scale||0);
+      // PDF coordinates grow upwards: a move right and back up starts a new column.
+      if(previous&&height&&Number.isFinite(x)&&Number.isFinite(y)){
+        const h=Math.max(height,previous.height);
+        if(x-previous.x>h*2&&y-previous.y>h*2)breaks.push(offset);
+      }
+      offset+=anchorText(item.str).length;previous={x,y,height};
+    }
+    return {text,pageIndex,breaks};
+  }
+  function layoutUnits(pages,selection=null,from=0) {
+    const joined=cleanText(pages.map(p=>p.text).join(' ')),normalized=anchorText(joined),segments=[];
+    let offset=0;
+    for(const page of pages){
+      const length=anchorText(page.text).length,cuts=[0,...(page.breaks||[]).filter(x=>x>0&&x<length),length];
+      for(let i=0;i<cuts.length-1;i++)if(cuts[i+1]>cuts[i])segments.push({start:offset+cuts[i],end:offset+cuts[i+1],pageIndex:page.pageIndex,pageStart:offset});
+      offset+=length;
+    }
+    const text=selection===null?joined:cleanText(selection);
+    let cursor=selection===null?0:normalized.indexOf(anchorText(text),from);
+    if(cursor<0)return null;
+    const units=[],counts=new Map();
+    // Convert normalized PDF offsets back to the untouched sentence text.
+    const rawOffset=(value,n)=>{
+      if(n<=0)return 0;let count=0;
+      for(let i=0;i<value.length;i++){
+        const length=anchorText(value[i]).length;
+        if(length&&count>=n)return i;
+        count+=length;
+      }
+      return value.length;
+    };
+    for(const sentence of sentences(text)){
+      const start=cursor,end=start+anchorText(sentence).length;cursor=end;
+      // Silence citations before layout splitting, even when a reference itself
+      // crosses a column/page. Keep string offsets unchanged for PDF anchoring.
+      let masked=sentence;
+      for(const range of protectedTextRanges(sentence)){
+        const part=sentence.slice(range.start,range.end);
+        if(!speechText(part)&&!(/^[\[【]/.test(part)&&/[\p{L}]$/u.test(sentence.slice(0,range.start))))masked=masked.slice(0,range.start)+' '.repeat(range.end-range.start)+masked.slice(range.end);
+      }
+      for(const segment of segments){
+        const a=Math.max(start,segment.start),b=Math.min(end,segment.end);if(a>=b)continue;
+        const rawStart=rawOffset(sentence,a-start),rawEnd=rawOffset(sentence,b-start),highlightText=sentence.slice(rawStart,rawEnd).trim();
+        let local=rawStart,anchorOffset=a-segment.pageStart;
+        for(const part of chunks(highlightText)){
+          const at=sentence.indexOf(part,local);local=at+part.length;
+          const unitInPage=counts.get(segment.pageIndex)||0;counts.set(segment.pageIndex,unitInPage+1);
+          units.push({text:part,spokenText:speechText(masked.slice(at,local)),translationText:sentence,sentenceText:sentence,highlightText,highlightOffset:a-segment.pageStart,pageIndex:segment.pageIndex,anchorOffset,sentenceOffset:Math.max(0,start-segment.pageStart),unitInPage});
+          anchorOffset+=anchorText(part).length;
+        }
+      }
+    }
+    return units;
+  }
   function resumeUnitIndex(units,saved) {
     if(!units.length)return 0;
     if(Number.isInteger(saved.anchorOffset)&&saved.anchorOffset>=0){
@@ -136,6 +208,6 @@ var PaperVoiceCore = (() => {
     if(needle){const at=units.findIndex(unit=>anchorText(unit.text).includes(needle)||needle.includes(anchorText(unit.text)));if(at>=0)return at;}
     return Math.max(0,Math.min(units.length-1,Number.isInteger(saved.unitInPage)?saved.unitInPage:0));
   }
-  return { modes, voices, cleanText, chunks, sentences, rate, speechText, pdfText, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
+  return { modes, voices, cleanText, chunks, sentences, rate, speechText, pdfText, pdfLayout, layoutUnits, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;

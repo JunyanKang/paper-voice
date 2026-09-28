@@ -224,19 +224,19 @@ var PaperVoice = {
       const current=(reader._internalReader._primaryView._iframeWindow.PDFViewerApplication.pdfViewer?.currentPageNumber||1)-1;
       const requested=origin==='resume'?saved.pageIndex:origin==='current'?current:0;
       const startPage=Math.max(0,Math.min(pdf.numPages-1,Number.isInteger(requested)?requested:0));
-      const units=[];let empty=0;
+      const pages=[];let empty=0;
       for(let i=Math.min(pdf.numPages,startPage+1);i<=pdf.numPages;i++) {
         if(generation!==this.generation || this.dead)return;
         const page=Components.utils.waiveXrays(await pdf.getPage(i)),content=await page.getTextContent();
         if(generation!==this.generation || this.dead)return;
-        const text=PaperVoiceCore.pdfText(content.items);
-        if(!text)empty++;
-        const pageUnits=PaperVoiceCore.pageUnits(text,i-1);
-        const from=origin==='resume'&&i===startPage+1?PaperVoiceCore.resumeUnitIndex(pageUnits,saved):0;
-        units.push(...pageUnits.slice(from));
+        const layout=PaperVoiceCore.pdfLayout(content.items,i-1);
+        if(!layout.text)empty++;
+        pages.push(layout);
         this.setStatus(`正在读取第 ${i}/${pdf.numPages} 页…`,'loading');
       }
       if(generation!==this.generation)return;
+      let units=PaperVoiceCore.layoutUnits(pages);
+      if(origin==='resume')units=units.slice(PaperVoiceCore.resumeUnitIndex(units.filter(u=>u.pageIndex===startPage),saved));
       if(!units.length)throw new Error('PDF 没有可提取文字，请先进行 OCR 文字识别');
       this.documentEmptyPages=empty;
       return this.runUnits(units,reader,generation,{mode:'document',loops:1});
@@ -341,15 +341,16 @@ var PaperVoice = {
     return this.runUnits(units,reader,generation,{mode,loops,sample});
   },
   async runUnits(units,reader,generation,{mode,loops,sample=false}) {
-    units=units.filter(unit=>PaperVoiceCore.speechText(unit.text));
+    units=units.filter(unit=>unit.spokenText??PaperVoiceCore.speechText(unit.text));
     if(!units.length){this.setStatus('选区仅包含引文标记，无需朗读','idle');return;}
     if(this.state!=='paused')this.setStatus('正在准备自然语音…','loading');
     const voice=this.get('voice','af_heart'),rate=PaperVoiceCore.rate(this.get('rate',1));
     const cache=new Map();let lastPage=null;
     const prepare=unit=>{
-      let speech=cache.get(unit.text);
-      if(!speech){speech=this.synthesize(PaperVoiceCore.speechText(unit.text),voice,rate);this.inflight=speech;if(['sentence','paragraph'].includes(mode))cache.set(unit.text,speech);}
-      const translation=this.get('translation',false)&&!sample?this.translate(unit.text):Promise.resolve(null);
+      const spoken=unit.spokenText??PaperVoiceCore.speechText(unit.text);
+      let speech=cache.get(spoken);
+      if(!speech){speech=this.synthesize(spoken,voice,rate);this.inflight=speech;if(['sentence','paragraph'].includes(mode))cache.set(spoken,speech);}
+      const translation=this.get('translation',false)&&!sample?this.translate(unit.translationText||unit.text):Promise.resolve(null);
       translation.catch(()=>{});speech.catch(()=>{});
       return {speech,translation,unit,translationKey:this.get('translation',false)+'|'+this.get('translationProvider','tencenttransmart')+'|'+this.get('translationTarget','zh-Hans')};
     };
@@ -365,17 +366,17 @@ var PaperVoice = {
           if(hasNext)next=prepare(units[(i+1)%units.length]);
           const unit=units[i];this.currentSentence=unit.text;this.currentUnit=unit;this.readProgress={current:i+1,total:units.length};
           if(mode==='document' && unit.pageIndex!==lastPage){await reader.navigate({pageIndex:unit.pageIndex});lastPage=unit.pageIndex;}
+          await this.highlightSentence?.(reader,unit,generation);
+          if(generation!==this.generation||this.dead)return;
           const sentenceTicket=++this.translationTicket;
           if(this.get('translation',false)&&!sample){
             this.showTranslation(reader,unit,'正在翻译…');
             const translationKey='true|'+this.get('translationProvider','tencenttransmart')+'|'+this.get('translationTarget','zh-Hans');
-            const translated=prepared.translationKey===translationKey?prepared.translation:this.translate(unit.text);
+            const translated=prepared.translationKey===translationKey?prepared.translation:this.translate(unit.translationText||unit.text);
             translated.then(value=>{if(generation===this.generation && sentenceTicket===this.translationTicket && this.get('translation',false))this.showTranslation(reader,unit,value?.text || '译文暂不可用',value?.source);},()=>{if(generation===this.generation && sentenceTicket===this.translationTicket)this.showTranslation(reader,unit,'翻译暂时不可用，可切换服务或译文语言。');});
           }
           const prefix=mode==='document'?`第 ${unit.pageIndex+1} 页 · `:mode==='sentence'?`第 ${(this.sentenceIndex||0)+1}/${PaperVoiceCore.sentences(this.lastText).length} 句 · `:'';
           const suffix=['sentence','paragraph'].includes(mode)?` · 第 ${cycle+1}${loops?'/'+loops:''} 遍`:'';
-          await this.highlightSentence?.(reader,unit,generation);
-          if(generation!==this.generation||this.dead)return;
           this.pendingProgress=sample?null:{reader,unit,generation,mode};
           await this.playAudio(result.audio,reader,generation,`${prefix}正在朗读 ${i+1}/${units.length}${suffix}`);
           if(generation!==this.generation || this.dead)return;
@@ -387,6 +388,21 @@ var PaperVoice = {
   async locateSelectionUnits(reader,units,selection,generation) {
     const pdf=reader._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfDocument;
     if(!pdf)return;
+    // Locate the complete selection across PDF pages before splitting at actual
+    // column/page boundaries. This works before the next page's DOM is rendered.
+    try{
+      const layouts=[];let joined='';
+      for(let index=units[0]?.pageIndex||0;index<pdf.numPages;index++){
+        if(generation!==this.generation)return;
+        const page=Components.utils.waiveXrays(await pdf.getPage(index+1));
+        const layout=PaperVoiceCore.pdfLayout((await page.getTextContent()).items,index);layouts.push(layout);joined+=PaperVoiceCore.anchorText(layout.text);
+        if(joined.includes(PaperVoiceCore.anchorText(selection))){
+          const selected=units.map(u=>u.text).join(' '),from=joined.indexOf(PaperVoiceCore.anchorText(selection));
+          const located=PaperVoiceCore.layoutUnits(layouts,selected,from);
+          if(located?.length){units.splice(0,units.length,...located);return;}
+        }
+      }
+    }catch(error){Zotero.logError(error);}
     let pageIndex=units[0]?.pageIndex||0,offset=0;
     const pages=new Map();
     const getText=async index=>{
