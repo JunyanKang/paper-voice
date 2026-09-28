@@ -1,25 +1,35 @@
 """Install the bundled runtime atomically, keeping an existing version as a backup."""
 from pathlib import Path
-import datetime,json,platform,shutil,subprocess,sys
+import datetime,json,os,platform,shutil,subprocess,sys
 source=Path(__file__).resolve().parent/'engine'
-destination=Path.home()/'Library/Application Support/Zotero/paper-voice-engine'
-if platform.system()!='Darwin' or platform.machine()!='arm64':
-    raise SystemExit('此语音包适用于 Apple Silicon Mac（M1/M2/M3/M4 等）。')
-if int(platform.mac_ver()[0].split('.')[0])<14:
-    raise SystemExit('此语音包需要 macOS 14 或更新版本。')
-if not (source/'python/bin/python3').is_file() or not (source/'models/kokoro-v1.0.onnx').is_file():
-    raise SystemExit('语音包不完整，请先解压完整交付包，并保留 engine 文件夹。')
+windows=platform.system()=='Windows'
+if windows:
+    if platform.machine().lower() not in ('amd64','x86_64'):
+        raise SystemExit('此 Windows 语音包适用于 64 位 Intel/AMD 电脑。')
+    destination=Path(os.environ['APPDATA'])/'Zotero/Zotero/paper-voice-engine'
+    relative_python=Path('python/python.exe')
+elif platform.system()=='Darwin' and platform.machine()=='arm64':
+    if int(platform.mac_ver()[0].split('.')[0])<14:
+        raise SystemExit('此语音包需要 macOS 14 或更新版本。')
+    destination=Path.home()/'Library/Application Support/Zotero/paper-voice-engine'
+    relative_python=Path('python/bin/python3')
+else:
+    raise SystemExit('请使用与你的操作系统和芯片匹配的语音包。')
+if not (source/relative_python).is_file() or not (source/'models/kokoro-v1.0.onnx').is_file():
+    raise SystemExit('语音包不完整或平台不匹配，请解压完整安装包并保留 engine 文件夹。')
 print('正在安装免费离线语音包，不需要联网，也不需要管理员密码。',flush=True)
 stamp=datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 staging=destination.with_name(destination.name+'.install-'+stamp)
 staging.parent.mkdir(parents=True,exist_ok=True)
 shutil.copytree(source,staging,symlinks=True)
-probe=subprocess.run([str(staging/'python/bin/python3'),'-E','-s','-B','-c','import kokoro_onnx, onnxruntime, soundfile, espeakng_loader; print("语音运行环境正常")'],capture_output=True,text=True)
-if probe.returncode:raise SystemExit('检查失败，原安装未更改：'+probe.stderr)
+probe=subprocess.run([str(staging/relative_python),'-E','-s','-B','-X','utf8','-c','import kokoro_onnx, onnxruntime, soundfile, espeakng_loader; print("语音运行环境正常")'],capture_output=True,text=True,encoding='utf-8')
+if probe.returncode:
+    hint='请先运行同目录的 VC_redist.x64.exe 安装微软免费运行库，再重试。' if windows else ''
+    raise SystemExit('检查失败，原安装未更改。'+hint+'\n'+probe.stderr)
 if destination.exists():
     backup=destination.with_name(destination.name+'.backup-'+stamp)
     destination.rename(backup)
     print('旧版本已保留为：'+str(backup))
 staging.rename(destination)
 print('安装完成：'+str(destination))
-print('在 Zotero 中安装同一文件夹的 paper-voice-1.0.0.xpi，打开 PDF 后点击「听读」即可。')
+print('在 Zotero 中安装同一文件夹的 paper-voice 插件（.xpi），打开 PDF 后点击「听读」即可。')

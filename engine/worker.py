@@ -41,7 +41,7 @@ def main():
     import soundfile as sf
     root = Path(__file__).resolve().parent
     # eSpeak resolves paths and has a native path length limit; copy data to a short private path.
-    with tempfile.TemporaryDirectory(prefix='paper-voice-', dir='/private/tmp') as folder:
+    with tempfile.TemporaryDirectory(prefix='paper-voice-', dir='/private/tmp' if sys.platform=='darwin' else None) as folder:
         data = Path(folder) / 'data'
         shutil.copytree(espeakng_loader.get_data_path(), data)
         config = EspeakConfig(lib_path=espeakng_loader.get_library_path(), data_path=str(data))

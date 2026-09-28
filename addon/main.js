@@ -203,16 +203,28 @@ var PaperVoice = {
     const custom = this.get('enginePath', '');
     return custom || PathUtils.join(Services.dirsvc.get('UAppData', Components.interfaces.nsIFile).path, 'paper-voice-engine');
   },
+  workerEnvironment() {
+    const home=Services.dirsvc.get('Home', Components.interfaces.nsIFile).path;
+    const env={HOME:home,LANG:'en_US.UTF-8',HF_HUB_OFFLINE:'1'};
+    if(Zotero.isWin){
+      for(const name of ['SystemRoot','WINDIR','APPDATA','LOCALAPPDATA','TEMP','TMP','USERPROFILE']){
+        const value=Services.env.get(name);if(value)env[name]=value;
+      }
+      const system=env.SystemRoot||env.WINDIR||'C:\\Windows';
+      env.PATH=PathUtils.join(system,'System32')+';'+system;
+    }else env.PATH='/usr/bin:/bin:/usr/sbin:/sbin';
+    return env;
+  },
   async ensureWorker() {
     if (this.processStart) return this.processStart;
     if (this.process) return;
     this.processStart = (async () => {
       const root = this.engineRoot();
-      const command = PathUtils.join(root, 'python', 'bin', 'python3');
-      if (!(await IOUtils.exists(command))) throw new Error('尚未安装免费语音包。请运行交付包中的「安装免费语音包.command」，然后点击试听。');
+      const command = Zotero.isWin ? PathUtils.join(root,'python','python.exe') : PathUtils.join(root,'python','bin','python3');
+      if (!(await IOUtils.exists(command))) throw new Error('尚未安装免费语音包。请运行安装包中的「安装免费语音包」脚本，然后点击试听。');
       const { Subprocess } = ChromeUtils.importESModule('resource://gre/modules/Subprocess.sys.mjs');
-      const proc = await Subprocess.call({ command, arguments: ['-E','-s','-B',PathUtils.join(root, 'worker.py')],
-        environment: {PATH:'/usr/bin:/bin:/usr/sbin:/sbin',HOME:Services.dirsvc.get('Home', Components.interfaces.nsIFile).path,LANG:'en_US.UTF-8',HF_HUB_OFFLINE:'1'}, stderr: 'pipe' });
+      const proc = await Subprocess.call({ command, arguments: ['-E','-s','-B','-X','utf8',PathUtils.join(root, 'worker.py')],
+        environment: this.workerEnvironment(), stderr: 'pipe' });
       // Drain stderr so native warnings can never block synthesis; do not log selected text.
       (async () => { try { while (await proc.stderr.readString()) {} } catch (_) {} })();
       let readyResolve, readyReject;
