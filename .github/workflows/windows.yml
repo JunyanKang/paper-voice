@@ -1,6 +1,12 @@
 name: Windows runtime and Zotero validation
 on:
   workflow_dispatch:
+  push:
+    branches: [windows-support]
+    paths: [".github/workflows/windows.yml", "scripts/build_windows.py", "scripts/test_windows_zotero.py", "engine/worker.py", "addon/main.js"]
+concurrency:
+  group: windows-validation-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
