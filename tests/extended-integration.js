@@ -29,7 +29,7 @@ p.showTranslation(r,unit,result.text,result.source);await Zotero.Promise.delay(3
 const caption=p.caption,fr=caption.frame.getBoundingClientRect(),cr=caption.box.getBoundingClientRect();
 const source=p.findSentence(r,unit),last=source.rects.at(-1);
 const nonOverlapping=caption.inline?cr.top>=fr.top+last.bottom&&!source.spans.some(x=>{const b=x.getBoundingClientRect();return fr.left+b.left<cr.right&&fr.left+b.right>cr.left&&fr.top+b.top<cr.bottom&&fr.top+b.bottom>cr.top;}):fr.right<=cr.left+2;
-await check('Translation is visible beside its source without covering PDF text',caption.box.style.visibility==='visible'&&nonOverlapping,{placement:caption.box.dataset.placement,frameRight:fr.right,captionLeft:cr.left,caption:caption.box.textContent});
+await check('Translation is visible beside its source without covering PDF text',caption.box.style.visibility==='visible'&&nonOverlapping,{placement:caption.box.dataset.placement,visibility:caption.box.style.visibility,inline:caption.inline,frameRight:fr.right,captionLeft:cr.left,captionTop:cr.top,sourceTop:source.rects[0].top,caption:caption.box.textContent});
 await check('Caption locates actual English sentence',!!p.findSentence(r,unit));
 p.hideTranslation();await check('Stopping subtitles restores PDF viewport',r._internalReader._primaryView._iframe.style.height==='100%');
 p.set('translationProvider','tencenttransmart');result=await p.translate('The results suggest an association, not a causal mechanism.');

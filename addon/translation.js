@@ -146,7 +146,7 @@ var PaperVoiceTranslation = {
    const pdfWindow=reader._internalReader._primaryView._iframeWindow;
    c=this.caption={box,frame,original,reader,pdfWindow,inline:true,gutter:0,timer:null};
    frame.parentElement.append(box);
-   c.layout=()=>{if(c.timer!==null)return;c.timer=doc.defaultView.setTimeout(()=>{c.timer=null;this.positionTranslation(c);},35);};
+   c.layout=()=>{if(c.timer!==null)return;c.timer=this.host.setTimeout(()=>{c.timer=null;this.positionTranslation(c);},35);};
    pdfWindow.addEventListener('scroll',c.layout,true);pdfWindow.addEventListener('resize',c.layout);
   }
   c.unit=unit;c.box.textContent=text;c.box.title=source||'跟读译文';c.box.dataset.provider=source;
@@ -186,7 +186,7 @@ var PaperVoiceTranslation = {
    // does not repeatedly resize the PDF or cover dense text, figures or the next line.
    c.gutter=Math.min(240,Math.max(184,parent.width*.27));c.inline=false;c.needsFocus=true;
    frame.style.width='calc(100% - '+c.gutter+'px)';frame.style.display='block';
-   box.style.visibility='hidden';c.layout();return;
+   this.positionTranslation(c);c.layout();return;
   }
   box.dataset.placement='source-margin';box.style.width=(c.gutter-16)+'px';box.style.maxHeight=Math.max(80,fr.height-24)+'px';
   const height=box.getBoundingClientRect().height;
@@ -197,7 +197,7 @@ var PaperVoiceTranslation = {
  hideTranslation() {
   const c=this.caption;if(!c)return;this.caption=null;
   c.pdfWindow.removeEventListener('scroll',c.layout,true);c.pdfWindow.removeEventListener('resize',c.layout);
-  if(c.timer!==null)c.box.ownerDocument.defaultView.clearTimeout(c.timer);
+  if(c.timer!==null)this.host.clearTimeout(c.timer);
   c.box.remove();c.frame.style.height=c.original.height;c.frame.style.width=c.original.width;c.frame.style.display=c.original.display;
  },
 };
