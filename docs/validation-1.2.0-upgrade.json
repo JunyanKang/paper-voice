@@ -1,0 +1,49 @@
+{
+  "checks": [
+    {
+      "name": "Public v1.1.0 installed as a real upgrade baseline",
+      "ok": true,
+      "version": "1.1.0",
+      "url": "https://github.com/JunyanKang/paper-voice/releases/latest/download/updates.json"
+    },
+    {
+      "name": "Zotero background update downloads and installs v1.2.0 from GitHub",
+      "ok": true
+    },
+    {
+      "name": "Public v1.1.0 installed as a real upgrade baseline",
+      "ok": true,
+      "version": "1.1.0",
+      "url": "https://github.com/JunyanKang/paper-voice/releases/latest/download/updates.json"
+    },
+    {
+      "name": "Manual update discovers the public newer version",
+      "ok": true,
+      "state": "available",
+      "message": "发现新版本 1.2.0 · 点击安装更新"
+    },
+    {
+      "name": "Manual native install replaces v1.1.0 with v1.2.0",
+      "ok": true
+    },
+    {
+      "name": "Installed production plugin checks again and reports current",
+      "ok": true,
+      "message": "已是最新版本 1.2.0"
+    },
+    {
+      "name": "Production plugin still synthesizes and completes audio after live upgrade",
+      "ok": true,
+      "status": "朗读完成 · 可以继续划选下一段"
+    },
+    {
+      "name": "Production UI has four modes and the manual update control",
+      "ok": true
+    }
+  ],
+  "passed": true,
+  "pluginVersion": "1.2.0",
+  "profile": "isolated QA profile",
+  "method": "Native Zotero backgroundUpdateCheck; original public 1.1.0 baseline reinstalled; exact 1.2.0 updater implementation checks and installs via native AddonManager; production 1.2.0 recheck and audio playback",
+  "releaseURL": "https://github.com/JunyanKang/paper-voice/releases/tag/v1.2.0"
+}

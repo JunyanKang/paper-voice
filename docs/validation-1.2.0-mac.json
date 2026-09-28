@@ -1,0 +1,859 @@
+{
+  "pluginVersion": "1.2.0",
+  "platform": "Apple Silicon Mac",
+  "zoteroVersion": "10.0.3-beta.3+80bc5565e",
+  "audioOutput": "system audio output",
+  "coreChecks": 78,
+  "xpiSHA256": "b511a1df4c295f06bce90e8db4f8a825f3722962c892f21ccb5bff110a421cb2",
+  "suites": {
+    "zotero-integration.json": {
+      "version": "10.0.3-beta.3+80bc5565e",
+      "audioOutput": "system audio output",
+      "checks": [
+        {
+          "name": "Reader toolbar attached",
+          "ok": true
+        },
+        {
+          "name": "Panel six voice choices",
+          "ok": true
+        },
+        {
+          "name": "Packaged worker starts in Zotero",
+          "ok": true
+        },
+        {
+          "name": "Audio playback started",
+          "ok": true,
+          "state": "playing",
+          "status": "正在朗读 1/2"
+        },
+        {
+          "name": "Pause freezes audio",
+          "ok": true
+        },
+        {
+          "name": "Resume advances audio",
+          "ok": true
+        },
+        {
+          "name": "Stop releases audio",
+          "ok": true
+        },
+        {
+          "name": "Playback completes",
+          "ok": true
+        }
+      ],
+      "passed": true
+    },
+    "zotero-modes-translation.json": {
+      "version": "10.0.3-beta.3+80bc5565e",
+      "checks": [
+        {
+          "name": "Fractional speed preference persists",
+          "ok": true
+        },
+        {
+          "name": "Automatic reading leaves full panel collapsed",
+          "ok": true
+        },
+        {
+          "name": "All mascot and interface assets load",
+          "ok": true
+        },
+        {
+          "name": "Paragraph mode reads each sentence twice",
+          "ok": true,
+          "played": [
+            {
+              "text": "Retinal cells.",
+              "message": "正在朗读 1/2 · 第 1/2 遍"
+            },
+            {
+              "text": "Neural signals.",
+              "message": "正在朗读 2/2 · 第 1/2 遍"
+            },
+            {
+              "text": "Retinal cells.",
+              "message": "正在朗读 1/2 · 第 2/2 遍"
+            },
+            {
+              "text": "Neural signals.",
+              "message": "正在朗读 2/2 · 第 2/2 遍"
+            }
+          ]
+        },
+        {
+          "name": "Single-sentence mode repeats only current sentence",
+          "ok": true
+        },
+        {
+          "name": "Next sentence can be repeated independently",
+          "ok": true,
+          "played": [
+            {
+              "text": "Neural signals.",
+              "message": "第 2/2 句 · 正在朗读 1/1 · 第 1/2 遍"
+            },
+            {
+              "text": "Neural signals.",
+              "message": "第 2/2 句 · 正在朗读 1/1 · 第 2/2 遍"
+            }
+          ],
+          "state": "idle",
+          "status": "朗读完成 · 可以继续划选下一段",
+          "mode": "sentence",
+          "index": 1
+        },
+        {
+          "name": "Document mode reads fixture from first through final sentence",
+          "ok": true,
+          "segments": [
+            "Paper Voice integration test The human retina transforms light into neural signals.",
+            "Photoreceptors and glial cells cooperate during development.",
+            "Select this sentence to hear a natural British or American voice."
+          ]
+        },
+        {
+          "name": "Microsoft translation returns Chinese",
+          "ok": true,
+          "text": "人类视网膜将光转化为神经信号。",
+          "source": "微软翻译 · 免费通道"
+        },
+        {
+          "name": "Translation follows the source without covering the sentence being read",
+          "ok": true,
+          "placement": "below-source",
+          "visibility": "visible",
+          "inline": true,
+          "frameRight": 1000,
+          "captionLeft": 98.71665954589844,
+          "captionTop": 250.56666564941406,
+          "sourceTop": 177.56666564941406,
+          "caption": "人类视网膜将光转化为神经信号。"
+        },
+        {
+          "name": "Caption locates actual English sentence",
+          "ok": true
+        },
+        {
+          "name": "Stopping subtitles restores PDF viewport",
+          "ok": true
+        },
+        {
+          "name": "Tencent translation returns Chinese and retains negative causal qualifier",
+          "ok": true,
+          "text": "研究结果表明了一种关联，而不是因果机制。",
+          "source": "腾讯交互翻译 · 免费通道"
+        }
+      ],
+      "passed": true
+    },
+    "document-integration.json": {
+      "checks": [
+        {
+          "name": "Real PDF plays all three pages through final sentence",
+          "ok": true,
+          "events": [
+            {
+              "text": "First page.",
+              "page": 0
+            },
+            {
+              "text": "Retinal cells detect light.",
+              "page": 0
+            },
+            {
+              "text": "Second page.",
+              "page": 1
+            },
+            {
+              "text": "Neural signals travel to the brain.",
+              "page": 1
+            },
+            {
+              "text": "Third page.",
+              "page": 2
+            },
+            {
+              "text": "This is the final sentence.",
+              "page": 2
+            }
+          ]
+        },
+        {
+          "name": "Current-page start begins on page two",
+          "ok": true,
+          "events": [
+            {
+              "text": "Second page.",
+              "page": 1
+            },
+            {
+              "text": "Neural signals travel to the brain.",
+              "page": 1
+            },
+            {
+              "text": "Third page.",
+              "page": 2
+            },
+            {
+              "text": "This is the final sentence.",
+              "page": 2
+            }
+          ]
+        },
+        {
+          "name": "Resume starts at saved sentence and completes remaining pages",
+          "ok": true,
+          "events": [
+            {
+              "text": "Neural signals travel to the brain.",
+              "page": 1
+            },
+            {
+              "text": "Third page.",
+              "page": 2
+            },
+            {
+              "text": "This is the final sentence.",
+              "page": 2
+            }
+          ]
+        }
+      ],
+      "passed": true
+    },
+    "quick-controls.json": {
+      "checks": [
+        {
+          "name": "Installed default engine generates and plays speech",
+          "ok": true,
+          "root": "<user home>/Library/Application Support/Zotero/paper-voice-engine"
+        },
+        {
+          "name": "Turning translation on mid-play immediately translates current sentence",
+          "ok": true,
+          "caption": "人类视网膜将光转化为神经信号。"
+        },
+        {
+          "name": "Mini toggle and setting stay synchronized",
+          "ok": true
+        },
+        {
+          "name": "Language change replaces current caption",
+          "ok": true,
+          "caption": "人間の網膜は光を神経信号に変換する。"
+        },
+        {
+          "name": "Turning translation off clears caption and synchronizes controls",
+          "ok": true
+        },
+        {
+          "name": "Audio resumes after translation changes",
+          "ok": true
+        },
+        {
+          "name": "Stop always releases audio and caption",
+          "ok": true
+        }
+      ],
+      "passed": true
+    },
+    "citation-highlight.json": {
+      "checks": [
+        {
+          "name": "Spoken text skips PDF superscript, numeric and author-year citations",
+          "ok": true,
+          "generated": [
+            "Retinal development requires glia.",
+            "SOX2 expression is stable.",
+            "The interval and area of 20 mm2 must remain."
+          ]
+        },
+        {
+          "name": "Numeric brackets including zero are silent; genes and units remain audible",
+          "ok": true
+        },
+        {
+          "name": "Every sentence receives background highlight with translation disabled",
+          "ok": true,
+          "played": [
+            {
+              "text": "Retinal development ¹² requires glia [2-4].",
+              "markers": 6,
+              "top": 157.10000610351562,
+              "translationVisible": false
+            },
+            {
+              "text": "SOX2 expression is stable (Smith et al., 2020).",
+              "markers": 1,
+              "top": 220.61666870117188,
+              "translationVisible": false
+            },
+            {
+              "text": "The interval [0, 1] and area of 20 mm2 must remain.",
+              "markers": 1,
+              "top": 284.1166687011719,
+              "translationVisible": false
+            }
+          ]
+        },
+        {
+          "name": "Highlight moves to the next sentence",
+          "ok": true
+        },
+        {
+          "name": "Natural completion removes temporary highlight",
+          "ok": true
+        },
+        {
+          "name": "Pause preserves highlighted sentence",
+          "ok": true
+        },
+        {
+          "name": "Stop clears all temporary highlight nodes",
+          "ok": true
+        }
+      ],
+      "passed": true
+    },
+    "progress-integration.json": {
+      "checks": [
+        {
+          "name": "selection stores latest actual sentence location",
+          "ok": true,
+          "saved": {
+            "version": 2,
+            "pageIndex": 1,
+            "anchorOffset": 23,
+            "text": "travel to the brain.",
+            "mode": "selection",
+            "updatedAt": 1790587345591
+          }
+        },
+        {
+          "name": "Full reading resumes from selection",
+          "ok": true,
+          "played": [
+            "Neural signals travel to the brain.",
+            "Third page.",
+            "This is the final sentence."
+          ]
+        },
+        {
+          "name": "paragraph stores latest actual sentence location",
+          "ok": true,
+          "saved": {
+            "version": 2,
+            "pageIndex": 1,
+            "anchorOffset": 23,
+            "text": "travel to the brain.",
+            "mode": "paragraph",
+            "updatedAt": 1790587350721
+          }
+        },
+        {
+          "name": "Full reading resumes from paragraph",
+          "ok": true,
+          "played": [
+            "Neural signals travel to the brain.",
+            "Third page.",
+            "This is the final sentence."
+          ]
+        },
+        {
+          "name": "sentence stores latest actual sentence location",
+          "ok": true,
+          "saved": {
+            "version": 2,
+            "pageIndex": 1,
+            "anchorOffset": 23,
+            "text": "travel to the brain.",
+            "mode": "sentence",
+            "updatedAt": 1790587355890
+          }
+        },
+        {
+          "name": "Full reading resumes from sentence",
+          "ok": true,
+          "played": [
+            "Neural signals travel to the brain.",
+            "Third page.",
+            "This is the final sentence."
+          ]
+        },
+        {
+          "name": "Audio reaches actual playback",
+          "ok": true,
+          "state": "playing",
+          "status": "第 1 页 · 正在朗读 1/6"
+        },
+        {
+          "name": "Click, scroll and selection leave continuous reading intact",
+          "ok": true
+        },
+        {
+          "name": "Floating mascot has no white disk or box shadow",
+          "ok": true,
+          "background": "rgba(0, 0, 0, 0)",
+          "shadow": "none"
+        },
+        {
+          "name": "Reading mascot is distinct from ready mascot",
+          "ok": true
+        },
+        {
+          "name": "Explicit pause freezes playback and changes icon state",
+          "ok": true
+        },
+        {
+          "name": "Continuous reading reaches last sentence after interactions",
+          "ok": true,
+          "played": [
+            "First page.",
+            "Retinal cells detect light.",
+            "Second page.",
+            "Neural signals travel to the brain.",
+            "Third page.",
+            "This is the final sentence."
+          ]
+        },
+        {
+          "name": "Ready icon restored on completion",
+          "ok": true
+        },
+        {
+          "name": "Voice sample does not change PDF progress",
+          "ok": true
+        }
+      ],
+      "passed": true
+    },
+    "follow-mode-integration.json": {
+      "checks": [
+        {
+          "name": "User optical-fiber sentence excludes every author/year group after chunking",
+          "ok": true,
+          "spoken": [
+            "It has been shown for the retina of nonprimate mammals, and proposed for the human and avian retina, that Müller cells act as living optical fibers which guide the light with minimal intensity loss through the inner retinal layers toward",
+            "the photoreceptors.",
+            "Cells act as guides, that is, optical fibers, and or light collectors, for example Müller cells.",
+            "Retinal neurons detect light.",
+            "Müller cells support the retinal tissue.",
+            "The last sentence on this page remains visible.",
+            "Reading continues onto the second page.",
+            "This is the final sentence in the document."
+          ]
+        },
+        {
+          "name": "Abbreviations and and/or are expanded before synthesis",
+          "ok": true
+        },
+        {
+          "name": "All spoken positions are found and highlighted",
+          "ok": true,
+          "positions": [
+            {
+              "text": "It has been shown for the retina of nonprimate mammals (Franze et al., 2007; Agte et al., 2011; Labin et al., 2014), and proposed for the human and avian retina (Labin et al., 2014; Zueva et al., 2014), that Müller cells act as living optical fibers which guide the light with minimal intensity loss through the inner retinal layers toward",
+              "page": 0,
+              "scrollTop": 0,
+              "top": 126.73333740234375,
+              "height": 522,
+              "markers": 8
+            },
+            {
+              "text": "the photoreceptors.",
+              "page": 0,
+              "scrollTop": 0,
+              "top": 211.10000610351562,
+              "height": 522,
+              "markers": 8
+            },
+            {
+              "text": "Cells act as guides, i.e., optical fibers, and/or light collectors, e.g. Müller cells.",
+              "page": 0,
+              "scrollTop": 219,
+              "top": 178.18333435058594,
+              "height": 522,
+              "markers": 1
+            },
+            {
+              "text": "Retinal neurons detect light.",
+              "page": 0,
+              "scrollTop": 460,
+              "top": 178.64999389648438,
+              "height": 522,
+              "markers": 1
+            },
+            {
+              "text": "Müller cells support the retinal tissue.",
+              "page": 0,
+              "scrollTop": 737,
+              "top": 179.10000610351562,
+              "height": 522,
+              "markers": 1
+            },
+            {
+              "text": "The last sentence on this page remains visible.",
+              "page": 0,
+              "scrollTop": 1016,
+              "top": 178.43333435058594,
+              "height": 522,
+              "markers": 1
+            },
+            {
+              "text": "Reading continues onto the second page.",
+              "page": 1,
+              "scrollTop": 1365,
+              "top": 143.76666259765625,
+              "height": 522,
+              "markers": 1
+            },
+            {
+              "text": "This is the final sentence in the document.",
+              "page": 1,
+              "scrollTop": 1933,
+              "top": 179.64999389648438,
+              "height": 522,
+              "markers": 1
+            }
+          ]
+        },
+        {
+          "name": "Reading focus follows content down the same page",
+          "ok": true
+        },
+        {
+          "name": "Reading advances onto the second page",
+          "ok": true
+        },
+        {
+          "name": "Spoken content stays near upper-middle viewport",
+          "ok": true,
+          "positions": [
+            {
+              "text": "It has been shown for the retina of nonprimate mammals (Franze et al., 2007; Agte et al., 2011; Labin et al., 2014), and proposed for the human and avian retina (Labin et al., 2014; Zueva et al., 2014), that Müller cells act as living optical fibers which guide the light with minimal intensity loss through the inner retinal layers toward",
+              "page": 0,
+              "scrollTop": 0,
+              "top": 126.73333740234375,
+              "height": 522,
+              "markers": 8
+            },
+            {
+              "text": "the photoreceptors.",
+              "page": 0,
+              "scrollTop": 0,
+              "top": 211.10000610351562,
+              "height": 522,
+              "markers": 8
+            },
+            {
+              "text": "Cells act as guides, i.e., optical fibers, and/or light collectors, e.g. Müller cells.",
+              "page": 0,
+              "scrollTop": 219,
+              "top": 178.18333435058594,
+              "height": 522,
+              "markers": 1
+            },
+            {
+              "text": "Retinal neurons detect light.",
+              "page": 0,
+              "scrollTop": 460,
+              "top": 178.64999389648438,
+              "height": 522,
+              "markers": 1
+            },
+            {
+              "text": "Müller cells support the retinal tissue.",
+              "page": 0,
+              "scrollTop": 737,
+              "top": 179.10000610351562,
+              "height": 522,
+              "markers": 1
+            },
+            {
+              "text": "The last sentence on this page remains visible.",
+              "page": 0,
+              "scrollTop": 1016,
+              "top": 178.43333435058594,
+              "height": 522,
+              "markers": 1
+            },
+            {
+              "text": "Reading continues onto the second page.",
+              "page": 1,
+              "scrollTop": 1365,
+              "top": 143.76666259765625,
+              "height": 522,
+              "markers": 1
+            },
+            {
+              "text": "This is the final sentence in the document.",
+              "page": 1,
+              "scrollTop": 1933,
+              "top": 179.64999389648438,
+              "height": 522,
+              "markers": 1
+            }
+          ]
+        },
+        {
+          "name": "Four labelled mode icons replace the mode dropdown",
+          "ok": true
+        },
+        {
+          "name": "Active mode marker stays synchronized 0",
+          "ok": true
+        },
+        {
+          "name": "Active mode marker stays synchronized 1",
+          "ok": true
+        },
+        {
+          "name": "Active mode marker stays synchronized 2",
+          "ok": true
+        },
+        {
+          "name": "Active mode marker stays synchronized 3",
+          "ok": true
+        },
+        {
+          "name": "Floating mode button cycles through all four modes",
+          "ok": true
+        },
+        {
+          "name": "Mode cycle sits immediately left of playback control",
+          "ok": true
+        },
+        {
+          "name": "Native Zotero updater can read the public GitHub manifest",
+          "ok": true,
+          "state": "current",
+          "message": "已是最新版本 1.2.0"
+        },
+        {
+          "name": "Settings fit in viewport without a panel scrollbar",
+          "ok": true,
+          "top": 31.399993896484375,
+          "bottom": 471,
+          "viewport": 563,
+          "height": 439.6000061035156
+        }
+      ],
+      "playback": {
+        "state": "idle",
+        "status": "朗读完成 · 可以继续划选下一段",
+        "positions": [
+          {
+            "text": "It has been shown for the retina of nonprimate mammals (Franze et al., 2007; Agte et al., 2011; Labin et al., 2014), and proposed for the human and avian retina (Labin et al., 2014; Zueva et al., 2014), that Müller cells act as living optical fibers which guide the light with minimal intensity loss through the inner retinal layers toward",
+            "page": 0,
+            "scrollTop": 0,
+            "top": 126.73333740234375,
+            "height": 522,
+            "markers": 8
+          },
+          {
+            "text": "the photoreceptors.",
+            "page": 0,
+            "scrollTop": 0,
+            "top": 211.10000610351562,
+            "height": 522,
+            "markers": 8
+          },
+          {
+            "text": "Cells act as guides, i.e., optical fibers, and/or light collectors, e.g. Müller cells.",
+            "page": 0,
+            "scrollTop": 219,
+            "top": 178.18333435058594,
+            "height": 522,
+            "markers": 1
+          },
+          {
+            "text": "Retinal neurons detect light.",
+            "page": 0,
+            "scrollTop": 460,
+            "top": 178.64999389648438,
+            "height": 522,
+            "markers": 1
+          },
+          {
+            "text": "Müller cells support the retinal tissue.",
+            "page": 0,
+            "scrollTop": 737,
+            "top": 179.10000610351562,
+            "height": 522,
+            "markers": 1
+          },
+          {
+            "text": "The last sentence on this page remains visible.",
+            "page": 0,
+            "scrollTop": 1016,
+            "top": 178.43333435058594,
+            "height": 522,
+            "markers": 1
+          },
+          {
+            "text": "Reading continues onto the second page.",
+            "page": 1,
+            "scrollTop": 1365,
+            "top": 143.76666259765625,
+            "height": 522,
+            "markers": 1
+          },
+          {
+            "text": "This is the final sentence in the document.",
+            "page": 1,
+            "scrollTop": 1933,
+            "top": 179.64999389648438,
+            "height": 522,
+            "markers": 1
+          }
+        ],
+        "spoken": [
+          "It has been shown for the retina of nonprimate mammals, and proposed for the human and avian retina, that Müller cells act as living optical fibers which guide the light with minimal intensity loss through the inner retinal layers toward",
+          "the photoreceptors.",
+          "Cells act as guides, that is, optical fibers, and or light collectors, for example Müller cells.",
+          "Retinal neurons detect light.",
+          "Müller cells support the retinal tissue.",
+          "The last sentence on this page remains visible.",
+          "Reading continues onto the second page.",
+          "This is the final sentence in the document."
+        ]
+      },
+      "passed": true
+    },
+    "floating-translation.json": {
+      "checks": [
+        {
+          "name": "Caption contains only the translation, without repeated English",
+          "ok": true
+        },
+        {
+          "name": "Available whitespace displays translation immediately below the original",
+          "ok": true,
+          "placement": "below-source",
+          "sourceBottom": 197.18333435058594,
+          "captionTop": 205.18333435058594
+        },
+        {
+          "name": "Floating translation follows PDF scrolling instead of staying at screen bottom",
+          "ok": true,
+          "before": 246.18333435058594,
+          "after": 201.18333435058594
+        },
+        {
+          "name": "Dense PDF displays the translation directly below the current sentence",
+          "ok": true,
+          "sourceBottom": 186.56666564941406,
+          "captionTop": 194.56666564941406,
+          "captionLeft": 98.71665954589844,
+          "frameRight": 1000
+        },
+        {
+          "name": "Overlay preserves the full reader width and height without a sidebar or bottom strip",
+          "ok": true
+        },
+        {
+          "name": "Temporarily missing PDF text layer hides the stale translation",
+          "ok": true
+        },
+        {
+          "name": "Rebuilt PDF text layer automatically restores the anchored translation",
+          "ok": true
+        },
+        {
+          "name": "Sentence changes reuse the floating card without resizing the PDF",
+          "ok": true
+        },
+        {
+          "name": "Turning translation off restores the exact original reader size",
+          "ok": true
+        }
+      ],
+      "passed": true
+    },
+    "updater-integration.json": {
+      "checks": [
+        {
+          "name": "Disabling auto update is saved in the native addon manager",
+          "ok": true
+        },
+        {
+          "name": "Enabling auto update is saved and eligible for background updates",
+          "ok": true
+        },
+        {
+          "name": "Manual check reads the actual public GitHub update feed",
+          "ok": true,
+          "version": "1.2.0",
+          "url": "https://github.com/JunyanKang/paper-voice/releases/latest/download/updates.json",
+          "message": "已是最新版本 1.2.0"
+        }
+      ],
+      "passed": true
+    }
+  },
+  "googleNetworkProbe": {
+    "provider": "Google",
+    "checks": [
+      {
+        "name": "Google returns zh-Hans",
+        "ok": false
+      },
+      {
+        "name": "Google returns zh-Hant",
+        "ok": false
+      },
+      {
+        "name": "Google returns ja",
+        "ok": false
+      },
+      {
+        "name": "Google returns fr",
+        "ok": false
+      },
+      {
+        "name": "Local reading remains playable before Google switch",
+        "ok": true
+      },
+      {
+        "name": "Switching to Google during narration renders Chinese caption",
+        "ok": true,
+        "caption": "人类视网膜将光转化为神经信号。"
+      }
+    ],
+    "results": [
+      {
+        "target": "zh-Hans",
+        "error": "Error: Google 暂时连接失败，请重试或切换腾讯 / 微软翻译",
+        "ms": 24144
+      },
+      {
+        "target": "zh-Hant",
+        "error": "Error: Google 暂时连接失败，请重试或切换腾讯 / 微软翻译",
+        "ms": 24024
+      },
+      {
+        "target": "ja",
+        "error": "Error: Google 暂时连接失败，请重试或切换腾讯 / 微软翻译",
+        "ms": 24055
+      },
+      {
+        "target": "fr",
+        "error": "Error: Google 暂时连接失败，请重试或切换腾讯 / 微软翻译",
+        "ms": 14080
+      }
+    ],
+    "passed": false
+  },
+  "packageInstall": {
+    "passed": true,
+    "archive": "Paper-Voice-1.2.0-macOS-arm64.zip",
+    "launcher": "安装语音包.command",
+    "chineseAndSpacePath": true,
+    "isolatedUserPath": true,
+    "installExitCode": 0
+  }
+}
