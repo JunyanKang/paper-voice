@@ -40,4 +40,4 @@ CPython 来自 [Astral python-build-standalone](https://github.com/astral-sh/pyt
 
 发布前检查：实际鼠标选区、六种声音、暂停/停止、各循环模式、跨页/当前页/断点续读、翻译服务与语言、字幕不覆盖原文、面板无滚动条、安装器和离线运行。网络服务可用性报告应保留超时与不支持组合，不能改写成全部成功。
 
-更新 manifest 与 package.json 版本，完成 CHANGELOG 和测试报告，构建最终 XPI 与独立语音 ZIP。计算每个附件 SHA256，创建相同版本的 `vX.Y.Z` 标签，再将 XPI、语音 ZIP、updates.json、SHA256SUMS 与测试报告发布到对应 GitHub release。Zotero 的更新地址指向 latest release 的 updates.json；语音包独立于插件更新。
+更新 manifest 与 package.json 版本，完成 CHANGELOG 和测试报告，构建最终 XPI 并运行 `python3 scripts/package_release.py` 生成包含语音运行环境的完整 ZIP。计算每个附件 SHA256，创建相同版本的 `vX.Y.Z` 标签，再将 XPI、语音 ZIP、updates.json、SHA256SUMS 与测试报告发布到对应 GitHub release。Zotero 的更新地址指向 latest release 的 updates.json；语音包独立于插件更新。
