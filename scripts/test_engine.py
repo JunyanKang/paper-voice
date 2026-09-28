@@ -22,6 +22,6 @@ try:
   result.update(voice=voice,bytes=len(data),rms=round(rms,1));results.append(result);print(json.dumps(result),flush=True)
  for req in [{'text':'hello','voice':'invalid','rate':1}, {'text':'hello','voice':'af_heart','rate':3}, {'text':'','voice':'af_heart','rate':1}]:
   p.stdin.write(json.dumps(req)+'\n');p.stdin.flush();assert not json.loads(p.stdout.readline())['ok']
- (out/'engine-test.json').write_text(json.dumps({'coldStartSeconds':cold,'voices':results,'invalidRequestsRejected':3},indent=2))
+ (out/'engine-test.json').write_text(json.dumps({'coldStartSeconds':cold,'voices':results,'invalidRequestsRejected':3},indent=2), encoding="utf-8")
 finally:
  p.stdin.close();p.wait(timeout=15)

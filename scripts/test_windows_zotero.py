@@ -8,7 +8,7 @@ url='https://download.zotero.org/client/beta/10.0.3-beta.2%2B80bc5565e/Zotero-10
 print('Downloading official Windows Zotero',flush=True);urllib.request.urlretrieve(url,setup)
 app=BUILD/'Zotero';subprocess.run([str(setup),'/S','/D='+str(app)],check=True,timeout=180)
 prefs={'extensions.zotero.dataDir':str(ROOT/'test-library'),'extensions.zotero.useDataDir':True,'extensions.zotero.firstRun2':False,'extensions.zotero.firstRunGuidance':False,'extensions.autoDisableScopes':0,'extensions.paperVoice.enginePath':'','app.update.auto':False}
-(PROFILE/'prefs.js').write_text(''.join('user_pref('+json.dumps(k)+','+json.dumps(v)+');\n' for k,v in prefs.items()))
+(PROFILE/'prefs.js').write_text(''.join('user_pref('+json.dumps(k)+','+json.dumps(v)+');\n' for k,v in prefs.items()), encoding="utf-8")
 subprocess.run([sys.executable,str(ROOT/'scripts/build_test_plugin.py')],check=True)
 log=open(RESULTS/'windows-zotero.log','w',encoding='utf-8')
 proc=subprocess.Popen([str(app/'zotero.exe'),'-no-remote','-profile',str(PROFILE),'-ZoteroDebugText'],stdout=log,stderr=subprocess.STDOUT)
@@ -27,7 +27,7 @@ try:
  (RESULTS/'test-command.js').write_text(command,encoding='utf-8')
  result=wait_json('test-command-result.json',480);print(json.dumps(result),flush=True);assert result['ok'],result
  assert all(x['passed'] for x in result['value'])
- (RESULTS/'windows-native-passed.json').write_text(json.dumps({'passed':True,'version':first['version'],'platform':sys.platform,'checks':first['checks'],'suites':result['value']},indent=2))
+ (RESULTS/'windows-native-passed.json').write_text(json.dumps({'passed':True,'version':first['version'],'platform':sys.platform,'checks':first['checks'],'suites':result['value']},indent=2), encoding="utf-8")
 finally:
  proc.terminate()
  try:proc.wait(timeout=20)

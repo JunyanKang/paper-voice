@@ -13,6 +13,8 @@ jobs:
   windows:
     runs-on: windows-2022
     timeout-minutes: 25
+    env:
+      PYTHONUTF8: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -22,7 +24,15 @@ jobs:
         with:
           node-version: '22'
       - run: npm test
+      - uses: actions/cache/restore@v4
+        with:
+          path: .build/downloads
+          key: windows-voice-downloads-v1
       - run: python scripts/build_windows.py
+      - uses: actions/cache/save@v4
+        with:
+          path: .build/downloads
+          key: windows-voice-downloads-v1
       - name: Test in official Windows Zotero
         run: python scripts/test_windows_zotero.py
       - name: Save test evidence

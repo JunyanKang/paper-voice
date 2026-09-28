@@ -15,7 +15,7 @@ def download(url,name,expected=None):
  return p,digest
 python_archive,python_hash=download('https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip','python-3.12.10-embed-amd64.zip')
 with zipfile.ZipFile(python_archive) as z:z.extractall(PYTHON)
-(PYTHON/'python312._pth').write_text('python312.zip\n.\nLib/site-packages\nimport site\n')
+(PYTHON/'python312._pth').write_text('python312.zip\n.\nLib/site-packages\nimport site\n', encoding="utf-8")
 requirements=['kokoro-onnx==0.6.1','onnxruntime==1.22.1','numpy==2.5.3','soundfile==0.13.1','espeakng-loader==0.2.4','phonemizer==3.4.0']
 subprocess.run([sys.executable,'-m','pip','install','--disable-pip-version-check','--only-binary=:all:','--target',str(PYTHON/'Lib/site-packages'),*requirements],check=True)
 # Reuse the already published, hashed model and license archive; no Mac executable is copied.
@@ -34,7 +34,7 @@ shutil.copy2(vc,BUNDLE/'VC_redist.x64.exe')
 for source,target in [('engine/worker.py','engine/worker.py'),('scripts/install_engine.py','install_engine.py'),('scripts/install_engine.cmd','安装免费语音包.cmd')]:shutil.copy2(ROOT/source,BUNDLE/target)
 python=PYTHON/'python.exe'
 packages=json.loads(subprocess.check_output([str(python),'-E','-s','-B','-X','utf8','-c','import importlib.metadata,json; print(json.dumps({p.metadata["Name"]:p.version for p in importlib.metadata.distributions()}))'],text=True,encoding='utf-8'))
-(ENGINE/'runtime-manifest.json').write_text(json.dumps({'platform':'Windows x64','python':{'version':'3.12.10','archiveSHA256':python_hash,'source':'python.org'},'packages':packages,'models':models,'vcRedistributable':{'source':'https://aka.ms/vs/17/release/vc_redist.x64.exe','sha256':vc_hash},'speechNetworkRequired':False},indent=2))
+(ENGINE/'runtime-manifest.json').write_text(json.dumps({'platform':'Windows x64','python':{'version':'3.12.10','archiveSHA256':python_hash,'source':'python.org'},'packages':packages,'models':models,'vcRedistributable':{'source':'https://aka.ms/vs/17/release/vc_redist.x64.exe','sha256':vc_hash},'speechNetworkRequired':False},indent=2), encoding="utf-8")
 subprocess.run([sys.executable,str(ROOT/'scripts/test_engine.py'),'--engine',str(ENGINE)],check=True)
 subprocess.run([str(python),'-E','-s','-B','-X','utf8',str(BUNDLE/'install_engine.py')],check=True)
 print('Windows runtime generated six voices and installed successfully',flush=True)
