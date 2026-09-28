@@ -33,6 +33,9 @@ jobs:
         with:
           path: .build/downloads
           key: windows-voice-downloads-v1
+      - run: python scripts/build.py
+      - run: python scripts/package_release.py --platform Windows-x64
+      - run: python scripts/test_package_install.py
       - name: Test in official Windows Zotero
         run: python scripts/test_windows_zotero.py
       - name: Save test evidence

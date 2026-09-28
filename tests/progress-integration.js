@@ -1,6 +1,6 @@
 const p=PaperVoice,report={checks:[]},base=p.testRoot;
 const check=(name,ok,details={})=>{report.checks.push({name,ok,...JSON.parse(JSON.stringify(details))});if(!ok)throw Error(name);};
-const item=await Zotero.Attachments.importFromFile({file:base+'/tests/multipage.pdf'}),r=await Zotero.Reader.open(item.id);await r._initPromise;await Zotero.Promise.delay(1000);p.attachReader(r);
+const item=await Zotero.Attachments.importFromFile({file:PaperVoice.testPath('tests/multipage.pdf')}),r=await Zotero.Reader.open(item.id);await r._initPromise;await Zotero.Promise.delay(1000);p.attachReader(r);
 p.stop();p.set('translation',false);p.set('rate',1.6);p.set('repeat',1);
 const play=p.playAudio;let played=[];
 p.playAudio=function(...args){played.push(this.currentSentence);return play.apply(this,args);};
@@ -29,4 +29,4 @@ try{
  check('Ready icon restored on completion',root.dataset.state==='idle');
  const before=p.get('progress.'+item.id);await p.speak('Sample voice.',r,true);check('Voice sample does not change PDF progress',p.get('progress.'+item.id)===before);
  report.passed=true;return report;
-}finally{p.playAudio=play;p.stop();p.set('mode','selection');p.set('rate',1);p.syncSettings();await IOUtils.writeUTF8(base+'/test-results/progress-integration.json',JSON.stringify(report,null,2));}
+}finally{p.playAudio=play;p.stop();p.set('mode','selection');p.set('rate',1);p.syncSettings();await IOUtils.writeUTF8(PaperVoice.testPath('test-results/progress-integration.json'),JSON.stringify(report,null,2));}

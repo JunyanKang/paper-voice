@@ -1,12 +1,12 @@
 (async () => {
- const base=__PAPER_VOICE_TEST_ROOT__;PaperVoice.testRoot=base;
+ const base=__PAPER_VOICE_TEST_ROOT__;PaperVoice.testRoot=base;PaperVoice.testPath=relative=>PathUtils.join(base,...relative.split('/'));
  const report={version:Zotero.version,checks:[]};
  const check=(name,ok,details={})=>{report.checks.push({name,ok,...details});if(!ok)throw new Error(name);};
  try {
-  await IOUtils.writeUTF8(base+'/test-results/harness-stage.txt','await initialization');
+  await IOUtils.writeUTF8(PaperVoice.testPath('test-results/harness-stage.txt'),'await initialization');
   await Zotero.initializationPromise;
-  await IOUtils.writeUTF8(base+'/test-results/harness-stage.txt','opening fixture');
-  const item=await Zotero.Attachments.importFromFile({file:base+'/tests/fixture.pdf'});
+  await IOUtils.writeUTF8(PaperVoice.testPath('test-results/harness-stage.txt'),'opening fixture');
+  const item=await Zotero.Attachments.importFromFile({file:PaperVoice.testPath('tests/fixture.pdf')});
   const reader=await Zotero.Reader.open(item.id);
   await reader._initPromise; await Zotero.Promise.delay(1800);
   PaperVoice.set('enginePath','');PaperVoice.set('mode','selection');PaperVoice.set('translation',false);PaperVoice.attachReader(reader); PaperVoice.showPanel(reader);
@@ -26,12 +26,12 @@
   check('Playback completes',PaperVoice.state==='idle' && PaperVoice.status.includes('完成'));
   report.passed=true;
  }catch(e){report.passed=false;report.error=String(e);report.stack=e.stack;}
- await IOUtils.writeUTF8(base+'/test-results/zotero-integration.json',JSON.stringify(report,null,2));
+ await IOUtils.writeUTF8(PaperVoice.testPath('test-results/zotero-integration.json'),JSON.stringify(report,null,2));
  let last='';
  Zotero.getMainWindow().setInterval(async()=>{
-  const path=base+'/test-results/test-command.js';if(!(await IOUtils.exists(path)))return;
+  const path=PaperVoice.testPath('test-results/test-command.js');if(!(await IOUtils.exists(path)))return;
   const code=await IOUtils.readUTF8(path);if(code===last)return;last=code;
-  try{const value=await new Function('Zotero','PaperVoice','IOUtils','Services','ChromeUtils','return (async()=>{'+code+'})()')(Zotero,PaperVoice,IOUtils,Services,ChromeUtils);await IOUtils.writeUTF8(base+'/test-results/test-command-result.json',JSON.stringify({ok:true,value},null,2));}
-  catch(e){await IOUtils.writeUTF8(base+'/test-results/test-command-result.json',JSON.stringify({ok:false,error:String(e),stack:e.stack},null,2));}
+  try{const value=await new Function('Zotero','PaperVoice','IOUtils','Services','ChromeUtils','return (async()=>{'+code+'})()')(Zotero,PaperVoice,IOUtils,Services,ChromeUtils);await IOUtils.writeUTF8(PaperVoice.testPath('test-results/test-command-result.json'),JSON.stringify({ok:true,value},null,2));}
+  catch(e){await IOUtils.writeUTF8(PaperVoice.testPath('test-results/test-command-result.json'),JSON.stringify({ok:false,error:String(e),stack:e.stack},null,2));}
  },800);
 })();

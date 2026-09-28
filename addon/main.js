@@ -44,7 +44,7 @@ var PaperVoice = {
   },
   removeWindow(win) { this.windows.get(win)?.remove(); this.windows.delete(win); },
   attachReader(reader) {
-    const doc = reader._iframeWindow?.document;
+    let doc;try{doc=reader._iframeWindow?.document;}catch(_){return;}
     if (!doc?.body) return;
     this.ensurePanel(reader);
     let hooks = this.readerHooks.get(reader);
@@ -127,11 +127,19 @@ var PaperVoice = {
   },
   clearSelectionTimers() { for (const t of this.timers.values()) this.host.clearTimeout(t); this.timers.clear(); },
   ensurePanel(reader) {
+    const old=this.panels.get(reader);
+    if(old){try{if(old.root.isConnected&&old.root.ownerDocument===reader._iframeWindow.document)return old;}catch(_){}this.panels.delete(reader);}
     if (!this.panels.has(reader)) {
       this.panels.set(reader, PaperVoiceUI.create(this, reader));
       this.syncSettings(); this.updatePanels();
     }
     return this.panels.get(reader);
+  },
+  *livePanels() {
+    for(const [reader,panel] of this.panels){
+      try{if(panel.root.isConnected&&panel.root.ownerDocument===reader._iframeWindow?.document){yield panel;continue;}}catch(_){}
+      this.panels.delete(reader);
+    }
   },
   showPanel(reader, toggle = false) {
     const panel=this.ensurePanel(reader).panel;
@@ -142,7 +150,7 @@ var PaperVoice = {
   },
   syncSettings() {
     const mode=this.get('mode','selection');
-    for (const {root,find} of this.panels.values()) {
+    for (const {root,find} of this.livePanels()) {
       find('voice').value=this.get('voice','af_heart');find('auto').checked=this.get('auto',true);
       find('rate').value=this.get('rate',1);find('rateLabel').textContent=`${Number(this.get('rate',1)).toFixed(2)}×`;
       find('mode').value=mode;find('documentRow').hidden=mode!=='document';find('documentStart').value=this.get('documentStart','begin');
@@ -159,7 +167,7 @@ var PaperVoice = {
   setStatus(message, state = this.state) { this.status = message; this.state = state; this.updatePanels(); },
   updatePanels() {
     const active=['playing','paused','loading'].includes(this.state),mode=this.get('mode','selection');
-    for (const {root,find,action} of this.panels.values()) {
+    for (const {root,find,action} of this.livePanels()) {
       root.dataset.state=this.state;find('status').textContent=this.status;
       find('preview').textContent=this.currentSentence || this.lastText.slice(0,220);if(!find('preview').textContent)find('preview').textContent='选择一段英文，留一点时间给耳朵。';
       find('progressBar').style.width=(this.readProgress?100*this.readProgress.current/this.readProgress.total:0)+'%';

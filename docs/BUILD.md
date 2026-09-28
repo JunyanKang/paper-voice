@@ -14,7 +14,7 @@ python3 scripts/release_metadata.py
 
 ## 离线语音包
 
-第一版仅分发 Apple Silicon / macOS 14+。直接依赖版本见 `engine/requirements-runtime.txt`，完整依赖和模型哈希见 release 语音包内的 runtime-manifest.json。
+分别分发 Apple Silicon / macOS 14+ 与 Windows x64。直接依赖版本见 `engine/requirements-runtime.txt`，完整依赖和模型哈希见 release 语音包内的 runtime-manifest.json。
 
 准备下列目录，再运行 `python3 scripts/build_engine.py PORTABLE_SOURCE_DIR`：
 
@@ -40,4 +40,10 @@ CPython 来自 [Astral python-build-standalone](https://github.com/astral-sh/pyt
 
 发布前检查：实际鼠标选区、六种声音、暂停/停止、各循环模式、跨页/当前页/断点续读、翻译服务与语言、字幕不覆盖原文、面板无滚动条、安装器和离线运行。网络服务可用性报告应保留超时与不支持组合，不能改写成全部成功。
 
-更新 manifest 与 package.json 版本，完成 CHANGELOG 和测试报告，构建最终 XPI 并运行 `python3 scripts/package_release.py` 生成包含语音运行环境的完整 ZIP。计算每个附件 SHA256，创建相同版本的 `vX.Y.Z` 标签，再将 XPI、语音 ZIP、updates.json、SHA256SUMS 与测试报告发布到对应 GitHub release。Zotero 的更新地址指向 latest release 的 updates.json；语音包独立于插件更新。
+更新 manifest 与 package.json 版本，完成 CHANGELOG 和测试报告，构建最终 XPI 并运行 `python3 scripts/package_release.py` 生成包含语音运行环境的完整 ZIP。计算每个附件 SHA256，创建相同版本的 `vX.Y.Z` 标签，再将通用 XPI、两个平台的完整 ZIP 与必要的 updates.json 发布到对应 GitHub release。校验记录和测试报告留在仓库，不额外堆叠下载附件。Zotero 的更新地址指向 latest release 的 updates.json；语音包独立于插件更新。
+
+## Windows 构建
+
+在 Windows x64 上运行 `python scripts/build_windows.py`，使用官方 CPython 3.12.10 embedded x64 和 Windows 依赖 wheel。模型及许可来自校验过的 v1.0.0 归档，不复制 Mac 可执行文件。`python scripts/test_windows_zotero.py` 会在独立资料库内运行官方 Zotero 测试；Windows Actions 工作流保留证据与通过验证的 runtime。
+
+`python scripts/package_release.py --platform Windows-x64` 生成精简安装包；默认平台为 macOS-arm64。打包器检查 ZIP 完整性、中文路径与启动权限。

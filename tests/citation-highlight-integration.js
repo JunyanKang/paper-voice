@@ -1,6 +1,6 @@
-const p=PaperVoice,report={checks:[]},out=p.testRoot+'/test-results/citation-highlight.json';
+const p=PaperVoice,report={checks:[]},out=PaperVoice.testPath('test-results/citation-highlight.json');
 const check=(name,ok,details={})=>{report.checks.push({name,ok,...JSON.parse(JSON.stringify(details))});if(!ok)throw Error(name);};
-const item=await Zotero.Attachments.importFromFile({file:p.testRoot+'/tests/citations.pdf'}),r=await Zotero.Reader.open(item.id);await r._initPromise;await Zotero.Promise.delay(1000);p.attachReader(r);
+const item=await Zotero.Attachments.importFromFile({file:PaperVoice.testPath('tests/citations.pdf')}),r=await Zotero.Reader.open(item.id);await r._initPromise;await Zotero.Promise.delay(1000);p.attachReader(r);
 p.stop();p.set('mode','document');p.set('translation',false);p.set('rate',1.6);p.syncSettings();
 const generated=[],played=[],synth=p.synthesize,play=p.playAudio;
 p.synthesize=function(text,...args){generated.push(text);return synth.call(this,text,...args);};

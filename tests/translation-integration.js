@@ -1,4 +1,4 @@
-const p=PaperVoice,report={bridgeAvailable:!!Zotero.PDFTranslate?.api?.translate,checks:[]},path=PaperVoice.testRoot+'/test-results/translation-matrix.json';
+const p=PaperVoice,report={bridgeAvailable:!!Zotero.PDFTranslate?.api?.translate,checks:[]},path=PaperVoice.testPath('test-results/translation-matrix.json');
 try{
  for(const provider of ['tencenttransmart','bing','google'])for(const target of ['zh-Hans','zh-Hant','ja','ko','fr','de','es','ru']){
   p.set('translationProvider',provider);p.set('translationTarget',target);

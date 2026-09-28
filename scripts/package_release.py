@@ -9,7 +9,7 @@ manifest=json.loads((engine/'runtime-manifest.json').read_text(encoding="utf-8")
 archive=OUT/f'Paper-Voice-{version}-{args.platform}.zip';prefix='Paper Voice/'
 launcher='安装语音包.cmd' if windows else '安装语音包.command'
 if windows:
- launch='@echo off\r\nchcp 65001 >nul\r\n"%~dp0资源\\engine\\python\\python.exe" -E -s -B -X utf8 "%~dp0资源\\install_engine.py"\r\necho.\r\npause\r\n'
+ launch='@echo off\r\nchcp 65001 >nul\r\n"%~dp0资源\\engine\\python\\python.exe" -E -s -B -X utf8 "%~dp0资源\\install_engine.py"\r\nif errorlevel 1 (\r\n  pause\r\n  exit /b 1\r\n)\r\necho.\r\npause\r\n'
 else:
  launch='#!/bin/zsh\nset -e\nPACKAGE_DIR="${0:A:h}/资源"\n/usr/bin/env -i HOME="$HOME" PATH=/usr/bin:/bin:/usr/sbin:/sbin LANG=en_US.UTF-8 "$PACKAGE_DIR/engine/python/bin/python3" -E -s -B -X utf8 "$PACKAGE_DIR/install_engine.py"\nprint "\\n按回车关闭窗口。"\nread -r\n'
 start=f'''Paper Voice · 论文听读 {version}

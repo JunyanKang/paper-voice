@@ -1,4 +1,5 @@
-const p=PaperVoice,r=Zotero.Reader._readers.at(-1),out=PaperVoice.testRoot+'/test-results/zotero-modes-translation.json';
+const p=PaperVoice,out=PaperVoice.testPath('test-results/zotero-modes-translation.json');
+const item=await Zotero.Attachments.importFromFile({file:PaperVoice.testPath('tests/fixture.pdf')}),r=await Zotero.Reader.open(item.id);await r._initPromise;await Zotero.Promise.delay(1000);p.attachReader(r);
 const report={version:Zotero.version,checks:[]};
 const check=async(name,ok,detail={})=>{report.checks.push({name,ok,...detail});await IOUtils.writeUTF8(out,JSON.stringify(report,null,2));if(!ok)throw new Error(name);};
 p.stop();p.set('translation',false);p.set('mode','selection');p.set('rate',0.85);p.syncSettings();

@@ -1,4 +1,4 @@
-const p=PaperVoice,r=Zotero.Reader._readers.at(-1),report={checks:[]},out=p.testRoot+'/test-results/quick-controls.json';
+const p=PaperVoice,r=Zotero.Reader._readers.at(-1),report={checks:[]},out=PaperVoice.testPath('test-results/quick-controls.json');
 const check=(name,ok,detail={})=>{report.checks.push({name,ok,...detail});if(!ok)throw Error(name);};
 p.stop();p.set('mode','paragraph');p.set('repeat',0);p.set('translation',false);p.set('translationProvider','tencenttransmart');p.set('translationTarget','zh-Hans');p.syncSettings();
 const speech=p.speak('The human retina transforms light into neural signals.',r);const panel=p.panels.get(r);panel.panel.hidden=true;
