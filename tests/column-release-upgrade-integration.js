@@ -1,0 +1,21 @@
+// Run only after v1.2.1 is public, in the isolated QA profile with 1.2.0 metadata.
+const root=PaperVoice.testRoot,out=PaperVoice.testPath('test-results/column-release-upgrade.json');
+if(Services.dirsvc.get('ProfD',Components.interfaces.nsIFile).path!==root+'/test-profile')throw Error('Requires isolated QA profile');
+const report={checks:[]},check=async(name,ok,data={})=>{report.checks.push({name,ok,...data});await IOUtils.writeUTF8(out,JSON.stringify(report,null,2));if(!ok)throw Error(name);};
+const {AddonManager}=ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
+const id=PaperVoice.id,r=Zotero.Reader._readers.at(-1);
+PaperVoice.stop();await PaperVoice.checkForUpdates();
+await check('Native updater discovers public v1.2.1 from v1.2.0',PaperVoice.updateState==='available'&&PaperVoice.updateInstall.version==='1.2.1');
+await PaperVoice.installUpdate();
+for(let i=0;i<200&&((await AddonManager.getAddonByID(id)).version!=='1.2.1'||Zotero.PaperVoice?.dead);i++)await Zotero.Promise.delay(100);
+await check('Public production XPI is installed as version 1.2.1',(await AddonManager.getAddonByID(id)).version==='1.2.1');
+const p=Zotero.PaperVoice;p.attachReader(r);p.set('translation',true);
+const unit={text:'The retinal cells collect light and guide it toward the photoreceptors while preserving the spatial pattern across the neural tissue.',pageIndex:0};
+await p.highlightSentence(r,unit,p.generation);await Zotero.Promise.delay(600);
+p.showTranslation(r,unit,'视网膜细胞收集光线并将其引向感光细胞，同时保持神经组织中的空间图案。');
+const blocks=p.readingBlocks(p.findSentence(r,unit)),c=p.caption,fr=c.frame.getBoundingClientRect(),box=c.box.getBoundingClientRect();
+await check('Installed release anchors the cross-column caption within the left column',blocks.length===2&&c.box.style.visibility==='visible'&&Math.abs(box.left-fr.left-blocks[0].left)<3&&box.right-fr.left<blocks[1].left,{placement:c.box.dataset.placement});
+p.set('translation',false);await p.speak(unit.text,r);
+await check('Installed release completes real audio playback',p.state==='idle'&&p.status.includes('完成'));
+await p.checkForUpdates();await check('Installed release reports current version',p.updateState==='current',{message:p.updateMessage});
+report.passed=true;p.stop();await IOUtils.writeUTF8(out,JSON.stringify(report,null,2));return report;

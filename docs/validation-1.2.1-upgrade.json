@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "name": "Native updater discovers public v1.2.1 from v1.2.0",
+      "ok": true
+    },
+    {
+      "name": "Public production XPI is installed as version 1.2.1",
+      "ok": true
+    },
+    {
+      "name": "Installed release anchors the cross-column caption within the left column",
+      "ok": true,
+      "placement": "below-source"
+    },
+    {
+      "name": "Installed release completes real audio playback",
+      "ok": true
+    },
+    {
+      "name": "Installed release reports current version",
+      "ok": true,
+      "message": "已是最新版本 1.2.1"
+    }
+  ],
+  "passed": true,
+  "pluginVersion": "1.2.1",
+  "profile": "isolated QA profile",
+  "releaseURL": "https://github.com/JunyanKang/paper-voice/releases/tag/v1.2.1"
+}
