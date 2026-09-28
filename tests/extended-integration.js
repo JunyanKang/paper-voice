@@ -26,6 +26,7 @@ let result=await p.translate(unit.text);
 await check('Microsoft translation returns Chinese',/[\u4e00-\u9fff]/.test(result.text),result);
 await p.highlightSentence(r,unit,p.generation);await Zotero.Promise.delay(400);
 p.showTranslation(r,unit,result.text,result.source);await Zotero.Promise.delay(350);
+for(let i=0;i<40&&p.caption.box.style.visibility!=='visible';i++)await Zotero.Promise.delay(75);
 const caption=p.caption,fr=caption.frame.getBoundingClientRect(),cr=caption.box.getBoundingClientRect();
 const source=p.findSentence(r,unit),last=source.rects.at(-1);
 const nonOverlapping=caption.inline?cr.top>=fr.top+last.bottom&&!source.spans.some(x=>{const b=x.getBoundingClientRect();return fr.left+b.left<cr.right&&fr.left+b.right>cr.left&&fr.top+b.top<cr.bottom&&fr.top+b.bottom>cr.top;}):fr.right<=cr.left+2;
