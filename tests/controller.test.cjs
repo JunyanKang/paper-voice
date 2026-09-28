@@ -71,3 +71,9 @@ test('current-page start ignores stale initial view state; resume retains senten
  p.set('progress.42',JSON.stringify({pageIndex:1,unitInPage:1}));await p.startDocument(r,'resume');assert.deepEqual(played,['Final sentence 2.','Page 3.','Final sentence 3.']);
  p.set('progress.42','corrupt');played.length=0;await p.startDocument(r,'resume');assert.equal(played[0],'Page 1.');
 });
+test('speech drops citations while keeping original sentence for highlighting',async()=>{
+ const {p,played}=setup();let highlighted=[];p.synthesize=async text=>({audio:text});p.highlightSentence=async(r,unit)=>highlighted.push(unit.sentenceText||unit.text);
+ await p.speak('Retinal cells [1–3] detect light (Smith et al., 2020).',{});
+ assert.deepEqual(played,['Retinal cells detect light.']);assert.match(highlighted[0],/\[1–3\]/);
+ played.length=0;await p.speak('[12]',{});assert.equal(played.length,0);assert.equal(p.state,'idle');
+});

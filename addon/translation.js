@@ -13,6 +13,7 @@ var PaperVoiceTranslation = {
   }
  },
  async translate(text) {
+  text=PaperVoiceCore.speechText(text);
   const provider=this.get('translationProvider','tencenttransmart'),target=this.get('translationTarget','zh-Hans'),key=provider+'\0'+target+'\0'+text;
   if(provider==='tencenttransmart'&&target==='zh-Hant')throw new Error('腾讯通道暂不提供繁体中文，请选择微软或 Google');
   const code=provider==='tencenttransmart'?(target==='zh-Hans'?'zh':target):provider==='google'?({'zh-Hans':'zh-CN','zh-Hant':'zh-TW'}[target]||target):target;
@@ -72,6 +73,41 @@ var PaperVoiceTranslation = {
   }
   return null;
  },
+ async highlightSentence(reader,unit,generation) {
+  this.clearSentenceHighlight();
+  const active={markers:[],reader,unit:{...unit,text:unit.sentenceText||unit.text}};
+  this.sentenceHighlight=active;
+  let match;
+  for(let attempt=0;attempt<20;attempt++){
+   if(this.sentenceHighlight!==active||generation!==this.generation||this.dead)return;
+   match=this.findSentence(reader,active.unit);if(match)break;
+   await Zotero.Promise.delay(75);
+  }
+  if(!match||this.sentenceHighlight!==active)return;
+  const win=match.doc.defaultView;active.win=win;
+  if(match.rects[0].top<10||match.rects.at(-1).bottom>win.innerHeight-15){
+   match.first.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});
+  }
+  const draw=()=>{
+   active.timer=null;if(this.sentenceHighlight!==active)return;
+   active.markers.forEach(marker=>marker.remove());active.markers=[];
+   const current=this.findSentence(reader,active.unit);if(!current)return;
+   for(const rect of current.rects){
+    if(rect.bottom<0||rect.top>win.innerHeight)continue;
+    const marker=current.doc.createElement('div');marker.dataset.paperVoice='sentence-highlight';
+    marker.style.cssText=`pointer-events:none;position:fixed;z-index:8;left:${rect.left-1}px;top:${rect.top}px;width:${rect.width+2}px;height:${rect.height}px;background:#e3b84138;border-radius:3px;`;
+    current.doc.body.append(marker);active.markers.push(marker);
+   }
+  };
+  active.redraw=()=>{if(active.timer===null||active.timer===undefined)active.timer=win.setTimeout(draw,40);};
+  win.addEventListener('scroll',active.redraw,true);win.addEventListener('resize',active.redraw);
+  draw();
+ },
+ clearSentenceHighlight() {
+  const active=this.sentenceHighlight;this.sentenceHighlight=null;if(!active)return;
+  if(active.win){active.win.removeEventListener('scroll',active.redraw,true);active.win.removeEventListener('resize',active.redraw);if(active.timer)active.win.clearTimeout(active.timer);}
+  active.markers.forEach(marker=>marker.remove());
+ },
  showTranslation(reader,unit,text,source='') {
   if(!this.get('translation',false))return;
   this.hideTranslation();
@@ -111,13 +147,6 @@ var PaperVoiceTranslation = {
    frame.style.height='calc(100% - 132px)';frame.style.display='block';parent.append(box);
   }
   const markers=[];
-  if(match){
-   for(const rect of match.rects){
-    const marker=match.doc.createElement('div');marker.dataset.paperVoice='highlight';
-    marker.style.cssText=`pointer-events:none;position:fixed;z-index:8;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;background:#dfb65b24;border-bottom:2px solid #b79859aa;border-radius:2px;`;
-    match.doc.body.append(marker);markers.push(marker);
-   }
-  }
   // If a page scrolls/zooms, drop positional overlays; keep the reserved caption readable.
   const cleanupPosition=()=>{markers.forEach(m=>m.remove());if(inline){box.remove();this.showTranslation(reader,{...unit,pageIndex:-1},text,source);}};
   const pdfWindow=reader._internalReader._primaryView._iframeWindow;

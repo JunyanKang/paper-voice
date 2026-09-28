@@ -11,19 +11,19 @@ prefs={'extensions.zotero.dataDir':str(ROOT/'test-library'),'extensions.zotero.u
 (PROFILE/'prefs.js').write_text(''.join('user_pref('+json.dumps(k)+','+json.dumps(v)+');\n' for k,v in prefs.items()), encoding="utf-8")
 subprocess.run([sys.executable,str(ROOT/'scripts/build_test_plugin.py')],check=True)
 log=open(RESULTS/'windows-zotero.log','w',encoding='utf-8')
-proc=subprocess.Popen([str(app/'zotero.exe'),'-no-remote','-profile',str(PROFILE),'-ZoteroDebugText'],stdout=log,stderr=subprocess.STDOUT)
+proc=subprocess.Popen([str(app/'zotero.exe'),'-wait-for-browser','-no-remote','-profile',str(PROFILE),'-ZoteroDebugText'],stdout=log,stderr=subprocess.STDOUT)
 def wait_json(name,timeout):
  path=RESULTS/name;deadline=time.monotonic()+timeout
  while time.monotonic()<deadline:
   if path.exists():
    try:return json.loads(path.read_text(encoding='utf-8'))
    except (ValueError,PermissionError):pass
-  if proc.poll() is not None:raise RuntimeError('Zotero exited: '+str(proc.returncode))
+  if proc.poll() not in (None,0):raise RuntimeError('Zotero exited: '+str(proc.returncode))
   time.sleep(1)
  raise TimeoutError(name)
 try:
  first=wait_json('zotero-integration.json',240);print(json.dumps(first),flush=True);assert first['passed'],first
- command="const results=[];for(const file of ['extended-integration.js','document-integration.js','quick-controls-integration.js']){const code=await IOUtils.readUTF8(PaperVoice.testRoot+'/tests/'+file);results.push(await new Function('Zotero','PaperVoice','IOUtils','Services','ChromeUtils','return (async()=>{'+code+'})()')(Zotero,PaperVoice,IOUtils,Services,ChromeUtils));}return results;"
+ command="const results=[];for(const file of ['extended-integration.js','document-integration.js','quick-controls-integration.js','citation-highlight-integration.js']){const code=await IOUtils.readUTF8(PaperVoice.testRoot+'/tests/'+file);results.push(await new Function('Zotero','PaperVoice','IOUtils','Services','ChromeUtils','return (async()=>{'+code+'})()')(Zotero,PaperVoice,IOUtils,Services,ChromeUtils));}return results;"
  (RESULTS/'test-command.js').write_text(command,encoding='utf-8')
  result=wait_json('test-command-result.json',480);print(json.dumps(result),flush=True);assert result['ok'],result
  assert all(x['passed'] for x in result['value'])

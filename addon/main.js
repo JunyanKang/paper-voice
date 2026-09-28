@@ -93,8 +93,19 @@ var PaperVoice = {
     return button;
   },
   onToolbar({doc, reader, append}) { append(this.toolbarButton(doc, reader)); },
+  markSelectionCitations(text,reader,pageIndex) {
+    try{
+      const doc=reader._internalReader?._primaryView?._iframeWindow?.document;
+      const page=doc?.querySelector(`.page[data-page-number="${(pageIndex||0)+1}"]`);
+      if(!page)return text;
+      const items=Array.from(page.querySelectorAll('.textLayer span[role="presentation"]')).map(span=>{
+        const rect=span.getBoundingClientRect();return {str:span.textContent,height:rect.height,width:rect.width,transform:[0,0,0,rect.height,rect.left,-rect.bottom]};
+      });
+      return PaperVoiceCore.markSelectedSuperscripts(text,items);
+    }catch(_){return text;}
+  },
   onSelection({doc, reader, params, append}) {
-    const text = PaperVoiceCore.cleanText(params.annotation?.text);
+    const text = this.markSelectionCitations(PaperVoiceCore.cleanText(params.annotation?.text),reader,params.annotation?.position?.pageIndex);
     if (!text) return;
     this.lastText = text; this.lastReader = reader;
     const button = doc.createElement('button'); button.dataset.paperVoice = 'selection';
@@ -188,9 +199,9 @@ var PaperVoice = {
         if(generation!==this.generation || this.dead)return;
         const page=Components.utils.waiveXrays(await pdf.getPage(i)),content=await page.getTextContent();
         if(generation!==this.generation || this.dead)return;
-        const text=PaperVoiceCore.cleanText(content.items.map(x=>x.str+(x.hasEOL?'\n':' ')).join(''));
+        const text=PaperVoiceCore.pdfText(content.items);
         if(!text)empty++;
-        let unitInPage=0;for(const sentence of PaperVoiceCore.sentences(text))for(const part of PaperVoiceCore.chunks(sentence)){if(!(origin==='resume' && i===startPage+1 && unitInPage<(saved.unitInPage||0)))units.push({text:part,pageIndex:i-1,unitInPage});unitInPage++;}
+        let unitInPage=0;for(const sentence of PaperVoiceCore.sentences(text))for(const part of PaperVoiceCore.chunks(sentence)){if(!(origin==='resume' && i===startPage+1 && unitInPage<(saved.unitInPage||0)))units.push({text:part,sentenceText:sentence,pageIndex:i-1,unitInPage});unitInPage++;}
         this.setStatus(`正在读取第 ${i}/${pdf.numPages} 页…`,'loading');
       }
       if(generation!==this.generation)return;
@@ -282,21 +293,24 @@ var PaperVoice = {
     this.stop(false);const generation=this.generation;this.currentReader=reader;this.ensurePanel(reader);
     if(text.length>24000){this.setStatus('选区过长，请分段选择或使用全文连读','error');return;}
     if(!sample){this.lastText=text;this.lastReader=reader;if(!keepSentence)this.sentenceIndex=0;}
+    if(!PaperVoiceCore.speechText(text)){this.setStatus('选区仅包含引文标记，无需朗读','idle');return;}
     if(!/[a-zA-Z]/.test(text)){this.setStatus('请选择英文正文；扫描 PDF 需要先做文字识别','error');return;}
     const mode=sample?'selection':this.get('mode','selection');
     let sentences=PaperVoiceCore.sentences(text);
     if(mode==='sentence')sentences=[sentences[this.sentenceIndex||0] || sentences[0]];
-    const units=sentences.flatMap(x=>PaperVoiceCore.chunks(x).map(part=>({text:part,pageIndex:this.selectedPage ?? null})));
+    const units=sentences.flatMap(x=>PaperVoiceCore.chunks(x).map(part=>({text:part,sentenceText:x,pageIndex:this.selectedPage ?? null})));
     const loops=['sentence','paragraph'].includes(mode)?Number(this.get('repeat',0)):1;
     return this.runUnits(units,reader,generation,{mode,loops,sample});
   },
   async runUnits(units,reader,generation,{mode,loops,sample=false}) {
+    units=units.filter(unit=>PaperVoiceCore.speechText(unit.text));
+    if(!units.length){this.setStatus('选区仅包含引文标记，无需朗读','idle');return;}
     this.setStatus('正在准备自然语音…','loading');
     const voice=this.get('voice','af_heart'),rate=PaperVoiceCore.rate(this.get('rate',1));
     const cache=new Map();let lastPage=null;
     const prepare=unit=>{
       let speech=cache.get(unit.text);
-      if(!speech){speech=this.synthesize(unit.text,voice,rate);this.inflight=speech;if(['sentence','paragraph'].includes(mode))cache.set(unit.text,speech);}
+      if(!speech){speech=this.synthesize(PaperVoiceCore.speechText(unit.text),voice,rate);this.inflight=speech;if(['sentence','paragraph'].includes(mode))cache.set(unit.text,speech);}
       const translation=this.get('translation',false)&&!sample?this.translate(unit.text):Promise.resolve(null);
       translation.catch(()=>{});speech.catch(()=>{});
       return {speech,translation,unit,translationKey:this.get('translation',false)+'|'+this.get('translationProvider','tencenttransmart')+'|'+this.get('translationTarget','zh-Hans')};
@@ -323,12 +337,14 @@ var PaperVoice = {
           }
           const prefix=mode==='document'?`第 ${unit.pageIndex+1} 页 · `:mode==='sentence'?`第 ${(this.sentenceIndex||0)+1}/${PaperVoiceCore.sentences(this.lastText).length} 句 · `:'';
           const suffix=['sentence','paragraph'].includes(mode)?` · 第 ${cycle+1}${loops?'/'+loops:''} 遍`:'';
+          await this.highlightSentence?.(reader,unit,generation);
+          if(generation!==this.generation||this.dead)return;
           await this.playAudio(result.audio,reader,generation,`${prefix}正在朗读 ${i+1}/${units.length}${suffix}`);
           if(generation!==this.generation || this.dead)return;
         }
       }
-      if(generation===this.generation){this.releaseAudio();this.setStatus(mode==='document'&&this.documentEmptyPages?`朗读完成 · ${this.documentEmptyPages} 页无文字，已跳过`:'朗读完成 · 可以继续划选下一段','idle');}
-    }catch(error){if(generation===this.generation && !this.dead){this.releaseAudio();this.setStatus(error.message || String(error),'error');Zotero.logError(error);}}
+      if(generation===this.generation){this.releaseAudio();this.clearSentenceHighlight?.();this.setStatus(mode==='document'&&this.documentEmptyPages?`朗读完成 · ${this.documentEmptyPages} 页无文字，已跳过`:'朗读完成 · 可以继续划选下一段','idle');}
+    }catch(error){if(generation===this.generation && !this.dead){this.releaseAudio();this.clearSentenceHighlight?.();this.setStatus(error.message || String(error),'error');Zotero.logError(error);}}
   },
   playAudio(encoded, reader, generation, message) {
     const win = this.host;
@@ -364,7 +380,7 @@ var PaperVoice = {
   },
   stop(show = true) {
     this.generation++; this.translationTicket++; this.currentUnit=null; this.clearSelectionTimers(); this.releaseAudio();
-    this.hideTranslation?.();
+    this.hideTranslation?.();this.clearSentenceHighlight?.();
     this.state = 'idle';
     if (show) this.setStatus('已停止 · 拖选下一段即可朗读','idle');
   },
