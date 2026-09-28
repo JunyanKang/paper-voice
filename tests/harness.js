@@ -1,11 +1,13 @@
 (async () => {
- const base=__PAPER_VOICE_TEST_ROOT__;PaperVoice.testRoot=base;PaperVoice.testPath=relative=>PathUtils.join(base,...relative.split('/'));
+ const base=__PAPER_VOICE_TEST_ROOT__;PaperVoice.testRoot=base;PaperVoice.testPath=relative=>PathUtils.join(base,...relative.replace(/^test-results\//,'test-results/native/').split('/'));
  const mutedRunner=Zotero.isWin&&Services.env.get('PAPER_VOICE_HEADLESS_AUDIO')==='1';
  const report={version:Zotero.version,audioOutput:mutedRunner?'native media muted; CI runner has no physical audio device':'system audio output',checks:[]};
  const check=(name,ok,details={})=>{report.checks.push({name,ok,...details});if(!ok)throw new Error(name);};
  try {
   await IOUtils.writeUTF8(PaperVoice.testPath('test-results/harness-stage.txt'),'await initialization');
   await Zotero.initializationPromise;
+  await Zotero.uiReadyPromise;
+  await Zotero.Libraries.get(Zotero.Libraries.userLibraryID).waitForDataLoad('item');
   if(mutedRunner){
    // Exercise the real decoder, clock, pause/end events without a nonexistent speaker.
    // This override exists only in the test XPI, never in the distributed plugin.

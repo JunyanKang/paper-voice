@@ -45,8 +45,8 @@ jobs:
           name: windows-evidence
           retention-days: 3
           path: |
-            test-results/*.json
-            test-results/*.log
+            test-results/**/*.json
+            test-results/**/*.log
             test-results/startup-error.txt
             test-results/harness-stage.txt
       - name: Save validated runtime

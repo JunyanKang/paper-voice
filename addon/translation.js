@@ -35,7 +35,14 @@ var PaperVoiceTranslation = {
     if(provider==='google'){
       const endpoint='https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl='+encodeURIComponent(code)+'&dt=t';
       headers['Content-Type']='application/x-www-form-urlencoded';
-      const response=await Zotero.HTTP.request('POST',endpoint,{headers,body:'q='+encodeURIComponent(text),responseType:'json',timeout:12000,logBody:false});
+      let response;
+      for(let attempt=0;attempt<2;attempt++){
+       try{response=await Zotero.HTTP.request('POST',endpoint,{headers,body:'q='+encodeURIComponent(text),responseType:'json',timeout:12000,logBody:false});break;}
+       catch(error){
+        const transient=error.status===0||/timed? ?out|timeout|network/i.test(String(error));
+        if(attempt||!transient)throw new Error('Google 暂时连接失败，请重试或切换腾讯 / 微软翻译');
+       }
+      }
       translated=response.response?.[0]?.map(x=>x[0]).join('');
     }else{
       const endpoint=provider==='bing'?'https://edge.microsoft.com/translate/translatetext?from=en&to='+encodeURIComponent(code)+'&isEnterpriseClient=false':'https://transmart.qq.com/api/imt';
@@ -65,33 +72,36 @@ var PaperVoiceTranslation = {
    for(const span of spans)for(let offset=0;offset<span.textContent.length;offset++){
     const char=normalize(span.textContent[offset]);joined+=char;for(let k=0;k<char.length;k++)positions.push({span,offset});
    }
-   const index=joined.indexOf(needle);if(index<0)continue;
+   let index=joined.indexOf(needle,Number.isInteger(unit.anchorOffset)?unit.anchorOffset:0);
+   if(index<0)index=joined.indexOf(needle);if(index<0)continue;
    const a=positions[index],b=positions[index+needle.length-1];
    const range=doc.createRange();range.setStart(a.span.firstChild,a.offset);range.setEnd(b.span.firstChild,b.offset+1);
    const rects=Array.from(range.getClientRects()).filter(x=>x.width>0&&x.height>0);
-   if(rects.length)return {view,doc,page,spans,rects,first:a.span};
+   if(rects.length)return {view,doc,page,spans,rects,first:a.span,range};
   }
   return null;
  },
  async highlightSentence(reader,unit,generation) {
   this.clearSentenceHighlight();
-  const active={markers:[],reader,unit:{...unit,text:unit.sentenceText||unit.text}};
+  const active={markers:[],reader,unit:{...unit,text:unit.sentenceText||unit.text,anchorOffset:unit.sentenceOffset},focusUnit:unit};
   this.sentenceHighlight=active;
   let match;
-  for(let attempt=0;attempt<20;attempt++){
+  // Navigate each spoken unit when its page is absent/offscreen, including selected passages.
+  const view=reader._internalReader?._primaryView,viewer=view?._iframeWindow?.PDFViewerApplication?.pdfViewer;
+  if(Number.isInteger(unit.pageIndex)&&viewer?.currentPageNumber!==unit.pageIndex+1)await reader.navigate({pageIndex:unit.pageIndex});
+  for(let attempt=0;attempt<40;attempt++){
    if(this.sentenceHighlight!==active||generation!==this.generation||this.dead)return;
-   match=this.findSentence(reader,active.unit);if(match)break;
+   match=this.findSentence(reader,active.unit)||this.findSentence(reader,unit);if(match)break;
    await Zotero.Promise.delay(75);
   }
   if(!match||this.sentenceHighlight!==active)return;
   const win=match.doc.defaultView;active.win=win;
-  if(match.rects[0].top<10||match.rects.at(-1).bottom>win.innerHeight-15){
-   match.first.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});
-  }
+  const focus=this.findSentence(reader,unit)||match;
+  this.focusReadingPosition(focus);
   const draw=()=>{
    active.timer=null;if(this.sentenceHighlight!==active)return;
    active.markers.forEach(marker=>marker.remove());active.markers=[];
-   const current=this.findSentence(reader,active.unit);if(!current)return;
+   const current=this.findSentence(reader,active.unit)||this.findSentence(reader,active.focusUnit);if(!current)return;
    for(const rect of current.rects){
     if(rect.bottom<0||rect.top>win.innerHeight)continue;
     const marker=current.doc.createElement('div');marker.dataset.paperVoice='sentence-highlight';
@@ -102,6 +112,20 @@ var PaperVoiceTranslation = {
   active.redraw=()=>{if(active.timer===null||active.timer===undefined)active.timer=win.setTimeout(draw,40);};
   win.addEventListener('scroll',active.redraw,true);win.addEventListener('resize',active.redraw);
   draw();
+ },
+ focusReadingPosition(match) {
+  const win=match.view._iframeWindow,viewer=win.PDFViewerApplication?.pdfViewer;
+  const container=viewer?.container||match.doc.scrollingElement;if(!container)return;
+  const bounds=container.getBoundingClientRect(),height=container.clientHeight||win.innerHeight;
+  const first=match.rects[0],last=match.rects.at(-1),top=first.top-bounds.top;
+  // Keep the spoken passage near the upper-middle, leaving space for following lines.
+  // A comfort band avoids tiny scrolls at every sentence and permits ordinary browsing.
+  if(top<height*.22||top>height*.50||last.bottom-bounds.top>height*.78){
+   const target=container.scrollTop+top-height*.34;
+   const reduced=win.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+   // Zotero's privileged/plugin realm must pass a content-realm options dictionary.
+   container.scrollTo(Components.utils.cloneInto({top:Math.max(0,target),left:container.scrollLeft,behavior:reduced?'instant':'smooth'},win));
+  }
  },
  clearSentenceHighlight() {
   const active=this.sentenceHighlight;this.sentenceHighlight=null;if(!active)return;

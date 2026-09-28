@@ -6,6 +6,7 @@ async function startup({ rootURI }, reason) {
   Services.scriptloader.loadSubScript(rootURI + 'panel-style.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'panel.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'translation.js', PaperVoiceScope);
+  Services.scriptloader.loadSubScript(rootURI + 'updater.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'main.js', PaperVoiceScope);
   const resources=Services.io.getProtocolHandler('resource').QueryInterface(Components.interfaces.nsIResProtocolHandler);
   resources.setSubstitutionWithFlags('paper-voice',Services.io.newURI(rootURI),resources.ALLOW_CONTENT_ACCESS);

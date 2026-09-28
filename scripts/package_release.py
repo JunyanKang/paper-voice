@@ -18,8 +18,10 @@ start=f'''Paper Voice · 论文听读 {version}
 2. 打开 Zotero → 工具 → 插件 → 从文件安装，选择同目录的 .xpi 文件。
 3. 打开英文 PDF，鼠标拖选文字即可朗读。点击右下角精灵设置声音、模式与翻译。
 
-声音免费离线运行；开启翻译才联网。请保留「资源」文件夹与安装脚本的相对位置。
+声音免费离线运行；翻译与检查更新需要联网。请保留「资源」文件夹与安装脚本的相对位置。
 {('需要 Windows x64。若提示缺少 DLL，请运行 资源/VC_redist.x64.exe 安装微软免费运行库，再重试。' if windows else '适用于 Apple Silicon Mac（M 系列）、macOS 14+。')}
+
+已装语音包的用户：以后仅更新 .xpi，或在插件设置中检查更新，无需重装语音包。
 
 使用说明、隐私与反馈：https://github.com/JunyanKang/paper-voice
 '''

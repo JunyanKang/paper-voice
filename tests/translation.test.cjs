@@ -4,3 +4,13 @@ test('default uses free Tencent and target changes cannot reuse another language
 test('traditional Chinese never silently returns simplified Tencent text',async()=>{const {p,prefs,requests}=setup();prefs.set('translationTarget','zh-Hant');await assert.rejects(p.translate('Retinal cells.'),/繁体/);assert.equal(requests.length,0);});
 test('Google supports explicit traditional target and parses segmented response',async()=>{const {p,prefs,requests}=setup();prefs.set('translationTarget','zh-Hant');prefs.set('translationProvider','google');const r=await p.translate('Retinal cells.');assert.equal(r.text,'translation');assert.match(requests[0].url,/tl=zh-TW/);assert.equal(requests[0].method,'POST');assert.ok(!requests[0].url.includes('Retinal'));assert.equal(requests[0].options.logBody,false);});
 test('optional translator bridge explicitly receives free service and target',async()=>{const {p,prefs,c,requests}=setup();let args;c.Zotero.PDFTranslate={api:{translate:async(text,opts)=>{args=opts;return{result:'神經細胞',status:'success'};}}};prefs.set('translationProvider','bing');prefs.set('translationTarget','zh-Hant');const r=await p.translate('Neural cells.');assert.equal(args.service,'bing');assert.equal(args.langto,'zh-Hant');assert.equal(requests.length,0);assert.match(r.source,/Translate for Zotero/);});
+test('Google retries a transient timeout once and shares the in-flight result',async()=>{
+ const {p,prefs,c}=setup();prefs.set('translationProvider','google');let attempts=0;
+ c.Zotero.HTTP.request=async()=>{if(++attempts===1)throw Error('Request timed out after 12000 ms');return {response:[[['神经细胞']]]};};
+ const values=await Promise.all([p.translate('Neural cells.'),p.translate('Neural cells.')]);assert.equal(attempts,2);assert.equal(values[0].text,'神经细胞');assert.equal(values[1].text,values[0].text);
+});
+test('Google repeated timeout reports unavailability without a paid fallback',async()=>{
+ const {p,prefs,c}=setup();prefs.set('translationProvider','google');let attempts=0;
+ c.Zotero.HTTP.request=async()=>{attempts++;throw Error('Request timed out');};
+ await assert.rejects(p.translate('Cells.'),/Google 暂时连接失败/);assert.equal(attempts,2);assert.equal(p.translationCache.size,0);
+});

@@ -28,6 +28,7 @@ var PaperVoice = {
       for (const reader of this.readerHooks.keys()) if (!active.has(reader)) this.detachReader(reader);
     }, 1500);
     Zotero.PaperVoice = this;
+    this.loadUpdateSettings().catch(()=>{});
   },
   addWindow(win) {
     if (this.windows.has(win)) return;
@@ -148,15 +149,26 @@ var PaperVoice = {
   modeHint() {
     return ({selection:'拖选英文，松开即读。悬浮按钮随时暂停。',document:'按页连续听读，可选择起点或继续上次进度。',paragraph:'划选一个段落，按设定次数反复朗读。',sentence:'划选一段文字，逐句循环；用左右按钮切换。'})[this.get('mode','selection')];
   },
+  setMode(mode) {
+    if(!PaperVoiceCore.modes.some(x=>x.id===mode)||mode===this.get('mode','selection'))return;
+    this.stop(false);this.set('mode',mode);this.sentenceIndex=0;
+    this.syncSettings();this.setStatus(this.modeHint(),'idle');
+  },
+  cycleMode() {
+    const modes=PaperVoiceCore.modes,index=modes.findIndex(x=>x.id===this.get('mode','selection'));
+    this.setMode(modes[(index+1)%modes.length].id);
+  },
   syncSettings() {
     const mode=this.get('mode','selection');
     for (const {root,find} of this.livePanels()) {
       find('voice').value=this.get('voice','af_heart');find('auto').checked=this.get('auto',true);
       find('rate').value=this.get('rate',1);find('rateLabel').textContent=`${Number(this.get('rate',1)).toFixed(2)}×`;
-      find('mode').value=mode;find('documentRow').hidden=mode!=='document';find('documentStart').value=this.get('documentStart','begin');
+      find('documentRow').hidden=mode!=='document';find('documentStart').value=this.get('documentStart','begin');
       find('repeat').value=this.get('repeat',0);find('repeatRow').hidden=!['paragraph','sentence'].includes(mode);
       find('autoRow').hidden=mode==='document';find('modeNote').textContent=this.modeHint();
       for (const b of root.querySelectorAll('[data-mode]'))b.setAttribute('aria-pressed',String(b.dataset.mode===mode));
+      const currentMode=PaperVoiceCore.modes.find(x=>x.id===mode)||PaperVoiceCore.modes[0];
+      find('modeTitle').textContent=currentMode.label;
       if(find('translation'))find('translation').checked=this.get('translation',false);
       if(find('provider'))find('provider').value=this.get('translationProvider','tencenttransmart');
       if(find('target'))find('target').value=this.get('translationTarget','zh-Hans');
@@ -173,14 +185,22 @@ var PaperVoice = {
       find('progressBar').style.width=(this.readProgress?100*this.readProgress.current/this.readProgress.total:0)+'%';
       action('quickTranslate').setAttribute('aria-pressed',String(this.get('translation',false)));
       action('quickTranslate').title=(this.get('translation',false)?'关闭':'开启')+'跟读翻译 · Option/Alt + T';
-      find('quick').hidden=!active;find('primaryLabel').textContent=this.state==='paused'?'继续':active?'暂停':mode==='document'?(this.get('documentStart','begin')==='resume'?'继续上次':'开始连读'):'开始朗读';
+      find('quick').hidden=false;
+      action('quickStop').hidden=!active;action('quickTranslate').hidden=!active;
+      action('quickPause').hidden=!active&&!this.lastText&&mode!=='document';
+      find('primaryLabel').textContent=this.state==='paused'?'继续':active?'暂停':mode==='document'?(this.get('documentStart','begin')==='resume'?'继续上次':'开始连读'):'开始朗读';
       action('primary').querySelector('img').src=this.assetURI+'icons/'+(active && this.state!=='paused'?'pause':'play')+'.svg';
-      action('quickPause').querySelector('img').src=this.assetURI+'icons/'+(this.state==='paused'?'play':'pause')+'.svg';
+      action('quickPause').querySelector('img').src=this.assetURI+'icons/'+(!active||this.state==='paused'?'play':'pause')+'.svg';
+      const modeIndex=PaperVoiceCore.modes.findIndex(x=>x.id===mode),current=PaperVoiceCore.modes[modeIndex]||PaperVoiceCore.modes[0],next=PaperVoiceCore.modes[(modeIndex+1)%4];
+      action('quickMode').querySelector('img').src=this.assetURI+'icons/'+current.icon+'.svg';
+      find('quickModeLabel').textContent=current.short;
+      action('quickMode').setAttribute('aria-label',current.label+'；点击切换为'+next.label);action('quickMode').title=current.label+' → '+next.label;
       action('orb').title='Paper Voice · '+this.status;
       action('previous').disabled=mode!=='sentence' || !(this.sentenceIndex>0);
       action('next').disabled=mode!=='sentence' || (this.sentenceIndex||0)>=PaperVoiceCore.sentences(this.lastText).length-1;
       action('stop').disabled=!active;
     }
+    this.updateUpdateControls?.();
   },
   primary(reader) {
     if(['playing','paused','loading'].includes(this.state))return this.togglePause();
@@ -344,7 +364,7 @@ var PaperVoice = {
           const hasNext=i+1<units.length || loops===0 || cycle+1<loops;
           if(hasNext)next=prepare(units[(i+1)%units.length]);
           const unit=units[i];this.currentSentence=unit.text;this.currentUnit=unit;this.readProgress={current:i+1,total:units.length};
-          if(mode==='document' && unit.pageIndex!==lastPage){reader.navigate({pageIndex:unit.pageIndex});lastPage=unit.pageIndex;}
+          if(mode==='document' && unit.pageIndex!==lastPage){await reader.navigate({pageIndex:unit.pageIndex});lastPage=unit.pageIndex;}
           const sentenceTicket=++this.translationTicket;
           if(this.get('translation',false)&&!sample){
             this.showTranslation(reader,unit,'正在翻译…');
@@ -461,3 +481,5 @@ var PaperVoice = {
   },
 };
 Object.assign(PaperVoice, PaperVoiceTranslation);
+
+if(typeof PaperVoiceUpdater!=='undefined')Object.assign(PaperVoice,PaperVoiceUpdater);

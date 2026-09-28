@@ -10,7 +10,7 @@ for line in subprocess.check_output(['ps','-axo','pid,command'],text=True).split
    time.sleep(.1)
 subprocess.run(['python3',str(root/'scripts/build_test_plugin.py')],check=True)
 for name in ['startup-error.txt','zotero-integration.json']:
- p=root/'test-results'/name
+ p=root/'test-results/native'/name
  if p.exists():p.unlink()
 proc=subprocess.Popen([str(root/'.build/Paper Voice QA.app/Contents/MacOS/zotero'),'-no-remote','-profile',str(root/'test-profile'),'-ZoteroDebugText'],stdout=open(root/'test-results/zotero-process.log','w'),stderr=subprocess.STDOUT,start_new_session=True)
 print('Test Zotero PID',proc.pid)

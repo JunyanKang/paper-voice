@@ -36,3 +36,18 @@ test('zero-based numeric citation lists are silent',()=>{
  for(const marker of ['[0, 1]','[ 0, 1 ]','[0]','[0–3]','【0, 1】','[1,2,3]'])assert.equal(core.speechText('Cells '+marker+' detect light.'),'Cells detect light.');
  assert.equal(core.speechText('[0, 1]'),'');
 });
+const opticalSentence='It has been shown for the retina of nonprimate mammals (Franze et al., 2007; Agte et al., 2011; Labin et al., 2014), and proposed for the human and avian retina (Labin et al., 2014; Zueva et al., 2014), that Müller cells act as living optical fibers which guide the light with minimal intensity loss through the inner retinal layers toward the photoreceptors.';
+test('complete author-year groups stay silent at every speech chunk boundary',()=>{
+ assert.equal(core.sentences(opticalSentence).length,1);
+ for(const limit of [80,140,180,240,340]){
+  const parts=core.chunks(opticalSentence,limit);assert.equal(parts.join(' '),opticalSentence);
+  const spoken=core.speechText(parts.map(core.speechText).filter(Boolean).join(' '));
+  assert.equal(spoken,core.speechText(opticalSentence));assert.doesNotMatch(spoken,/Franze|Agte|Labin|Zueva|2007|2011|2014/);
+ }
+});
+test('Latin abbreviations and and/or are spoken naturally without changing source sentence boundaries',()=>{
+ const text='Cells act as guides, i.e., optical fibers, and/or light collectors, e.g. Müller cells. A second sentence.';
+ const sentences=core.sentences(text);assert.equal(sentences.length,2);assert.equal(sentences.join(' '),text);
+ assert.equal(core.speechText(sentences[0]),'Cells act as guides, that is, optical fibers, and or light collectors, for example Müller cells.');
+ assert.equal(core.speechText('i. e., cells and / or tissue; e. g., glia.'),'that is, cells and or tissue; for example, glia.');
+});

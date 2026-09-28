@@ -1,5 +1,11 @@
 /* Pure text and selection logic; shared with regression tests. */
 var PaperVoiceCore = (() => {
+  const modes=[
+    {id:'selection',label:'划选即读',short:'划选',icon:'text-select'},
+    {id:'document',label:'全文连读',short:'全文',icon:'file-text'},
+    {id:'paragraph',label:'段落循环',short:'段落',icon:'mode-paragraph'},
+    {id:'sentence',label:'单句精听',short:'单句',icon:'mode-sentence'},
+  ];
   const voices = [
     { id: 'af_heart', label: '美音 · 女声 Heart', accent: 'US', gender: 'female' },
     { id: 'af_bella', label: '美音 · 女声 Bella', accent: 'US', gender: 'female' },
@@ -22,11 +28,15 @@ var PaperVoiceCore = (() => {
     while (text.length > limit) {
       const prefix = text.slice(0, limit + 1);
       let cut = -1;
+      const protectedRanges=protectedTextRanges(text);
+      const safe=cut=>!protectedRanges.some(range=>cut>range.start&&cut<range.end);
       for (const m of prefix.matchAll(/[.!?;:]\s+/g)) {
-        if (m.index >= 70) cut = m.index + 1;
+        if (m.index >= 70&&safe(m.index+1)) cut = m.index + 1;
       }
       if (cut < 0) cut = prefix.lastIndexOf(' ');
       if (cut < 1) cut = limit;
+      const split=protectedRanges.find(range=>cut>range.start&&cut<range.end);
+      if(split)cut=split.start>0?split.start:split.end;
       result.push(text.slice(0, cut).trim());
       text = text.slice(cut).trim();
     }
@@ -36,8 +46,25 @@ var PaperVoiceCore = (() => {
   function sentences(value) {
     const text = cleanText(value);
     if (!text) return [];
-    if (typeof Intl.Segmenter === 'function') return Array.from(new Intl.Segmenter('en', {granularity:'sentence'}).segment(text), x => x.segment.trim()).filter(Boolean);
-    return (text.match(/[^.!?]+(?:[.!?]+(?=\s|$)|$)/g) || [text]).map(x=>x.trim()).filter(Boolean);
+    // Keep source offsets stable while shielding citation/abbreviation dots from segmentation.
+    let mask=text;
+    for(const range of protectedTextRanges(text))mask=mask.slice(0,range.start)+mask.slice(range.start,range.end).replace(/[.!?]/g,'·')+mask.slice(range.end);
+    if (typeof Intl.Segmenter === 'function') return Array.from(new Intl.Segmenter('en', {granularity:'sentence'}).segment(mask), x => text.slice(x.index,x.index+x.segment.length).trim()).filter(Boolean);
+    return Array.from(mask.matchAll(/[^.!?]+(?:[.!?]+(?=\s|$)|$)/g),m=>text.slice(m.index,m.index+m[0].length).trim()).filter(Boolean);
+  }
+  function abbreviationPattern(){return /\b(?:i\s*\.\s*e\s*\.|e\s*\.\s*g\s*\.|et\s+al\s*\.|(?:figs?|eqs?|dr|prof|vs)\.)/gi;}
+  function isAuthorCitation(inside) {
+    const author="[\\p{Lu}][\\p{L}'’.-]+(?:\\s+(?:[\\p{Lu}][\\p{L}'’.-]+|(?:and|&)\\s+[\\p{Lu}][\\p{L}'’.-]+|et\\s+al\\.?))*";
+    const citation=new RegExp('^'+author+',?\\s*(?:18|19|20)\\d{2}[a-z]?(?:\\s*,\\s*(?:18|19|20)\\d{2}[a-z]?)*$','u');
+    return inside.split(/\s*;\s*/).every(part=>citation.test(part.trim())&&!/^(?:January|February|March|April|May|June|July|August|September|October|November|December|Figure|Table|Version|Group|Cohort|Trial)\b/.test(part.trim()));
+  }
+  function protectedTextRanges(text){
+    const ranges=[];
+    for(const m of text.matchAll(/\(([^()]*)\)|[\[【][\d\s,;–−-]+[\]】]/g)){
+      if(!m[1]||isAuthorCitation(m[1]))ranges.push({start:m.index,end:m.index+m[0].length});
+    }
+    for(const m of text.matchAll(abbreviationPattern()))ranges.push({start:m.index,end:m.index+m[0].length});
+    return ranges;
   }
   const superDigits='⁰¹²³⁴⁵⁶⁷⁸⁹';
   const scientificUnits=/^(?:nm|mm|cm|km|um|µm|μm|ml|kg|mg|hz|khz|mhz|ghz|mol|mmol|umol|µmol|μmol)$/i;
@@ -83,23 +110,21 @@ var PaperVoiceCore = (() => {
       if(/\b[\p{L}]$/u.test(before))return whole;
       return '';
     });
-    const author="[A-Z][\\p{L}'’.-]+(?:\\s+(?:[A-Z][\\p{L}'’.-]+|(?:and|&)\\s+[A-Z][\\p{L}'’.-]+|et\\s+al\\.?))*";
-    const citation=new RegExp('^'+author+',?\\s*(?:18|19|20)\\d{2}[a-z]?(?:\\s*,\\s*(?:18|19|20)\\d{2}[a-z]?)*$','u');
-    text=text.replace(/\(([^()]{3,180})\)/g,(whole,inside)=>{
-      const parts=inside.split(/\s*;\s*/);
-      return parts.every(part=>citation.test(part.trim())&&!/^(?:January|February|March|April|May|June|July|August|September|October|November|December|Figure|Table|Version|Group|Cohort|Trial)\b/.test(part.trim()))?'':whole;
-    });
+    text=text.replace(/\(([^()]+)\)/g,(whole,inside)=>isAuthorCitation(inside)?'':whole);
     text=text.replace(/([\p{L}]{3,}[.,;:!?)]*)\s*([⁰¹²³⁴⁵⁶⁷⁸⁹]+(?:\s*[,–−⁻-]\s*[⁰¹²³⁴⁵⁶⁷⁸⁹]+)*)/gu,(whole,word)=>scientificUnits.test(word)?whole:word);
+    text=text.replace(/\band\s*\/\s*or\b/gi,'and or')
+      .replace(/\bi\s*\.\s*e\s*\./gi,'that is')
+      .replace(/\be\s*\.\s*g\s*\./gi,'for example');
     return cleanText(text.replace(/\s+([,.;:!?])/g,'$1'));
   }
   function rate(value) { return Math.max(0.6, Math.min(1.6, Number(value) || 1)); }
   function anchorText(value) { return cleanText(value).normalize('NFKD').replace(/[^\p{L}\p{N}]/gu,'').toLowerCase(); }
   function pageUnits(text,pageIndex) {
     let offset=0,unitInPage=0;
-    return sentences(text).flatMap(sentence=>chunks(sentence).map(part=>{
-      const unit={text:part,sentenceText:sentence,pageIndex,unitInPage:unitInPage++,anchorOffset:offset};
+    return sentences(text).flatMap(sentence=>{const sentenceOffset=offset;return chunks(sentence).map(part=>{
+      const unit={text:part,sentenceText:sentence,pageIndex,unitInPage:unitInPage++,anchorOffset:offset,sentenceOffset};
       offset+=anchorText(part).length;return unit;
-    }));
+    });});
   }
   function resumeUnitIndex(units,saved) {
     if(!units.length)return 0;
@@ -111,6 +136,6 @@ var PaperVoiceCore = (() => {
     if(needle){const at=units.findIndex(unit=>anchorText(unit.text).includes(needle)||needle.includes(anchorText(unit.text)));if(at>=0)return at;}
     return Math.max(0,Math.min(units.length-1,Number.isInteger(saved.unitInPage)?saved.unitInPage:0));
   }
-  return { voices, cleanText, chunks, sentences, rate, speechText, pdfText, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
+  return { modes, voices, cleanText, chunks, sentences, rate, speechText, pdfText, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;
