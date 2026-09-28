@@ -23,6 +23,7 @@ with zipfile.ZipFile(archive) as z:
  assert command.flag_bits&0x800 and command.external_attr>>16&0o111
  assert 'Paper Voice/engine/python/bin/python3' in z.namelist()
  assert not any('harness.js' in n or 'test-profile/' in n for n in z.namelist())
-files=[archive,bundle/f'paper-voice-{version}.xpi',bundle/'updates.json',bundle/'测试报告.md']
+shutil.copy2(bundle/'测试报告.md',out/'TEST-REPORT.md')
+files=[archive,bundle/f'paper-voice-{version}.xpi',bundle/'updates.json',out/'TEST-REPORT.md']
 (out/'SHA256SUMS').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in files))
 print(archive,round(archive.stat().st_size/1024**2,1),'MiB; archive, UTF-8 and executable permissions verified')
