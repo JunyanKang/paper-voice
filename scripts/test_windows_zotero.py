@@ -2,6 +2,7 @@
 from pathlib import Path
 import json,os,subprocess,sys,time,urllib.request
 ROOT=Path(__file__).resolve().parents[1];BUILD=ROOT/'.build';PROFILE=ROOT/'test-profile';RESULTS=ROOT/'test-results'
+(ROOT/'test-library').mkdir(exist_ok=True)
 (PROFILE/'extensions').mkdir(parents=True,exist_ok=True);RESULTS.mkdir(exist_ok=True)
 setup=BUILD/'Zotero-Windows-setup.exe'
 url='https://download.zotero.org/client/beta/10.0.3-beta.2%2B80bc5565e/Zotero-10.0.3-beta.2%2B80bc5565e_x64_setup.exe'
@@ -23,7 +24,7 @@ def wait_json(name,timeout):
  raise TimeoutError(name)
 try:
  first=wait_json('zotero-integration.json',240);print(json.dumps(first),flush=True);assert first['passed'],first
- command="const results=[];for(const file of ['extended-integration.js','document-integration.js','quick-controls-integration.js','citation-highlight-integration.js']){const code=await IOUtils.readUTF8(PaperVoice.testRoot+'/tests/'+file);results.push(await new Function('Zotero','PaperVoice','IOUtils','Services','ChromeUtils','return (async()=>{'+code+'})()')(Zotero,PaperVoice,IOUtils,Services,ChromeUtils));}return results;"
+ command="const results=[];for(const file of ['extended-integration.js','document-integration.js','quick-controls-integration.js','citation-highlight-integration.js','progress-integration.js']){const code=await IOUtils.readUTF8(PaperVoice.testRoot+'/tests/'+file);results.push(await new Function('Zotero','PaperVoice','IOUtils','Services','ChromeUtils','return (async()=>{'+code+'})()')(Zotero,PaperVoice,IOUtils,Services,ChromeUtils));}return results;"
  (RESULTS/'test-command.js').write_text(command,encoding='utf-8')
  result=wait_json('test-command-result.json',480);print(json.dumps(result),flush=True);assert result['ok'],result
  assert all(x['passed'] for x in result['value'])

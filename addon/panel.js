@@ -26,7 +26,7 @@ var PaperVoiceUI = {
     <p class="pv-privacy">仅开启翻译时，将当前句和下一句发送至所选服务。Google 需网络可达。</p>
     <button class="pv-sample" data-action="sample">${icon('headphones')}试听当前声音</button><div class="pv-about"><span>v1.0.0 · Junyan Kang</span><button data-action="help">指南</button><button data-action="feedback">反馈</button><button data-action="privacy">隐私</button></div>
    </div>
-  </section><div class="pv-mini"><div class="pv-quick" data-field="quick" hidden><button data-action="quickPause" aria-label="暂停或继续">${icon('pause')}</button><button data-action="quickStop" aria-label="停止朗读">${icon('square')}</button><button data-action="quickTranslate" aria-label="切换跟读翻译" title="译文开关 · Option/Alt + T">${icon('languages')}</button></div><button class="pv-orb" data-action="orb" aria-label="展开 Paper Voice 朗读面板" title="Paper Voice · 点击展开听读"><img class="pv-mascot" src="${controller.assetURI}mascot.png" alt="Paper Voice 书页精灵"/><span class="pv-dot"></span></button></div>`;
+  </section><div class="pv-mini"><div class="pv-quick" data-field="quick" hidden><button data-action="quickPause" aria-label="暂停或继续">${icon('pause')}</button><button data-action="quickStop" aria-label="停止朗读">${icon('square')}</button><button data-action="quickTranslate" aria-label="切换跟读翻译" title="译文开关 · Option/Alt + T">${icon('languages')}</button></div><button class="pv-orb" data-action="orb" aria-label="展开 Paper Voice 朗读面板" title="Paper Voice · 点击展开听读"><img class="pv-mascot" src="${controller.assetURI}mascot.png" alt="Paper Voice 书页精灵"/><img class="pv-mascot pv-mascot-reading" src="${controller.assetURI}mascot-reading.png" alt=""/><span class="pv-waves" aria-hidden="true"><i></i><i></i><i></i></span><span class="pv-dot"></span></button></div>`;
   const find=name=>root.querySelector(`[data-field="${name}"]`),action=name=>root.querySelector(`[data-action="${name}"]`),panel=root.querySelector('.pv-panel');
   for(const v of PaperVoiceCore.voices){const o=doc.createElement('option');o.value=v.id;o.textContent=v.label;find('voice').append(o);}
   const settings=(open)=>{find('home').hidden=open;find('settingsPage').hidden=!open;action('settings').querySelector('img').src=controller.assetURI+'icons/'+(open?'chevron-left':'settings')+'.svg';action('settings').setAttribute('aria-label',open?'返回播放控制':'声音与翻译设置');};
@@ -37,12 +37,12 @@ var PaperVoiceUI = {
   action('quickTranslate').onclick=()=>controller.toggleTranslation();
   find('target').onchange=e=>{controller.set('translationTarget',e.target.value);controller.translationTicket++;controller.hideTranslation();controller.syncSettings();if(controller.get('translation',false))controller.toggleTranslation(true);};
   find('provider').onchange=e=>{controller.set('translationProvider',e.target.value);controller.translationTicket++;controller.hideTranslation();controller.syncSettings();if(controller.get('translation',false))controller.toggleTranslation(true);};
-  find('voice').onchange=e=>{controller.set('voice',e.target.value);controller.stop();controller.syncSettings();controller.setStatus('声音已切换，点击试听或重新开始');};
+  find('voice').onchange=e=>{controller.set('voice',e.target.value);controller.syncSettings();controller.setStatus('声音已保存，下次开始朗读生效');};
   find('rate').oninput=e=>{controller.set('rate',PaperVoiceCore.rate(e.target.value));controller.syncSettings();};
-  find('rate').onchange=()=>{controller.stop();controller.setStatus('语速已更新，下次朗读生效');};
+  find('rate').onchange=()=>{controller.setStatus('语速已更新，下次开始朗读生效');};
   find('repeat').onchange=e=>{controller.set('repeat',Number(e.target.value));controller.stop();controller.syncSettings();};
-  find('documentStart').onchange=e=>{controller.set('documentStart',e.target.value);controller.stop();controller.syncSettings();};
-  find('auto').onchange=e=>{controller.set('auto',e.target.checked);controller.clearSelectionTimers();if(!e.target.checked)controller.stop();controller.syncSettings();};
+  find('documentStart').onchange=e=>{controller.set('documentStart',e.target.value);controller.syncSettings();};
+  find('auto').onchange=e=>{controller.set('auto',e.target.checked);controller.clearSelectionTimers();if(!e.target.checked&&controller.playbackMode!=='document')controller.stop();controller.syncSettings();};
   find('mode').onchange=e=>{controller.stop();controller.set('mode',e.target.value);controller.sentenceIndex=0;controller.syncSettings();controller.setStatus(controller.modeHint());};
   action('primary').onclick=()=>controller.primary(reader);action('previous').onclick=()=>controller.stepSentence(-1,reader);action('next').onclick=()=>controller.stepSentence(1,reader);
   action('stop').onclick=action('quickStop').onclick=()=>controller.stop();action('quickPause').onclick=()=>controller.togglePause();

@@ -76,10 +76,11 @@ var PaperVoiceCore = (() => {
   }
   function speechText(value) {
     let text=cleanText(value);
-    text=text.replace(/[\[【]([1-9]\d{0,2}(?:\s*[,;–−-]\s*[1-9]\d{0,2})*)[\]】]/g,(whole,numbers,index)=>{
+    text=text.replace(/[\[【]\s*(\d+(?:\s*[,;–−-]\s*\d+)*)\s*[\]】]/g,(whole,numbers,index)=>{
       const before=text.slice(Math.max(0,index-60),index);
-      if(/[=<>∈]\s*$/.test(before)||/\b(?:range|interval|vector|matrix|array|coordinates?|indices|index|bounds?|values?|set)\s*(?:(?:of|is|are)\s*)?[:=]?\s*$/i.test(before))return whole;
-      if(/[\p{L}\d]\[[^\]]*$/u.test(before)||/\b[\p{L}]\s*$/u.test(before))return whole;
+      // Keep attached mathematical subscripts; standalone numeric brackets are silent,
+      // including zero-based lists such as [0, 1], as requested for paper narration.
+      if(/\b[\p{L}]$/u.test(before))return whole;
       return '';
     });
     const author="[A-Z][\\p{L}'’.-]+(?:\\s+(?:[A-Z][\\p{L}'’.-]+|(?:and|&)\\s+[A-Z][\\p{L}'’.-]+|et\\s+al\\.?))*";
@@ -92,6 +93,24 @@ var PaperVoiceCore = (() => {
     return cleanText(text.replace(/\s+([,.;:!?])/g,'$1'));
   }
   function rate(value) { return Math.max(0.6, Math.min(1.6, Number(value) || 1)); }
-  return { voices, cleanText, chunks, sentences, rate, speechText, pdfText, markSelectedSuperscripts };
+  function anchorText(value) { return cleanText(value).normalize('NFKD').replace(/[^\p{L}\p{N}]/gu,'').toLowerCase(); }
+  function pageUnits(text,pageIndex) {
+    let offset=0,unitInPage=0;
+    return sentences(text).flatMap(sentence=>chunks(sentence).map(part=>{
+      const unit={text:part,sentenceText:sentence,pageIndex,unitInPage:unitInPage++,anchorOffset:offset};
+      offset+=anchorText(part).length;return unit;
+    }));
+  }
+  function resumeUnitIndex(units,saved) {
+    if(!units.length)return 0;
+    if(Number.isInteger(saved.anchorOffset)&&saved.anchorOffset>=0){
+      const at=units.findIndex(unit=>unit.anchorOffset+anchorText(unit.text).length>saved.anchorOffset);
+      if(at>=0)return at;
+    }
+    const needle=anchorText(saved.text||'');
+    if(needle){const at=units.findIndex(unit=>anchorText(unit.text).includes(needle)||needle.includes(anchorText(unit.text)));if(at>=0)return at;}
+    return Math.max(0,Math.min(units.length-1,Number.isInteger(saved.unitInPage)?saved.unitInPage:0));
+  }
+  return { voices, cleanText, chunks, sentences, rate, speechText, pdfText, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;

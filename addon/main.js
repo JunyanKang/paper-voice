@@ -5,7 +5,7 @@ var PaperVoice = {
   panels: new Map(), windows: new Map(), readerHooks: new Map(),
   generation: 0, process: null, processStart: null, pending: new Map(), sequence: 0,
   audio: null, audioURL: null, lastText: '', currentReader: null, state: 'idle', status: '拖选 PDF 英文，松开鼠标即可朗读',
-  lastSelections: new Map(), timers: new Map(), dead: false, translationTicket: 0,
+  lastSelections: new Map(), selectionContexts: new Map(), timers: new Map(), dead: false, translationTicket: 0,
   get(name, fallback) { return Zotero.Prefs.get(this.prefix + name, true) ?? fallback; },
   set(name, value) { Zotero.Prefs.set(this.prefix + name, name==='rate'?String(value):value, true); },
   get host() { return Zotero.getMainWindow(); },
@@ -16,7 +16,8 @@ var PaperVoice = {
     Zotero.Reader.registerEventListener('renderTextSelectionPopup', this.selectionHandler, this.id);
     Zotero.Reader.registerEventListener('renderToolbar', this.toolbarHandler, this.id);
     this.tabObserver = Zotero.Notifier.registerObserver({notify: (event, type) => {
-      if (type === 'tab' && (event === 'select' || event === 'close')) this.stop();
+      if(type==='tab' && event==='select' && this.playbackMode!=='document')this.stop();
+      // Reader disposal is handled by detachReader; unrelated tabs cannot stop a book.
     }}, ['tab'], 'paper-voice-tabs');
     for (const win of Zotero.getMainWindows()) this.addWindow(win);
     for (const reader of Zotero.Reader._readers) this.attachReader(reader);
@@ -55,8 +56,7 @@ var PaperVoice = {
         if (d !== doc) {
           this.lastSelections.delete(reader);
           this.clearSelectionTimers();
-          // Stop immediately on a new PDF gesture; never queue overlapping speech.
-          if (this.currentReader === reader) this.stop();
+          if (this.currentReader === reader && this.playbackMode !== 'document') this.stop();
         }
       };
       const key = e => {
@@ -80,7 +80,7 @@ var PaperVoice = {
     for (const h of this.readerHooks.get(reader) || []) {
       try { h.doc.removeEventListener('pointerdown', h.down, true); h.doc.removeEventListener('keydown', h.key, true); } catch (_) {}
     }
-    this.readerHooks.delete(reader); this.lastSelections.delete(reader);
+    this.readerHooks.delete(reader); this.lastSelections.delete(reader);this.selectionContexts.delete(reader);
     this.panels.get(reader)?.root.remove(); this.panels.delete(reader);
     if (this.currentReader === reader) this.stop();
   },
@@ -110,9 +110,10 @@ var PaperVoice = {
     this.lastText = text; this.lastReader = reader;
     const button = doc.createElement('button'); button.dataset.paperVoice = 'selection';
     button.textContent = '▶ 自然朗读'; button.style.cssText = 'padding:5px 10px;cursor:pointer;';
-    button.addEventListener('click', e => { e.stopPropagation(); this.clearSelectionTimers(); this.speak(text, reader); });
+    button.addEventListener('click', e => { e.stopPropagation(); this.clearSelectionTimers(); if(this.get('mode','selection')==='document'){this.stop();this.set('mode','selection');this.syncSettings();}this.speak(text, reader); });
     append(button);
     this.selectedPage=params.annotation?.position?.pageIndex ?? null;
+    this.selectionContexts.set(reader,{text,pageIndex:this.selectedPage});
     if (!this.get('auto', true) || this.get('mode','selection')==='document') return;
     const key = text + JSON.stringify(params.annotation?.position || {});
     if (this.lastSelections.get(reader) === key) return;
@@ -120,7 +121,7 @@ var PaperVoice = {
     this.clearSelectionTimers();
     const timer = this.host.setTimeout(() => {
       this.timers.delete(reader);
-      if (!this.dead && this.get('auto', true)) this.speak(text, reader);
+      if (!this.dead && this.get('auto', true) && this.get('mode','selection')!=='document') this.speak(text, reader);
     }, 280);
     this.timers.set(reader, timer);
   },
@@ -186,6 +187,7 @@ var PaperVoice = {
   },
   async startDocument(reader, origin='begin') {
     this.stop(false);const generation=this.generation;this.currentReader=reader;this.ensurePanel(reader);
+    this.playbackMode='document';
     this.setStatus('正在读取 PDF 正文…','loading');
     try {
       const pdf=reader._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfDocument;
@@ -201,7 +203,9 @@ var PaperVoice = {
         if(generation!==this.generation || this.dead)return;
         const text=PaperVoiceCore.pdfText(content.items);
         if(!text)empty++;
-        let unitInPage=0;for(const sentence of PaperVoiceCore.sentences(text))for(const part of PaperVoiceCore.chunks(sentence)){if(!(origin==='resume' && i===startPage+1 && unitInPage<(saved.unitInPage||0)))units.push({text:part,sentenceText:sentence,pageIndex:i-1,unitInPage});unitInPage++;}
+        const pageUnits=PaperVoiceCore.pageUnits(text,i-1);
+        const from=origin==='resume'&&i===startPage+1?PaperVoiceCore.resumeUnitIndex(pageUnits,saved):0;
+        units.push(...pageUnits.slice(from));
         this.setStatus(`正在读取第 ${i}/${pdf.numPages} 页…`,'loading');
       }
       if(generation!==this.generation)return;
@@ -296,16 +300,22 @@ var PaperVoice = {
     if(!PaperVoiceCore.speechText(text)){this.setStatus('选区仅包含引文标记，无需朗读','idle');return;}
     if(!/[a-zA-Z]/.test(text)){this.setStatus('请选择英文正文；扫描 PDF 需要先做文字识别','error');return;}
     const mode=sample?'selection':this.get('mode','selection');
+    this.setStatus('正在定位所选文字…','loading');
     let sentences=PaperVoiceCore.sentences(text);
     if(mode==='sentence')sentences=[sentences[this.sentenceIndex||0] || sentences[0]];
-    const units=sentences.flatMap(x=>PaperVoiceCore.chunks(x).map(part=>({text:part,sentenceText:x,pageIndex:this.selectedPage ?? null})));
+    this.playbackMode=mode;
+    const context=this.selectionContexts.get(reader);
+    const pageIndex=context?.pageIndex ?? (reader._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfViewer?.currentPageNumber||1)-1;
+    const units=sentences.flatMap(x=>PaperVoiceCore.chunks(x).map(part=>({text:part,sentenceText:x,pageIndex})));
+    if(!sample)await this.locateSelectionUnits(reader,units,context?.text||text,generation);
+    if(generation!==this.generation)return;
     const loops=['sentence','paragraph'].includes(mode)?Number(this.get('repeat',0)):1;
     return this.runUnits(units,reader,generation,{mode,loops,sample});
   },
   async runUnits(units,reader,generation,{mode,loops,sample=false}) {
     units=units.filter(unit=>PaperVoiceCore.speechText(unit.text));
     if(!units.length){this.setStatus('选区仅包含引文标记，无需朗读','idle');return;}
-    this.setStatus('正在准备自然语音…','loading');
+    if(this.state!=='paused')this.setStatus('正在准备自然语音…','loading');
     const voice=this.get('voice','af_heart'),rate=PaperVoiceCore.rate(this.get('rate',1));
     const cache=new Map();let lastPage=null;
     const prepare=unit=>{
@@ -326,7 +336,6 @@ var PaperVoice = {
           const hasNext=i+1<units.length || loops===0 || cycle+1<loops;
           if(hasNext)next=prepare(units[(i+1)%units.length]);
           const unit=units[i];this.currentSentence=unit.text;this.currentUnit=unit;this.readProgress={current:i+1,total:units.length};
-          if(mode==='document' && reader.itemID)this.set('progress.'+reader.itemID,JSON.stringify({pageIndex:unit.pageIndex,unitInPage:unit.unitInPage||0}));
           if(mode==='document' && unit.pageIndex!==lastPage){reader.navigate({pageIndex:unit.pageIndex});lastPage=unit.pageIndex;}
           const sentenceTicket=++this.translationTicket;
           if(this.get('translation',false)&&!sample){
@@ -339,12 +348,49 @@ var PaperVoice = {
           const suffix=['sentence','paragraph'].includes(mode)?` · 第 ${cycle+1}${loops?'/'+loops:''} 遍`:'';
           await this.highlightSentence?.(reader,unit,generation);
           if(generation!==this.generation||this.dead)return;
+          this.pendingProgress=sample?null:{reader,unit,generation,mode};
           await this.playAudio(result.audio,reader,generation,`${prefix}正在朗读 ${i+1}/${units.length}${suffix}`);
           if(generation!==this.generation || this.dead)return;
         }
       }
       if(generation===this.generation){this.releaseAudio();this.clearSentenceHighlight?.();this.setStatus(mode==='document'&&this.documentEmptyPages?`朗读完成 · ${this.documentEmptyPages} 页无文字，已跳过`:'朗读完成 · 可以继续划选下一段','idle');}
     }catch(error){if(generation===this.generation && !this.dead){this.releaseAudio();this.clearSentenceHighlight?.();this.setStatus(error.message || String(error),'error');Zotero.logError(error);}}
+  },
+  async locateSelectionUnits(reader,units,selection,generation) {
+    const pdf=reader._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfDocument;
+    if(!pdf)return;
+    let pageIndex=units[0]?.pageIndex||0,offset=0;
+    const pages=new Map();
+    const getText=async index=>{
+      if(!pages.has(index)){
+        const page=Components.utils.waiveXrays(await pdf.getPage(index+1));
+        pages.set(index,PaperVoiceCore.anchorText(PaperVoiceCore.pdfText((await page.getTextContent()).items)));
+      }
+      return pages.get(index);
+    };
+    try{
+      const full=await getText(pageIndex),start=full.indexOf(PaperVoiceCore.anchorText(selection));
+      if(start>=0)offset=start;
+      for(const unit of units){
+        const needle=PaperVoiceCore.anchorText(unit.text);
+        // A selected sentence may cross a page boundary. Its leading words anchor it.
+        for(let page=pageIndex;page<pdf.numPages;page++){
+          if(generation!==this.generation)return;
+          const haystack=await getText(page),from=page===pageIndex?offset:0;
+          let at=haystack.indexOf(needle,from);
+          if(at<0&&needle.length>64)at=haystack.indexOf(needle.slice(0,64),from);
+          if(at<0)continue;
+          unit.pageIndex=page;unit.anchorOffset=at;
+          pageIndex=page;offset=at+needle.length;break;
+        }
+      }
+    }catch(error){Zotero.logError(error);}
+  },
+  rememberPlayback(progress) {
+    if(!progress || progress.generation!==this.generation || !progress.reader.itemID)return;
+    const {unit,reader,mode}=progress;
+    if(!Number.isInteger(unit.pageIndex))return;
+    this.set('progress.'+reader.itemID,JSON.stringify({version:2,pageIndex:unit.pageIndex,unitInPage:unit.unitInPage,anchorOffset:unit.anchorOffset,text:unit.text,mode,updatedAt:Date.now()}));
   },
   playAudio(encoded, reader, generation, message) {
     const win = this.host;
@@ -355,9 +401,11 @@ var PaperVoice = {
     const blob = new win.Blob([bytes], {type:'audio/wav'});
     this.audioURL = win.URL.createObjectURL(blob); this.audioWindow = win;
     const audio = new win.Audio(this.audioURL); this.audio = audio;
+    const progress=this.pendingProgress;
     return new Promise((resolve,reject) => {
       this.audioDone = resolve;
       audio.onended = resolve;
+      audio.onplaying = () => this.rememberPlayback(progress);
       audio.onerror = () => reject(new Error('无法播放音频，请检查音频输出后重试'));
       this.resumeStatus = message;
       this.setStatus(paused ? '已暂停，点击继续' : message, paused ? 'paused' : 'playing');
@@ -373,13 +421,13 @@ var PaperVoice = {
     }
   },
   releaseAudio() {
-    if (this.audio) { this.audio.pause(); this.audio.onended=null; this.audio.onerror=null; this.audio.removeAttribute('src'); this.audio.load(); }
+    if (this.audio) { this.audio.pause(); this.audio.onended=null; this.audio.onerror=null;this.audio.onplaying=null; this.audio.removeAttribute('src'); this.audio.load(); }
     this.audio = null;
     if (this.audioURL) { try { this.audioWindow.URL.revokeObjectURL(this.audioURL); } catch (_) {} this.audioURL=null; }
     this.audioDone?.(); this.audioDone=null;
   },
   stop(show = true) {
-    this.generation++; this.translationTicket++; this.currentUnit=null; this.clearSelectionTimers(); this.releaseAudio();
+    this.generation++; this.translationTicket++; this.currentUnit=null;this.pendingProgress=null;this.playbackMode=null; this.clearSelectionTimers(); this.releaseAudio();
     this.hideTranslation?.();this.clearSentenceHighlight?.();
     this.state = 'idle';
     if (show) this.setStatus('已停止 · 拖选下一段即可朗读','idle');

@@ -77,3 +77,32 @@ test('speech drops citations while keeping original sentence for highlighting',a
  assert.deepEqual(played,['Retinal cells detect light.']);assert.match(highlighted[0],/\[1–3\]/);
  played.length=0;await p.speak('[12]',{});assert.equal(played.length,0);assert.equal(p.state,'idle');
 });
+function progressReader(id=42){return {itemID:id,navigate(){},_internalReader:{_primaryView:{_iframeWindow:{PDFViewerApplication:{pdfViewer:{currentPageNumber:1},pdfDocument:{numPages:2,getPage:async n=>({getTextContent:async()=>({items:[{str:n===1?'First sentence. Second sentence.':'Neural signals travel to the brain. The final sentence.'}]})})}}}}}};}
+test('resume follows the latest actual reading in every mode, including partial sentences',async()=>{
+ const {p,played}=setup(),r=progressReader();p.synthesize=async text=>({audio:text});
+ p.playAudio=async text=>{p.rememberPlayback(p.pendingProgress);played.push(text);};
+ for(const mode of ['selection','paragraph','sentence']){
+  p.set('mode',mode);p.set('repeat',1);p.selectionContexts.set(r,{text:'travel to the brain.',pageIndex:1});
+  await p.speak('travel to the brain.',r);
+  const saved=JSON.parse(p.get('progress.42'));assert.equal(saved.pageIndex,1);assert.equal(saved.mode,mode);assert.ok(saved.anchorOffset>0);
+  p.set('mode','document');played.length=0;await p.startDocument(r,'resume');
+  assert.deepEqual(played,['Neural signals travel to the brain.','The final sentence.']);
+ }
+});
+test('progress is isolated by PDF; loading, stopped and sample speech cannot overwrite it',async()=>{
+ const {p,generated}=setup(),r=progressReader(),other=progressReader(43);p.set('progress.42','original');
+ p.selectionContexts.set(r,{text:'First sentence.',pageIndex:0});
+ const speech=p.speak('First sentence.',r);await tick();assert.equal(p.get('progress.42'),'original');p.stop();generated[0].resolve();await speech;
+ p.rememberPlayback({reader:r,unit:{pageIndex:0,text:'Old'},generation:p.generation-1,mode:'selection'});assert.equal(p.get('progress.42'),'original');
+ p.synthesize=async text=>({audio:text});p.playAudio=async()=>p.rememberPlayback(p.pendingProgress);
+ await p.speak('A sample voice.',r,true);assert.equal(p.get('progress.42'),'original');
+ await p.speak('First sentence.',other);assert.equal(p.get('progress.42'),'original');assert.equal(JSON.parse(p.get('progress.43')).text,'First sentence.');
+});
+test('ordinary PDF pointer gestures do not cancel full document playback',()=>{
+ const {p}=setup();let down;
+ const inner={addEventListener:(event,handler)=>{if(event==='pointerdown')down=handler;}};
+ const outer={body:{},addEventListener(){},querySelectorAll:()=>[{contentDocument:inner}],querySelector:()=>({})};
+ const r={_iframeWindow:{document:outer}};p.attachReader(r);p.currentReader=r;p.playbackMode='document';p.state='playing';const generation=p.generation;
+ down({target:{closest:()=>null}});assert.equal(p.generation,generation);assert.equal(p.state,'playing');
+ p.playbackMode='selection';down({target:{closest:()=>null}});assert.equal(p.state,'idle');
+});

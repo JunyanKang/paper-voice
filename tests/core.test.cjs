@@ -19,7 +19,7 @@ test('sentences preserve decimal values and scientific wording',()=>{
 });
 test('reference markers are skipped without dropping scientific values',()=>{
  assert.equal(core.speechText('Retinal development [1, 2–5] depends on glia (Smith et al., 2020; Jones & Brown, 2018).'),'Retinal development depends on glia.');
- assert.equal(core.speechText('The interval [0, 1], vector [1, 2], x[1], SOX2, Ca2+, 10³ and mm² remain.'),'The interval [0, 1], vector [1, 2], x[1], SOX2, Ca2+, 10³ and mm² remain.');
+ assert.equal(core.speechText('The interval [0, 1], vector [1, 2], x[1], SOX2, Ca2+, 10³ and mm² remain.'),'The interval, vector, x[1], SOX2, Ca2+, 10³ and mm² remain.');
  assert.equal(core.speechText('Retinal development¹² improves vision [3].'),'Retinal development improves vision.');
  assert.equal(core.speechText('January (2020), (January 2020), n = 12, and p < 0.05.'),'January (2020), (January 2020), n = 12, and p < 0.05.');
  assert.equal(core.speechText('[12]'),'');
@@ -30,4 +30,9 @@ test('PDF geometry distinguishes citation superscripts from baseline numbers and
  assert.equal(core.markSelectedSuperscripts('development12 requires cells.',items),'development¹² requires cells.');
  items[1].height=12;items[1].transform[5]=100;assert.match(core.pdfText(items),/12/);
  items[0].str='mm';items[1].height=7;items[1].transform[5]=104;assert.match(core.pdfText(items),/12/);
+});
+
+test('zero-based numeric citation lists are silent',()=>{
+ for(const marker of ['[0, 1]','[ 0, 1 ]','[0]','[0–3]','【0, 1】','[1,2,3]'])assert.equal(core.speechText('Cells '+marker+' detect light.'),'Cells detect light.');
+ assert.equal(core.speechText('[0, 1]'),'');
 });

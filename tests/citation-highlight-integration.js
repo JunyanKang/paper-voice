@@ -8,7 +8,7 @@ p.playAudio=function(...args){played.push({text:this.currentSentence,markers:thi
 try{
  await p.startDocument(r);
  check('Spoken text skips PDF superscript, numeric and author-year citations',generated.length===3&&!generated.some(x=>/¹|¹²|\[2|Smith|2020/.test(x))&&generated[0]==='Retinal development requires glia.',{generated});
- check('Scientific gene, numeric interval and units remain audible',generated[1].includes('SOX2')&&generated[2].includes('[0, 1]')&&generated[2].includes('20 mm2'));
+ check('Numeric brackets including zero are silent; genes and units remain audible',generated[1].includes('SOX2')&&!generated[2].includes('[0, 1]')&&generated[2].includes('20 mm2'));
  check('Every sentence receives background highlight with translation disabled',played.length===3&&played.every(x=>x.markers>0&&!x.translationVisible),{played});
  check('Highlight moves to the next sentence',new Set(played.map(x=>Math.round(x.top))).size===3);
  check('Natural completion removes temporary highlight',!p.sentenceHighlight);
