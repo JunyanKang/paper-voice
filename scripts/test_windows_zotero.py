@@ -24,7 +24,7 @@ def wait_json(name,timeout):
  raise TimeoutError(name)
 try:
  first=wait_json('zotero-integration.json',240);print(json.dumps(first),flush=True);assert first['passed'],first
- command="const results=[];for(const file of ['extended-integration.js','document-integration.js','quick-controls-integration.js','citation-highlight-integration.js','progress-integration.js','follow-mode-integration.js']){const code=await IOUtils.readUTF8(PaperVoice.testPath('tests/'+file));results.push(await new Function('Zotero','PaperVoice','IOUtils','Services','ChromeUtils','return (async()=>{'+code+'})()')(Zotero,PaperVoice,IOUtils,Services,ChromeUtils));}return results;"
+ command="const results=[];for(const file of ['extended-integration.js','document-integration.js','quick-controls-integration.js','citation-highlight-integration.js','progress-integration.js','follow-mode-integration.js','floating-translation-integration.js']){const code=await IOUtils.readUTF8(PaperVoice.testPath('tests/'+file));results.push(await new Function('Zotero','PaperVoice','IOUtils','Services','ChromeUtils','return (async()=>{'+code+'})()')(Zotero,PaperVoice,IOUtils,Services,ChromeUtils));}return results;"
  (RESULTS/'test-command.js').write_text(command,encoding='utf-8')
  result=wait_json('test-command-result.json',660);print(json.dumps(result),flush=True);assert result['ok'],result
  assert all(x['passed'] for x in result['value'])

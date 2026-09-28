@@ -134,53 +134,70 @@ var PaperVoiceTranslation = {
  },
  showTranslation(reader,unit,text,source='') {
   if(!this.get('translation',false))return;
-  this.hideTranslation();
   const frame=reader._internalReader?._primaryView?._iframe,doc=reader._iframeWindow.document;
   if(!frame)return;
-  const box=doc.createElement('div');box.dataset.paperVoice='translation';box.className='pv-caption';
-  box.style.cssText='position:absolute;z-index:20;box-sizing:border-box;padding:12px 17px;background:light-dark(#f8faf5,#24372f);color:light-dark(#253c33,#edf2e9);border:1px solid #92a89a66;border-radius:10px;font:15px/1.65 system-ui,sans-serif;box-shadow:0 3px 14px #15342917;overflow:auto;scrollbar-width:none;';
-  const english=doc.createElement('div');english.style.cssText='font-size:12px;line-height:1.45;opacity:.65;margin-bottom:5px;max-height:38px;overflow:auto;scrollbar-width:none;';english.textContent=unit.text;
-  const chinese=doc.createElement('div');chinese.textContent=text;
-  const credit=doc.createElement('div');credit.style.cssText='font-size:10px;opacity:.6;margin-top:5px;';credit.textContent=source || '跟读译文';
-  box.append(english,chinese,credit);
-  const parent=frame.parentElement,frameRect=frame.getBoundingClientRect();
-  const match=this.findSentence(reader,unit);
-  // Use a local gap only if the complete caption fits above every subsequent visible text line.
-  const last=match?.rects.at(-1);let inline=false;
-  const blankCanvas=(left,top,width,height)=>{
+  let c=this.caption;
+  if(c?.reader!==reader){this.hideTranslation();c=null;}
+  if(!c){
+   const box=doc.createElement('div');box.dataset.paperVoice='translation';box.className='pv-caption';
+   box.setAttribute('role','status');box.setAttribute('aria-label','跟读译文');
+   box.style.cssText='position:absolute;z-index:20;box-sizing:border-box;padding:12px 14px;background:light-dark(#f8faf5,#24372f);color:light-dark(#253c33,#edf2e9);border:0;border-radius:12px;font:14px/1.65 system-ui,sans-serif;box-shadow:0 4px 20px #15342922;overflow:auto;scrollbar-width:none;overflow-wrap:anywhere;';
+   const original={height:frame.style.height,width:frame.style.width,display:frame.style.display};
+   const pdfWindow=reader._internalReader._primaryView._iframeWindow;
+   c=this.caption={box,frame,original,reader,pdfWindow,inline:true,gutter:0,timer:null};
+   frame.parentElement.append(box);
+   c.layout=()=>{if(c.timer!==null)return;c.timer=doc.defaultView.setTimeout(()=>{c.timer=null;this.positionTranslation(c);},35);};
+   pdfWindow.addEventListener('scroll',c.layout,true);pdfWindow.addEventListener('resize',c.layout);
+  }
+  c.unit=unit;c.box.textContent=text;c.box.title=source||'跟读译文';c.box.dataset.provider=source;
+  this.positionTranslation(c);
+ },
+ positionTranslation(c) {
+  if(this.caption!==c)return;
+  const {box,frame,reader}=c,match=this.findSentence(reader,c.unit);
+  if(!match){box.style.visibility='hidden';return;}
+  const fr=frame.getBoundingClientRect(),parent=frame.parentElement.getBoundingClientRect();
+  const first=match.rects[0],last=match.rects.at(-1);
+  // Hide only when the source is outside the viewport; never turn into a fixed bottom subtitle.
+  if(last.bottom<0||first.top>fr.height){box.style.visibility='hidden';return;}
+  box.style.visibility='visible';
+  if(!c.gutter){
+   const width=Math.min(360,fr.width-28),left=Math.max(12,Math.min(first.left,fr.width-width-12)),top=last.bottom+8;
+   box.style.width=width+'px';box.style.maxHeight='none';
+   const height=box.getBoundingClientRect().height;
+   const intersects=Array.from(match.page.querySelectorAll('.textLayer span[role="presentation"]')).some(span=>{
+    const r=span.getBoundingClientRect();return r.width>0&&r.height>0&&r.left<left+width&&r.right>left&&r.top<top+height+6&&r.bottom>top-2;
+   });
+   let blank=false;
+   if(!intersects&&top>0&&top+height<fr.height-12){
     try{
-      const canvas=match.page.querySelector('canvas'),r=canvas.getBoundingClientRect();
-      const sx=canvas.width/r.width,sy=canvas.height/r.height;
-      if(left<r.left||top<r.top||left+width>r.right||top+height>r.bottom)return false;
+     const canvas=match.page.querySelector('canvas'),r=canvas.getBoundingClientRect(),sx=canvas.width/r.width,sy=canvas.height/r.height;
+     if(left>=r.left&&top>=r.top&&left+width<=r.right&&top+height<=r.bottom){
       const pixels=canvas.getContext('2d').getImageData(Math.floor((left-r.left)*sx),Math.floor((top-r.top)*sy),Math.ceil(width*sx),Math.ceil(height*sy));
-      for(let y=0;y<pixels.height;y+=5)for(let x=0;x<pixels.width;x+=5){const i=(y*pixels.width+x)*4;if(pixels.data[i+3]>20&&Math.min(pixels.data[i],pixels.data[i+1],pixels.data[i+2])<235)return false;}
-      return true;
-    }catch(_){return false;}
-  };
-  if(last){
-   const following=match.spans.map(s=>s.getBoundingClientRect()).filter(r=>r.top>=last.bottom-1 && r.right>last.left && r.left<last.left+460);
-   const nextTop=Math.min(...following.map(r=>r.top),match.page.getBoundingClientRect().bottom);
-   if(nextTop-last.bottom>150 && last.bottom>0 && last.bottom<frameRect.height-160 && text.length<160 && blankCanvas(Math.max(10,Math.min(last.left,frameRect.width-490)),last.bottom+8,Math.min(480,frameRect.width-30),140)){
-    box.style.width=Math.min(480,frameRect.width-30)+'px';box.style.left=Math.max(10,Math.min(last.left,frameRect.width-490))+'px';box.style.top=(last.bottom+8)+'px';box.style.maxHeight=(Math.min(170,nextTop-last.bottom-16))+'px';
-    parent.append(box);inline=true;
+      blank=true;
+      for(let y=0;y<pixels.height&&blank;y+=4)for(let x=0;x<pixels.width;x+=4){const i=(y*pixels.width+x)*4;if(pixels.data[i+3]>20&&Math.min(pixels.data[i],pixels.data[i+1],pixels.data[i+2])<235){blank=false;break;}}
+     }
+    }catch(_){}
    }
+   if(blank){
+    c.inline=true;box.dataset.placement='below-source';box.style.left=(fr.left-parent.left+left)+'px';box.style.top=(fr.top-parent.top+top)+'px';return;
+   }
+   // Keep a stable margin for the rest of this reading session, so replacing a sentence
+   // does not repeatedly resize the PDF or cover dense text, figures or the next line.
+   c.gutter=Math.min(240,Math.max(184,parent.width*.27));c.inline=false;c.needsFocus=true;
+   frame.style.width='calc(100% - '+c.gutter+'px)';frame.style.display='block';
+   box.style.visibility='hidden';c.layout();return;
   }
-  const original={height:frame.style.height,display:frame.style.display};
-  if(!inline){
-   box.style.cssText+='left:0;right:0;bottom:0;width:auto;height:132px;padding-right:90px;border-radius:0;border-width:1px 0 0;box-shadow:none;';
-   frame.style.height='calc(100% - 132px)';frame.style.display='block';parent.append(box);
-  }
-  const markers=[];
-  // If a page scrolls/zooms, drop positional overlays; keep the reserved caption readable.
-  const cleanupPosition=()=>{markers.forEach(m=>m.remove());if(inline){box.remove();this.showTranslation(reader,{...unit,pageIndex:-1},text,source);}};
-  const pdfWindow=reader._internalReader._primaryView._iframeWindow;
-  pdfWindow.addEventListener('scroll',cleanupPosition,true);pdfWindow.addEventListener('resize',cleanupPosition);
-  this.caption={box,frame,original,markers,pdfWindow,cleanupPosition,inline};
+  box.dataset.placement='source-margin';box.style.width=(c.gutter-16)+'px';box.style.maxHeight=Math.max(80,fr.height-24)+'px';
+  const height=box.getBoundingClientRect().height;
+  box.style.left=(fr.right-parent.left+8)+'px';
+  box.style.top=(fr.top-parent.top+Math.max(12,Math.min(last.bottom+8,fr.height-height-12)))+'px';
+  if(c.needsFocus){c.needsFocus=false;this.focusReadingPosition(match);}
  },
  hideTranslation() {
   const c=this.caption;if(!c)return;this.caption=null;
-  c.pdfWindow.removeEventListener('scroll',c.cleanupPosition,true);c.pdfWindow.removeEventListener('resize',c.cleanupPosition);
-  c.box.remove();c.markers.forEach(x=>x.remove());
-  if(!c.inline){c.frame.style.height=c.original.height;c.frame.style.display=c.original.display;}
+  c.pdfWindow.removeEventListener('scroll',c.layout,true);c.pdfWindow.removeEventListener('resize',c.layout);
+  if(c.timer!==null)c.box.ownerDocument.defaultView.clearTimeout(c.timer);
+  c.box.remove();c.frame.style.height=c.original.height;c.frame.style.width=c.original.width;c.frame.style.display=c.original.display;
  },
 };

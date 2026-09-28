@@ -26,7 +26,7 @@ let result=await p.translate(unit.text);
 await check('Microsoft translation returns Chinese',/[\u4e00-\u9fff]/.test(result.text),result);
 p.showTranslation(r,unit,result.text,result.source);await Zotero.Promise.delay(350);
 const caption=p.caption,fr=caption.frame.getBoundingClientRect(),cr=caption.box.getBoundingClientRect();
-await check('Dense-line caption reserves space below PDF rather than obscuring it',!caption.inline&&fr.bottom<=cr.top+2,{frameBottom:fr.bottom,captionTop:cr.top,caption:caption.box.textContent});
+await check('Dense-line translation uses a margin aligned to the source without covering the PDF',!caption.inline&&fr.right<=cr.left+2,{frameRight:fr.right,captionLeft:cr.left,caption:caption.box.textContent});
 await check('Caption locates actual English sentence',!!p.findSentence(r,unit));
 p.hideTranslation();await check('Stopping subtitles restores PDF viewport',r._internalReader._primaryView._iframe.style.height==='100%');
 p.set('translationProvider','tencenttransmart');result=await p.translate('The results suggest an association, not a causal mechanism.');

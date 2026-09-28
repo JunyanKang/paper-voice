@@ -15,6 +15,6 @@ try{
  check('Local reading remains playable before Google switch',p.state==='playing');p.togglePause();
  const panel=p.panels.get(r);panel.find('provider').value='google';panel.find('provider').onchange({target:panel.find('provider')});p.toggleTranslation(true);
  for(let i=0;i<290&&(!p.caption||p.caption.box.textContent.includes('正在翻译'));i++)await Zotero.Promise.delay(100);
- const caption=p.caption?.box.textContent||'';check('Switching to Google during narration renders Chinese caption',caption.includes('Google')&&/[神经經]/.test(caption),{caption});
+ const caption=p.caption?.box.textContent||'';check('Switching to Google during narration renders Chinese caption',p.caption?.box.dataset.provider.includes('Google')&&/[神经經]/.test(caption),{caption});
  p.stop();await speech;report.passed=report.checks.every(x=>x.ok);return report;
 }finally{p.stop();p.set('translationProvider',old.provider);p.set('translationTarget',old.target);p.set('translation',old.enabled);p.set('mode','selection');p.set('repeat',2);p.syncSettings();await IOUtils.writeUTF8(p.testPath('test-results/google-integration.json'),JSON.stringify(report,null,2));}
