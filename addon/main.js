@@ -417,12 +417,16 @@ var PaperVoice = {
       audio.onerror = () => reject(new Error('无法播放音频，请检查音频输出后重试'));
       this.resumeStatus = message;
       this.setStatus(paused ? '已暂停，点击继续' : message, paused ? 'paused' : 'playing');
-      if (!paused && generation === this.generation) audio.play().catch(reject);
+      if (!paused && generation === this.generation) audio.play().catch(error=>{
+        // A pause while play() is still opening the device rejects with AbortError.
+        // It is a valid paused session, not a synthesis/playback failure.
+        if(generation===this.generation&&this.audio===audio&&this.state!=='paused')reject(error);
+      });
     });
   },
   togglePause() {
     if (this.state === 'paused') {
-      if (this.audio) { this.audio.play().catch(e => this.setStatus(e.message,'error')); this.setStatus(this.resumeStatus || '正在朗读','playing'); }
+      if (this.audio) { const audio=this.audio,generation=this.generation;audio.play().catch(e => {if(this.audio===audio&&this.generation===generation&&this.state!=='paused')this.setStatus(e.message,'error');}); this.setStatus(this.resumeStatus || '正在朗读','playing'); }
       else this.setStatus('正在准备自然语音…','loading');
     } else if (this.state === 'playing' || this.state === 'loading') {
       this.audio?.pause(); this.setStatus('已暂停，点击继续','paused');

@@ -1,6 +1,6 @@
 """Exercise the plugin inside official Windows Zotero with an isolated test library."""
 from pathlib import Path
-import json,os,subprocess,sys,time,urllib.request
+import json,os,platform,subprocess,sys,time,urllib.request
 ROOT=Path(__file__).resolve().parents[1];BUILD=ROOT/'.build';PROFILE=ROOT/'test-profile';RESULTS=ROOT/'test-results'
 (ROOT/'test-library').mkdir(exist_ok=True)
 (PROFILE/'extensions').mkdir(parents=True,exist_ok=True);RESULTS.mkdir(exist_ok=True)
@@ -12,7 +12,7 @@ prefs={'extensions.zotero.dataDir':str(ROOT/'test-library'),'extensions.zotero.u
 (PROFILE/'prefs.js').write_text(''.join('user_pref('+json.dumps(k)+','+json.dumps(v)+');\n' for k,v in prefs.items()), encoding="utf-8")
 subprocess.run([sys.executable,str(ROOT/'scripts/build_test_plugin.py')],check=True)
 log=open(RESULTS/'windows-zotero.log','w',encoding='utf-8')
-proc=subprocess.Popen([str(app/'zotero.exe'),'-wait-for-browser','-no-remote','-profile',str(PROFILE),'-ZoteroDebugText'],stdout=log,stderr=subprocess.STDOUT)
+proc=subprocess.Popen([str(app/'zotero.exe'),'-wait-for-browser','-no-remote','-profile',str(PROFILE),'-ZoteroDebugText'],stdout=log,stderr=subprocess.STDOUT,env={**os.environ,'PAPER_VOICE_HEADLESS_AUDIO':'1'})
 def wait_json(name,timeout):
  path=RESULTS/name;deadline=time.monotonic()+timeout
  while time.monotonic()<deadline:
@@ -28,7 +28,7 @@ try:
  (RESULTS/'test-command.js').write_text(command,encoding='utf-8')
  result=wait_json('test-command-result.json',480);print(json.dumps(result),flush=True);assert result['ok'],result
  assert all(x['passed'] for x in result['value'])
- (RESULTS/'windows-native-passed.json').write_text(json.dumps({'passed':True,'version':first['version'],'platform':sys.platform,'checks':first['checks'],'suites':result['value']},indent=2), encoding="utf-8")
+ (RESULTS/'windows-native-passed.json').write_text(json.dumps({'passed':True,'version':first['version'],'platform':platform.platform(),'audioOutput':first['audioOutput'],'checks':first['checks'],'suites':result['value']},indent=2), encoding="utf-8")
 finally:
  proc.terminate()
  try:proc.wait(timeout=20)

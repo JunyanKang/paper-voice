@@ -7,10 +7,10 @@ function setup(){
  const context={PaperVoiceCore:core,Components:{utils:{waiveXrays:x=>x}},PaperVoiceTranslation:{},Zotero:{Prefs:{get:k=>prefs.get(k),set:(k,v)=>prefs.set(k,v)},getMainWindow:()=>host,logError:e=>errors.push(e)},console};
  vm.createContext(context);vm.runInContext(fs.readFileSync('addon/main.js','utf8'),context);
  const p=context.PaperVoice;p.showPanel=()=>{};p.ensurePanel=()=>{};p.updatePanels=()=>{};
- const generated=[],played=[];
+ const generated=[],played=[],nativePlay=p.playAudio;
  p.synthesize=text=>new Promise((resolve,reject)=>generated.push({text,resolve:()=>resolve({audio:text}),reject}));
  p.playAudio=async audio=>{played.push(audio)};
- return {p,generated,played,errors};
+ return {p,generated,played,errors,host,nativePlay};
 }
 test('rapid re-selection only plays the latest text',async()=>{
  const {p,generated,played}=setup();const a=p.speak('First selection',{});await tick();
@@ -105,4 +105,13 @@ test('ordinary PDF pointer gestures do not cancel full document playback',()=>{
  const r={_iframeWindow:{document:outer}};p.attachReader(r);p.currentReader=r;p.playbackMode='document';p.state='playing';const generation=p.generation;
  down({target:{closest:()=>null}});assert.equal(p.generation,generation);assert.equal(p.state,'playing');
  p.playbackMode='selection';down({target:{closest:()=>null}});assert.equal(p.state,'idle');
+});
+
+test('pausing before media play resolves remains paused and does not save unheard progress',async()=>{
+ const {p,host,nativePlay}=setup();let rejectPlay;
+ host.atob=()=>'';host.Blob=class {};host.URL={createObjectURL:()=> 'blob:test',revokeObjectURL(){}};
+ host.Audio=class {play(){return new Promise((resolve,reject)=>{rejectPlay=reject;});}pause(){}removeAttribute(){}load(){}};
+ p.pendingProgress={reader:{itemID:42},unit:{pageIndex:0,text:'Sentence.'},generation:p.generation};
+ const audio=nativePlay.call(p,'',{},p.generation,'Playing');p.togglePause();rejectPlay(new Error('AbortError'));await tick();
+ assert.equal(p.state,'paused');assert.equal(p.get('progress.42'),undefined);p.stop();await audio;
 });
