@@ -27,7 +27,7 @@ test('synchronous check failure clears the timeout and reports an error',async()
 test('timeout cancels the native request and ignores a late available callback',async()=>{
  let callback,listener,cancelled=false;const {p,addon}=setup(l=>{listener=l;});
  addon.cancelUpdate=()=>{cancelled=true;};p.host={setTimeout:fn=>{callback=fn;return 1;},clearTimeout(){}};
- const task=p.checkForUpdates();await Promise.resolve();callback();await task;
+ const task=p.checkForUpdates();await new Promise(resolve=>setImmediate(resolve));callback();await task;
  listener.onUpdateAvailable({}, {version:'99'});listener.onUpdateFinished({},0);
  assert.equal(cancelled,true);assert.equal(p.updateState,'error');assert.equal(p.updateInstall,null);
 });

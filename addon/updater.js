@@ -15,7 +15,8 @@ var PaperVoiceUpdater = {
   try{
    const manager=this.addonManager(),addon=await manager.getAddonByID(this.id);if(!addon)return;
    this.installedVersion=addon.version;
-   this.updateAuto=addon.applyBackgroundUpdates===manager.AUTOUPDATE_DEFAULT?manager.shouldAutoUpdate(addon):addon.applyBackgroundUpdates===manager.AUTOUPDATE_ENABLE;
+   const policy=Number(addon.applyBackgroundUpdates);
+   this.updateAuto=policy===manager.AUTOUPDATE_DEFAULT?manager.shouldAutoUpdate(addon):policy===manager.AUTOUPDATE_ENABLE;
    if(this.updateState==='idle')this.updateMessage=manager.updateEnabled===false?'Zotero 的插件更新已关闭，可手动检查':this.updateAuto?'自动更新已开启 · 由 Zotero 定期检查':'自动更新已关闭 · 可随时手动检查';
    this.updateUpdateControls();
   }catch(_){this.setUpdateState('error','暂时无法读取更新设置');}
