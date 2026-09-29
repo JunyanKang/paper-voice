@@ -122,16 +122,15 @@ var PaperVoiceCore = (() => {
   }
   function protectedTextRanges(text){
     const ranges=[];
-    for(const m of text.matchAll(/\(([^()]*)\)|[\[【][\d\s,;–−-]+[\]】]/g)){
-      if(!m[1])ranges.push({start:m.index,end:m.index+m[0].length});
-      else {
-        const citations=parentheticalCitationRanges(m[1]);
-        if(citations.length){
-          // Protect the complete aside during chunking; silence only citation spans.
-          ranges.push({start:m.index,end:m.index+m[0].length});
-          if(citations[0].start===0&&citations[0].end===m[1].length)ranges[ranges.length-1].silent=true;
-          else for(const range of citations)ranges.push({start:m.index+1+range.start,end:m.index+1+range.end,silent:true});
-        }
+    // Scan bracket types independently so an author-year group inside a scientific
+    // parenthetical remains protected and silent across page/column boundaries.
+    for(const pattern of [/\(([^()]*)\)/g,/\[([^\[\]]*)\]|【([^【】]*)】/g])for(const m of text.matchAll(pattern)){
+      const inside=m[1]??m[2],numeric=m[0][0]!=='('&&/^[\d\s,;–−-]+$/.test(inside);
+      const citations=parentheticalCitationRanges(inside);
+      if(numeric||citations.length){
+        ranges.push({start:m.index,end:m.index+m[0].length});
+        if(citations.length===1&&citations[0].start===0&&citations[0].end===inside.length)ranges[ranges.length-1].silent=true;
+        else for(const range of citations)ranges.push({start:m.index+1+range.start,end:m.index+1+range.end,silent:true});
       }
     }
     for(const m of text.matchAll(figureReferencePattern()))ranges.push({start:m.index,end:m.index+m[0].length});
@@ -159,7 +158,7 @@ var PaperVoiceCore = (() => {
     let before=index-1;while(before>=0&&!String(items[before].str||'').trim())before--;
     const previous=items[before];if(!previous)return false;
     const word=String(previous.str).match(/([\p{L}]+)[.,;:!?)]*\s*$/u)?.[1];
-    if(!word||word.length<3||scientificUnits.test(word))return false;
+    if(!word||word.length<3||(scientificUnits.test(word)||measurementNames[word]))return false;
     const h=Math.abs(previous.height||previous.transform?.[3]||0),small=Math.abs(item.height||item.transform?.[3]||0);
     const rise=(item.transform?.[5]||0)-(previous.transform?.[5]||0);
     const gap=(item.transform?.[4]||0)-((previous.transform?.[4]||0)+(previous.width||0));
@@ -195,18 +194,81 @@ var PaperVoiceCore = (() => {
       if(/\b[\p{L}]$/u.test(before))return whole;
       return '';
     });
-    text=text.replace(/\(([^()]+)\)/g,(whole,inside)=>{
+    const stripCitation=(whole,inside)=>{
       const ranges=parentheticalCitationRanges(inside);
       if(ranges.length===1&&ranges[0].start===0&&ranges[0].end===inside.length)return '';
       for(const range of ranges.reverse())inside=inside.slice(0,range.start)+inside.slice(range.end);
-      return '('+inside.trim()+')';
-    });
+      return whole[0]+inside.trim()+whole.at(-1);
+    };
+    text=text.replace(/\[([^\[\]]+)\]|【([^【】]+)】/g,(whole,a,b)=>stripCitation(whole,a??b));
+    text=text.replace(/\(([^()]+)\)/g,stripCitation);
     text=text.replace(figureReferencePattern(),'');
-    text=text.replace(/([\p{L}]{3,}[.,;:!?)]*)\s*([⁰¹²³⁴⁵⁶⁷⁸⁹]+(?:\s*[,–−⁻-]\s*[⁰¹²³⁴⁵⁶⁷⁸⁹]+)*)/gu,(whole,word)=>scientificUnits.test(word)?whole:word);
+    text=text.replace(/([\p{L}]{3,}[.,;:!?)]*)\s*([⁰¹²³⁴⁵⁶⁷⁸⁹]+(?:\s*[,–−⁻-]\s*[⁰¹²³⁴⁵⁶⁷⁸⁹]+)*)/gu,(whole,word)=>(scientificUnits.test(word)||measurementNames[word])?whole:word);
     text=text.replace(/\band\s*\/\s*or\b/gi,'and or')
       .replace(/\bi\s*\.\s*e\s*\./gi,'that is')
       .replace(/\be\s*\.\s*g\s*\./gi,'for example');
     return cleanText(text.replace(/\s+([,.;:!?])/g,'$1'));
+  }
+  // Speech-only expansions: the PDF source and highlight coordinates stay unchanged.
+  const measurementNames={
+    pm:['picometer','皮米','ピコメートル','picomètre'],nm:['nanometer','纳米','ナノメートル','nanomètre'],
+    'μm':['micrometer','微米','マイクロメートル','micromètre'],mm:['millimeter','毫米','ミリメートル','millimètre'],cm:['centimeter','厘米','センチメートル','centimètre'],m:['meter','米','メートル','mètre'],km:['kilometer','千米','キロメートル','kilomètre'],'Å':['angstrom','埃','オングストローム','ångström'],
+    pg:['picogram','皮克','ピコグラム','picogramme'],ng:['nanogram','纳克','ナノグラム','nanogramme'],'μg':['microgram','微克','マイクログラム','microgramme'],mg:['milligram','毫克','ミリグラム','milligramme'],g:['gram','克','グラム','gramme'],kg:['kilogram','千克','キログラム','kilogramme'],
+    dL:['deciliter','分升','デシリットル','décilitre'],nL:['nanoliter','纳升','ナノリットル','nanolitre'],'μL':['microliter','微升','マイクロリットル','microlitre'],mL:['milliliter','毫升','ミリリットル','millilitre'],L:['liter','升','リットル','litre'],
+    ns:['nanosecond','纳秒','ナノ秒','nanoseconde'],'μs':['microsecond','微秒','マイクロ秒','microseconde'],ms:['millisecond','毫秒','ミリ秒','milliseconde'],s:['second','秒','秒','seconde'],min:['minute','分钟','分','minute'],h:['hour','小时','時間','heure'],d:['day','天','日','jour'],
+    Hz:['hertz','赫兹','ヘルツ','hertz'],kHz:['kilohertz','千赫兹','キロヘルツ','kilohertz'],MHz:['megahertz','兆赫兹','メガヘルツ','mégahertz'],GHz:['gigahertz','吉赫兹','ギガヘルツ','gigahertz'],
+    mol:['mole','摩尔','モル','mole'],mmol:['millimole','毫摩尔','ミリモル','millimole'],'μmol':['micromole','微摩尔','マイクロモル','micromole'],nmol:['nanomole','纳摩尔','ナノモル','nanomole'],
+    M:['molar','摩尔每升','モーラー','molaire'],mM:['millimolar','毫摩尔每升','ミリモーラー','millimolaire'],'μM':['micromolar','微摩尔每升','マイクロモーラー','micromolaire'],nM:['nanomolar','纳摩尔每升','ナノモーラー','nanomolaire'],pM:['picomolar','皮摩尔每升','ピコモーラー','picomolaire'],
+    Pa:['pascal','帕斯卡','パスカル','pascal'],kPa:['kilopascal','千帕','キロパスカル','kilopascal'],MPa:['megapascal','兆帕','メガパスカル','mégapascal'],mmHg:['millimeter of mercury','毫米汞柱','水銀柱ミリメートル','millimètre de mercure'],
+    V:['volt','伏特','ボルト','volt'],mV:['millivolt','毫伏','ミリボルト','millivolt'],'μV':['microvolt','微伏','マイクロボルト','microvolt'],
+    A:['ampere','安培','アンペア','ampère'],mA:['milliampere','毫安','ミリアンペア','milliampère'],'μA':['microampere','微安','マイクロアンペア','microampère'],nA:['nanoampere','纳安','ナノアンペア','nanoampère'],pA:['picoampere','皮安','ピコアンペア','picoampère'],
+    W:['watt','瓦特','ワット','watt'],mW:['milliwatt','毫瓦','ミリワット','milliwatt'],J:['joule','焦耳','ジュール','joule'],mJ:['millijoule','毫焦','ミリジュール','millijoule'],N:['newton','牛顿','ニュートン','newton'],mN:['millinewton','毫牛','ミリニュートン','millinewton'],
+    K:['kelvin','开尔文','ケルビン','kelvin'],rad:['radian','弧度','ラジアン','radian'],lx:['lux','勒克斯','ルクス','lux'],cd:['candela','坎德拉','カンデラ','candela'],
+    '%':['percent','百分之','パーセント','pour cent'],'‰':['per mille','千分之','パーミル','pour mille'],
+    '°':['degree','度','度','degré'],'°C':['degree Celsius','摄氏度','摂氏度','degré Celsius'],'°F':['degree Fahrenheit','华氏度','華氏度','degré Fahrenheit'],
+    Da:['dalton','道尔顿','ダルトン','dalton'],kDa:['kilodalton','千道尔顿','キロダルトン','kilodalton'],IU:['international unit','国际单位','国際単位','unité internationale'],
+    rpm:['revolutions per minute','转每分钟','回転毎分','tours par minute'],bp:['base pair','碱基对','塩基対','paire de bases'],kb:['kilobase','千碱基','キロベース','kilobase'],Mb:['megabase','兆碱基','メガベース','mégabase']
+  };
+  function measurementSpeech(value,language='en') {
+    const lang=['en','zh','ja','fr'].includes(language)?language:'en',col={en:0,zh:1,ja:2,fr:3}[lang];
+    const aliases={um:'μm',ug:'μg',uL:'μL',ul:'μL','μl':'μL',ml:'mL',nl:'nL',l:'L',us:'μs',umol:'μmol',uM:'μM',sec:'s',secs:'s',mins:'min',hr:'h',hrs:'h'};
+    const escape=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const tokens=[...Object.keys(measurementNames),...Object.keys(aliases)].sort((a,b)=>b.length-a.length).map(x=>Array.from(x,escape).join('\\s*')).join('|');
+    const unit='(?:'+tokens+')',power='(?:\\s*(?:[²³]|\\^[23]|[⁻−-][¹²³123])|[23])?',atom=unit+power;
+    // Match only a complete unit token after a number. Gene names and ordinary words stay intact.
+    const boundary='(?![\\p{Script=Latin}\\p{Script=Greek}\\p{N}_])';
+    const number='[+−-]?(?:\\d+(?:[.,]\\d+)*|\\.\\d+)(?:[eE][+−-]?\\d+)?';
+    const quantity=number+'(?:\\s*(?:[–−-]|±)\\s*'+number+')?';
+    const per={en:' per ',zh:'每',ja:'毎',fr:' par '}[lang];
+    const numeral=x=>x.replace(/([\d.,]+)[eE]([+−-]?\d+)/g,(_,base,power)=>base+({en:' times ten to the power of ',zh:'乘十的',ja:'掛ける十の',fr:' fois dix puissance '}[lang])+power.replace(/^[−-]/,{en:'minus ',zh:'负',ja:'マイナス',fr:'moins '}[lang])+({en:'',zh:'次方',ja:'乗',fr:''}[lang])).replace(/\s*±\s*/g,{en:' plus or minus ',zh:'正负',ja:'プラスマイナス',fr:' plus ou moins '}[lang]).replace(/(\d)\s*[–−-]\s*(?=[+−-]?\d)/g,'$1'+({en:' to ',zh:'至',ja:'から',fr:' à '}[lang])).replace(/^[−-]/,{en:'minus ',zh:'负',ja:'マイナス',fr:'moins '}[lang]);
+    const name=(raw,plural)=>{
+      let token=raw.replace(/\s/g,'').replace(/µ/g,'μ'),exponent=token.match(/([²³]|\^?[23]|[⁻−-][¹²³123])$/)?.[0]||'';
+      token=token.slice(0,token.length-exponent.length);token=aliases[token]||token;
+      let word=measurementNames[token]?.[col];if(!word)return raw;
+      const negative=/^[⁻−-]/.test(exponent);if(negative)plural=false;exponent=exponent.replace(/[⁻−^\-]/g,'').replace('¹','1').replace('²','2').replace('³','3');
+      if(plural&&lang==='en'&&!/hertz$|molar$|percent|per mille|lux$/.test(word)&&token!=='rpm'){const words=word.split(' ');words[0]+='s';word=words.join(' ');}
+      if(plural&&lang==='fr'&&!/hertz$|lux$|pour cent|pour mille/.test(word)&&token!=='rpm'){const words=word.split(' ');words[0]+='s';word=words.join(' ');}
+      if(plural&&token==='bp'&&lang==='en')word='base pairs';
+      if(plural&&token==='IU'&&lang==='en')word='international units';
+      if(plural&&token==='IU'&&lang==='fr')word='unités internationales';
+      if(exponent==='2'||exponent==='3')word=lang==='en'?({2:'square ',3:'cubic '}[exponent])+word:lang==='fr'?word+({2:' carré',3:' cube'}[exponent])+(plural?'s':''):({zh:{2:'平方',3:'立方'},ja:{2:'平方',3:'立方'}}[lang][exponent])+word;
+      return negative?per.trim()+' '+word:word;
+    };
+    let text=cleanText(value).replace(/µ/g,'μ').replace(/℃/g,'°C').replace(/℉/g,'°F').replace(/º(?=\s*[CF])/g,'°');
+    text=text.replace(new RegExp('('+quantity+')\\s*[×x]\\s*g'+boundary,'gu'),(_,n)=>numeral(n)+({en:' times gravity',zh:'倍重力加速度',ja:'倍の重力加速度',fr:' fois la gravité'}[lang]));
+    const factor='(?:[/·]\\s*'+atom+'|'+unit+'\\s*[⁻−-][¹²³123])';
+    const pattern=new RegExp('(?<![\\p{Script=Latin}\\p{Script=Greek}\\p{N}_])('+quantity+')\\s*('+atom+')'+boundary+'((?:\\s*'+factor+boundary+')*)','gu');
+    return text.replace(pattern,(whole,n,first,rest)=>{
+      const single=Number(n.replace(/,/g,''))===1,token=first.replace(/\s/g,'');
+      let spoken=name(first,!single),amount=numeral(n);
+      if(lang==='zh'&&(token==='%'||token==='‰'))return spoken+amount;
+      if(lang==='ja'&&(token==='°C'||token==='°F'))return (token==='°C'?'摂氏':'華氏')+amount+'度';
+      for(const part of rest.matchAll(new RegExp('([/·])?\\s*('+atom+')','gu'))){
+        const inverse=/[⁻−-][¹²³123]$/.test(part[2]);
+        spoken+=inverse&&part[1]!=='/'?' '+name(part[2],false):(part[1]==='/'?per:({en:' times ',zh:'乘',ja:'掛ける',fr:' fois '}[lang]))+name(part[2],false);
+      }
+      return amount+(['zh','ja'].includes(lang)?'':' ')+spoken;
+    });
   }
   function rate(value) { return Math.max(0.6, Math.min(1.6, Number(value) || 1)); }
   function anchorText(value) { return cleanText(value).normalize('NFKD').replace(/[^\p{L}\p{N}]/gu,'').toLowerCase(); }
@@ -504,6 +566,6 @@ var PaperVoiceCore = (() => {
     while(index>0&&id!==undefined&&units[index-1].sentenceId===id)index--;
     return index;
   }
-  return { modes, voices, speechLanguages, detectSpeechLanguage, cleanText, chunks, sentences, rate, speechText, pdfText, pdfLayout, sourceOffset, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
+  return { modes, voices, speechLanguages, detectSpeechLanguage, cleanText, chunks, sentences, rate, speechText, measurementSpeech, pdfText, pdfLayout, sourceOffset, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;

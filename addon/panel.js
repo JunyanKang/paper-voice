@@ -27,7 +27,7 @@ var PaperVoiceUI = {
     <div class="pv-setting-row"><label for="pv-target">译文语言</label><select id="pv-target" data-field="target" aria-label="译文语言"><option value="zh-Hans">简体中文</option><option value="zh-Hant">繁體中文</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="es">Español</option><option value="ru">Русский</option></select></div>
     <button class="pv-sample" data-action="sample">${icon('headphones')}试听当前声音</button><div class="pv-updater"><div class="pv-update-row"><label><input type="checkbox" data-field="autoUpdate"/>自动更新</label><button data-action="checkUpdate">检查更新</button></div><div data-field="updateStatus" class="pv-update-status" role="status">通过 GitHub 获取插件更新</div></div><div class="pv-about"><span>v1.2.6 · Junyan Kang</span><button data-action="help">指南</button><button data-action="feedback">反馈</button><button data-action="privacy">隐私</button></div>
    </div>
-  </section><div class="pv-mini"><div class="pv-quick" data-field="quick" hidden><button class="pv-quick-mode" data-action="quickMode" aria-label="切换朗读模式">${icon("text-select")}<span data-field="quickModeLabel">划选</span></button><button data-action="quickPrevious" aria-label="上一句">${icon('chevron-left')}</button><button data-action="quickReplay" aria-label="重读当前句">${icon('repeat')}</button><button data-action="quickNext" aria-label="下一句">${icon('chevron-right')}</button><button data-action="quickPause" aria-label="暂停或继续">${icon('pause')}</button><button data-action="quickStop" aria-label="停止朗读">${icon('square')}</button><button data-action="quickTranslate" aria-label="切换跟读翻译" title="译文开关 · Option/Alt + T"><span class="pv-language-token" data-field="quickTranslateLabel" aria-hidden="true">简</span></button></div><button class="pv-orb" data-action="orb" aria-label="展开 Paper Voice 朗读面板" title="Paper Voice · 点击展开听读"><img class="pv-mascot" src="${controller.assetURI}mascot.png" alt="Paper Voice 书页精灵"/><img class="pv-mascot pv-mascot-reading" src="${controller.assetURI}mascot-reading.png" alt=""/><span class="pv-waves" aria-hidden="true"><i></i><i></i><i></i></span><span class="pv-dot"></span></button></div>`;
+  </section><div class="pv-mini"><div class="pv-quick" data-field="quick" hidden><div class="pv-mode-tools" data-field="modeTools"><button class="pv-quick-mode" data-action="quickMode" aria-label="切换朗读模式" aria-expanded="false">${icon("text-select")}<span data-field="quickModeLabel">划选</span><img class="pv-nav-caret" src="${controller.assetURI}icons/chevron-down.svg" alt=""/></button><div class="pv-nav-popover" data-field="navigation" hidden><div class="pv-nav-card" role="group" aria-label="阅读导航"><div class="pv-nav-row" data-field="sentenceNavigation"><span>句子</span><button data-action="quickSentencePrevious" aria-label="上一句" title="上一句">${icon('chevron-left')}</button><button data-action="quickSentenceReplay" aria-label="重读当前句" title="重读当前句">${icon('repeat')}</button><button data-action="quickSentenceNext" aria-label="下一句" title="下一句">${icon('chevron-right')}</button></div><div class="pv-nav-row" data-field="paragraphNavigation"><span>段落</span><button data-action="quickPrevious" aria-label="上一段" title="上一段">${icon('chevron-left')}</button><button data-action="quickReplay" aria-label="重读当前段" title="重读当前段">${icon('repeat')}</button><button data-action="quickNext" aria-label="下一段" title="下一段">${icon('chevron-right')}</button></div></div></div></div><button data-action="quickPause" aria-label="暂停或继续">${icon('pause')}</button><button data-action="quickStop" aria-label="停止朗读">${icon('square')}</button><button data-action="quickTranslate" aria-label="切换跟读翻译" title="译文开关 · Option/Alt + T"><span class="pv-language-token" data-field="quickTranslateLabel" aria-hidden="true">简</span></button></div><button class="pv-orb" data-action="orb" aria-label="展开 Paper Voice 朗读面板" title="Paper Voice · 点击展开听读"><img class="pv-mascot" src="${controller.assetURI}mascot.png" alt="Paper Voice 书页精灵"/><img class="pv-mascot pv-mascot-reading" src="${controller.assetURI}mascot-reading.png" alt=""/><span class="pv-waves" aria-hidden="true"><i></i><i></i><i></i></span><span class="pv-dot"></span></button></div>`;
   const find=name=>root.querySelector(`[data-field="${name}"]`),action=name=>root.querySelector(`[data-action="${name}"]`),panel=root.querySelector('.pv-panel');
   for(const v of PaperVoiceCore.voices){const o=doc.createElement('option');o.value=v.id;o.textContent=v.label;find('voice').append(o);}
   const settings=(open)=>{find('home').hidden=open;find('settingsPage').hidden=!open;action('settings').querySelector('img').src=controller.assetURI+'icons/'+(open?'chevron-left':'settings')+'.svg';action('settings').setAttribute('aria-label',open?'返回播放控制':'声音与翻译设置');controller.localize?.(root);};
@@ -48,7 +48,33 @@ var PaperVoiceUI = {
   find('documentStart').onchange=e=>{controller.set('documentStart',e.target.value);controller.syncSettings();};
   find('auto').onchange=e=>{controller.set('auto',e.target.checked);controller.clearSelectionTimers();if(!e.target.checked&&controller.playbackMode!=='document')controller.stop();controller.syncSettings();};
   for(const button of root.querySelectorAll('[data-mode]'))button.onclick=()=>controller.setMode(button.dataset.mode);
-  for(const [name,delta] of [['Previous',-1],['Replay',0],['Next',1]])action('quick'+name).onclick=()=>controller.navigateScope(delta,reader);
+  for(const [name,delta] of [['Previous',-1],['Replay',0],['Next',1]]){
+   action('quick'+name).onclick=()=>controller.navigateScope(delta,reader,'paragraph');
+   action('quickSentence'+name).onclick=()=>controller.navigateScope(delta,reader,'sentence');
+  }
+  const tools=find('modeTools'),navigation=find('navigation');let closeTimer=null,hovering=false;
+  const closeNavigation=()=>{doc.defaultView.clearTimeout(closeTimer);navigation.hidden=true;action('quickMode').setAttribute('aria-expanded','false');};
+  const openNavigation=()=>{
+   doc.defaultView.clearTimeout(closeTimer);
+   if(controller.get('mode','selection')==='selection'||!controller.currentUnit||!['playing','paused','loading'].includes(controller.state))return;
+   navigation.hidden=false;action('quickMode').setAttribute('aria-expanded','true');
+   navigation.style.left='0px';navigation.dataset.side='above';
+   const anchor=tools.getBoundingClientRect(),box=navigation.getBoundingClientRect(),win=doc.defaultView;
+   navigation.style.left=Math.max(8-anchor.left,Math.min(0,win.innerWidth-8-box.right))+'px';
+   if(box.top<8)navigation.dataset.side='below';
+  };
+  const leaveNavigation=()=>{doc.defaultView.clearTimeout(closeTimer);closeTimer=doc.defaultView.setTimeout(()=>{if(!hovering&&!(tools.contains(doc.activeElement)&&doc.activeElement.matches(':focus-visible')))closeNavigation();},300);};
+  tools.addEventListener('pointerenter',()=>{hovering=true;openNavigation();});tools.addEventListener('pointerleave',()=>{hovering=false;leaveNavigation();});
+  tools.addEventListener('focusin',openNavigation);tools.addEventListener('focusout',e=>{if(!tools.contains(e.relatedTarget))leaveNavigation();});
+  tools.addEventListener('keydown',e=>{
+   if(e.key==='ArrowUp'||e.key==='ArrowDown'){
+    e.preventDefault();e.stopPropagation();openNavigation();
+    const buttons=Array.from(navigation.querySelectorAll('button')).filter(b=>!b.disabled&&!b.parentElement.hidden);
+    const at=buttons.indexOf(doc.activeElement),step=e.key==='ArrowDown'?1:-1;
+    buttons[(at<0?0:(at+step+buttons.length)%buttons.length)]?.focus();
+   }
+  });
+  root.addEventListener('pointerdown',e=>{if(!tools.contains(e.target))closeNavigation();});
   action('quickMode').onclick=()=>controller.cycleMode();
   action('checkUpdate').onclick=()=>controller.updateState==='available'?controller.installUpdate():controller.checkForUpdates();
   find('autoUpdate').onchange=e=>controller.setAutoUpdate(e.target.checked);
@@ -58,9 +84,9 @@ var PaperVoiceUI = {
   action('sample').onclick=()=>controller.speak(PaperVoiceCore.speechLanguages.find(x=>x.id===controller.speechLanguage()).sample,reader,true);
   let drag=null,moved=false;
   action('orb').addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,right:parseFloat(root.style.right)||18,bottom:parseFloat(root.style.bottom)||18};moved=false;action('orb').setPointerCapture(e.pointerId);});
-  action('orb').addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>5)moved=true;if(moved){root.style.right=Math.max(8,Math.min(doc.defaultView.innerWidth-70,drag.right-dx))+'px';root.style.bottom=Math.max(8,Math.min(doc.defaultView.innerHeight-70,drag.bottom-dy))+'px';}});
+  action('orb').addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>5)moved=true;if(moved){closeNavigation();root.style.right=Math.max(8,Math.min(doc.defaultView.innerWidth-root.querySelector('.pv-mini').offsetWidth-8,drag.right-dx))+'px';root.style.bottom=Math.max(8,Math.min(doc.defaultView.innerHeight-70,drag.bottom-dy))+'px';}});
   action('orb').addEventListener('pointerup',()=>{drag=null;});
   action('orb').addEventListener('click',e=>{if(moved){e.stopImmediatePropagation();e.preventDefault();moved=false;}},true);
-  doc.body.append(root);return {root,panel,find,action};
+  doc.body.append(root);return {root,panel,find,action,closeNavigation};
  }
 };

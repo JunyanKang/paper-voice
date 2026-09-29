@@ -1,6 +1,7 @@
 /* Interface language is independent of the language chosen for translations. */
 var PaperVoiceI18n = (() => {
  const pairs = {
+  '阅读导航':'Reading navigation','句子':'Sentence','悬停展开句段导航':'Hover for sentence and paragraph controls',
   '单击切换译文语言 · 双击关闭译文':'Click to switch language · Double-click to hide translation',
   '自动识别 PDF 语言':'Detect PDF language',
   '无法确定受支持的朗读语言，请在设置中手动选择英语、中文、日语或法语。':'Language could not be matched to an available voice. Select English, Chinese, Japanese or French in Settings.',
@@ -83,6 +84,7 @@ var PaperVoiceI18n = (() => {
  const keys=Object.keys(pairs).sort((a,b)=>b.length-a.length),sources=new WeakMap();
  function translate(value,language){
   if(language!=='en'||!value)return value;
+  if(pairs[value])return pairs[value];
   let s=String(value).replace(/正在读取第 (\d+)\/(\d+) 页…/g,'Loading page $1/$2…')
    .replace(/朗读完成 · (\d+) 页无文字，已跳过/g,'Finished · Skipped $1 pages without text')
    .replace(/第 (\d+)\/(\d+) 句/g,'Sentence $1/$2').replace(/第 (\d+) 页/g,'Page $1')

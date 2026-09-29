@@ -14,13 +14,13 @@ New to Paper Voice? Choose the complete package for your computer. It includes t
 
 **Windows · Intel / AMD 64-bit computers**
 
-[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.7/Paper-Voice-1.2.7-Windows-x64.zip)
+[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.8/Paper-Voice-1.2.8-Windows-x64.zip)
 
 **Mac · Apple Silicon (M series), macOS 14 or later**
 
-[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.7/Paper-Voice-1.2.7-macOS-arm64.zip)
+[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.8/Paper-Voice-1.2.8-macOS-arm64.zip)
 
-Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.7/paper-voice-1.2.7.xpi).
+Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.8/paper-voice-1.2.8.xpi).
 
 For Zotero 10. [Release notes](CHANGELOG.md) · [Compatibility notes](docs/COMPATIBILITY.en.md)
 
@@ -36,7 +36,7 @@ On Windows, keep the installer and `Resources` folder together. On Mac, the voic
 
 ### 2. Add the plugin to Zotero
 
-In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.7.xpi` from the package.
+In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.8.xpi` from the package.
 
 Using Zotero in Chinese? The menu is **工具 → 插件 → 从文件安装插件**. [Need more installation help?](docs/INSTALL.en.md)
 
@@ -53,10 +53,14 @@ Open a PDF with selectable text. Paper Voice **detects the original language aut
 
 The four modes run from **Sentence → Selection → Paragraph → Document**. Click an icon to switch; the mode button on the floating toolbar cycles in the same order.
 
+While reading, **hover over the mode button** to open navigation. Document and Paragraph modes offer separate Sentence and Paragraph rows, each with Previous, Replay and Next. Sentence mode shows only sentence controls. The menu closes when you move away; pause, stop and translation stay in the toolbar. With the mode button focused, use ↑ / ↓ to enter navigation and Enter to activate a control.
+
+Sentence navigation keeps your reading mode: Document continues forward; Paragraph reads from the target sentence to the end of its paragraph, then repeats the complete paragraph on subsequent cycles.
+
 - **Sentence**: Select any part of a sentence to hear the complete sentence from the beginning. Use Previous sentence, Replay sentence and Next sentence to navigate.
 - **Selection**: Hear exactly what you selected—a word, a sentence or a longer passage.
 - **Paragraph**: Select any part of a paragraph to hear the complete paragraph from the beginning. Use Previous paragraph, Replay paragraph and Next paragraph to move through the paper.
-- **Document**: Read from a chosen position to the end. Navigation moves by paragraph, then continuous reading resumes.
+- **Document**: Read from a chosen position to the end. Move by sentence or paragraph, then continue reading.
 
 Sentence, Selection and Paragraph can read **once, 2, 3 or 5 times, or keep repeating**.
 
@@ -72,6 +76,10 @@ To start at a specific sentence, choose **Selected sentence**, select a letter, 
 <p align="center"><sub>Highlighting marks the current passage; translation stays near the original. Collapse the panel to keep just the floating playback controls.</sub></p>
 
 Scrolling, column changes and page turns follow the reading. Ordinary clicks and manual scrolling do not interrupt Document mode. Use the navigation buttons when you want to jump to another passage.
+
+### Scientific measurements, spoken clearly
+
+Common units are expanded in the narration language: for example, `10 μm`, `2 mg`, `37 °C`, `45°`, and `5 mg/kg`. Ranges, plus/minus signs, squares, cubes, and scientific notation retain their meaning. The PDF, highlights, and translation keep the original notation.
 
 ### Control playback with your keyboard
 

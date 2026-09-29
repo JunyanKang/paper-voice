@@ -14,13 +14,13 @@
 
 **Windows · Intel / AMD 64 位电脑**
 
-[下载 Windows 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.7/Paper-Voice-1.2.7-Windows-x64.zip)
+[下载 Windows 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.8/Paper-Voice-1.2.8-Windows-x64.zip)
 
 **Mac · Apple 芯片（M 系列），macOS 14 或更新版本**
 
-[下载 Mac 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.7/Paper-Voice-1.2.7-macOS-arm64.zip)
+[下载 Mac 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.8/Paper-Voice-1.2.8-macOS-arm64.zip)
 
-已安装 Paper Voice？在插件设置中点击 **检查更新**，或[下载插件文件 `.xpi`](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.7/paper-voice-1.2.7.xpi)。
+已安装 Paper Voice？在插件设置中点击 **检查更新**，或[下载插件文件 `.xpi`](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.8/paper-voice-1.2.8.xpi)。
 
 适用于 Zotero 10。[查看版本记录](CHANGELOG.md) · [查看兼容性说明](docs/COMPATIBILITY.md)
 
@@ -36,7 +36,7 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 
 ### 2. 将插件添加到 Zotero
 
-在 Zotero 中打开 **工具 → 插件 → 右上角齿轮 → 从文件安装插件**，选择完整包里的 `paper-voice-1.2.7.xpi`。
+在 Zotero 中打开 **工具 → 插件 → 右上角齿轮 → 从文件安装插件**，选择完整包里的 `paper-voice-1.2.8.xpi`。
 
 英文菜单对应 **Tools → Plugins → Install Plugin From File**。[需要更详细的安装帮助？](docs/INSTALL.md)
 
@@ -53,10 +53,14 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 
 四个模式按 **单句 → 划选 → 段落 → 全文** 排列。点击图标切换；悬浮工具栏上的模式按钮也按这个顺序轮换。
 
+朗读时，将鼠标移到悬浮栏的**模式按钮**，即可展开句段导航。全文和段落模式分别提供「句子」「段落」两行，每行都有上一项、重读和下一项；单句模式只显示句子导航。移出后面板自动收起，暂停、停止与译文始终保留在栏中。键盘聚焦模式按钮后，按 ↑ / ↓ 进入导航，按 Enter 执行。
+
+句子跳转不会更改阅读模式：全文继续向后读；段落从目标句读到段末，下一遍循环仍读完整段落。
+
 - **单句**：选中句中的任意文字，就会从句首读完整句，用「上一句／重读当前句／下一句」逐句精听。
 - **划选**：只读鼠标选中的内容，适合快速听一个词、一句话或一段论述。
 - **段落**：选中段中的任意文字，就会从段首读完整段落，用「上一段／重读当前段／下一段」浏览相邻段落。
-- **全文**：从指定位置连续读到文末；导航按钮按段落移动，跳转后继续连读。
+- **全文**：从指定位置连续读到文末；可按句子或段落移动，跳转后继续连读。
 
 单句、划选和段落都可以选择 **1 次、2 次、3 次、5 次或持续循环**。
 
@@ -72,6 +76,10 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 <p align="center"><sub>高亮指向当前朗读片段，译文显示在原句附近。收起面板后，浮动工具栏仍可控制播放。</sub></p>
 
 页面会随朗读滚动、换栏和翻页。全文播放时，普通点击或手动滚动不会打断朗读；需要跳转时，使用导航按钮即可。
+
+### 自然读出科研单位
+
+常见计量符号会按朗读语言展开，例如 `10 μm`、`2 mg`、`37 °C`、`45°` 和 `5 mg/kg`。同时支持数值范围、正负号、平方／立方和科学计数法。原文、高亮和译文仍保留论文中的写法。
 
 ### 用键盘控制播放
 
