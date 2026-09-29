@@ -52,7 +52,7 @@
 
 | Windows | Mac |
 |:--|:--|
-| [下载 Windows x64 完整包](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.4/Paper-Voice-1.2.4-Windows-x64.zip) | [下载 Apple Silicon 完整包](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.4/Paper-Voice-1.2.4-macOS-arm64.zip) |
+| [下载 Windows x64 完整包](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.5/Paper-Voice-1.2.5-Windows-x64.zip) | [下载 Apple Silicon 完整包](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.5/Paper-Voice-1.2.5-macOS-arm64.zip) |
 | Intel / AMD 64 位电脑 | M 系列芯片 · macOS 14 或更新版本 |
 
 **2 · 安装**<br>

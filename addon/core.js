@@ -67,7 +67,7 @@ var PaperVoiceCore = (() => {
   function isAuthorCitation(inside) {
     // PDF fonts use several visually identical hyphens in compound surnames.
     // Normalize only the recognition copy; source offsets and scientific text stay intact.
-    inside=inside.replace(/[\p{Pd}−]/gu,'-').replace(/([\p{L}])\u0000(?=[\p{L}])/gu,'$1-').replace(/\s*-\s*/g,'-');
+    inside=inside.replace(/[\p{Pd}−]/gu,'-').replace(/([\p{L}])\s*\u0000\s*(?=[\p{L}])/gu,'$1-').replace(/\s*-\s*/g,'-');
     const author="[\\p{Lu}][\\p{L}'’.-]+(?:\\s+(?:[\\p{Lu}][\\p{L}'’.-]+|(?:and|&)\\s+[\\p{Lu}][\\p{L}'’.-]+|et\\s+al\\.?))*";
     const citation=new RegExp('^'+author+',?\\s*(?:18|19|20)\\d{2}[a-z]?(?:\\s*,\\s*(?:18|19|20)\\d{2}[a-z]?)*$','u');
     return inside.split(/\s*;\s*/).every(part=>citation.test(part.trim())&&!/^(?:January|February|March|April|May|June|July|August|September|October|November|December|Figure|Table|Version|Group|Cohort|Trial)\b/.test(part.trim()));
@@ -169,49 +169,73 @@ var PaperVoiceCore = (() => {
       offset+=anchorText(part).length;return unit;
     });});
   }
-  function trimPublicationFooter(items,pageHeight) {
-    // Only trim a trailing, small-print metadata block near the bottom. Keeping
-    // the body prefix intact preserves every DOM character offset used by selections.
-    const rows=items.map((item,index)=>({index,text:cleanText(item.str),y:Number(item.transform?.[5]),height:Math.abs(item.height||item.transform?.[3]||0)})).filter(x=>x.text&&Number.isFinite(x.y)&&x.height>0);
-    if(rows.length<3)return items;
+  function publicationFooterItems(items,pageHeight) {
+    const rows=items.map((item,index)=>({index,text:cleanText(item.str),x:Number(item.transform?.[4]),y:Number(item.transform?.[5]),height:Math.abs(item.height||item.transform?.[3]||0)})).filter(x=>x.text&&Number.isFinite(x.y)&&x.height>0);
+    const excluded=new Set();if(rows.length<3)return excluded;
     const height=pageHeight||Math.max(...rows.map(x=>x.y+x.height));
     const weights=new Map();for(const row of rows.filter(x=>x.y>height*.36)){const size=Math.round(row.height*2)/2;weights.set(size,(weights.get(size)||0)+row.text.length);}
-    const bodySize=[...weights].sort((a,b)=>b[1]-a[1])[0]?.[0];if(!bodySize)return items;
-    const candidates=rows.filter(x=>x.y<height*.36&&x.height<=bodySize*.93);if(!candidates.length)return items;
-    const cue=/^(?:abbreviations?\s*:|[*†‡]?\s*correspond(?:ing|ence)\b|e[- ]?mail\s*(?:address)?\s*:|(?:https?:\/\/(?:dx\.)?doi\.org\/|doi\s*:)|received\s+\d|accepted\s+\d|available\s+online\b|copyright\b|©|\d{4}-\d{3}[\dX]\s*\/)/i;
-    for(const candidate of candidates){
-      // Labels may be separate PDF text items, so inspect their line continuation.
-      const tail=rows.filter(x=>x.index>=candidate.index),lead=tail.slice(0,4).map(x=>x.text).join(' ');
-      if(!cue.test(lead))continue;
-      if(!tail.every(x=>x.y<height*.39&&x.height<=bodySize*.96))continue;
-      const block=tail.map(x=>x.text).join(' ');
-      // Abbreviation lists are only suppressed when accompanied by publication metadata.
-      if(/^abbreviations?\s*:/i.test(lead)&&!/(?:corresponding author|doi\.org|e[- ]?mail|received\s+\d|©)/i.test(block))continue;
-      return items.slice(0,candidate.index);
+    const bodySize=[...weights].sort((a,b)=>b[1]-a[1])[0]?.[0];if(!bodySize)return excluded;
+    // Small bibliographic running heads may be painted after the footer too.
+    // Require a year plus a page range in the outer margin, not an author name alone.
+    for(const row of rows.filter(x=>x.y>height*.92&&x.height<=bodySize*1.12&&/^.{3,160}\b\d+\s*\((?:18|19|20)\d{2}\)\s*\d+\s*[–−-]\s*\d+\s*$/.test(x.text))){
+      for(const peer of rows.filter(x=>Math.abs(x.y-row.y)<=bodySize*.5&&x.height<=bodySize*1.12))excluded.add(peer.index);
     }
-    return items;
+    for(const row of rows.filter(x=>x.y<height*.05&&x.height<=bodySize*1.12&&/^\d{1,4}$/.test(x.text)))excluded.add(row.index);
+    // PDF painting order need not follow page layout: the publisher can append
+    // a running header between two footer lines. Group by coordinates instead.
+    const lines=[];
+    for(const row of rows.filter(x=>x.y<height*.36).sort((a,b)=>b.y-a.y||a.x-b.x)){
+      let line=lines.find(x=>Math.abs(x.y-row.y)<=bodySize*.5);
+      if(!line){line={y:row.y,rows:[]};lines.push(line);}line.rows.push(row);
+    }
+    for(const line of lines){line.rows.sort((a,b)=>a.x-b.x);line.text=line.rows.map(x=>x.text).join(' ');}
+    const cue=/^(?:abbreviations?\s*:|[*∗†‡]?\s*correspond(?:ing|ence)\b|e[- ]?mail\s*(?:addresses?)?\s*:|(?:https?:\/\/(?:dx\.)?doi\.org\/|doi\s*:)|received\s+\d|accepted\s+\d|available\s+online\b|copyright\b|©|\d{4}-\d{3}[\dX]\s*\/)/i;
+    for(let i=0;i<lines.length;i++){
+      const candidate=lines[i];if(!cue.test(candidate.text))continue;
+      const tail=lines.slice(i),block=tail.map(x=>x.text).join(' ');
+      if(/^abbreviations?\s*:/i.test(candidate.text)&&!/(?:corresponding author|doi\.org|e[- ]?mail|received\s+\d|©)/i.test(block))continue;
+      if(tail.some(line=>line.rows.some(x=>x.height>bodySize*.96))&&tail.filter(line=>cue.test(line.text)).length<2)continue;
+      // Continuation lines must be small print. Explicit metadata lines may use
+      // the abstract's font size (common in Elsevier first-page publication data).
+      if(!tail.every(line=>line.rows.every(x=>x.height<=bodySize*(cue.test(line.text)?1.12:.96))))continue;
+      for(const line of tail)for(const row of line.rows)excluded.add(row.index);
+      break;
+    }
+    return excluded;
+  }
+  function sourceOffset(page,offset) {
+    const spans=page.sourceSpans;
+    if(!spans?.length)return offset;
+    const span=spans.find(x=>offset>=x.start&&offset<x.end)||spans[spans.length-1];
+    return offset+span.sourceStart-span.start;
   }
   function pdfLayout(items,pageIndex,pageHeight) {
-    items=trimPublicationFooter(items,pageHeight);
-    const text=pdfText(items),breaks=[];let offset=0,previous=null;
-    for(const item of items){
-      if(!anchorText(item.str))continue;
+    const excluded=publicationFooterItems(items,pageHeight),kept=[],breaks=[],sourceSpans=[];
+    let offset=0,originalOffset=0,previous=null,gap=false;
+    for(let index=0;index<items.length;index++){
+      const item=items[index],length=anchorText(item.str).length;
+      if(excluded.has(index)){originalOffset+=length;if(length)gap=true;continue;}
+      kept.push(item);if(!length)continue;
       const [,,,scale,x,y]=item.transform||[],height=Math.abs(item.height||scale||0);
+      if(gap&&offset)breaks.push(offset);
       // PDF coordinates grow upwards: a move right and back up starts a new column.
       if(previous&&height&&Number.isFinite(x)&&Number.isFinite(y)){
         const h=Math.max(height,previous.height);
-        if(x-previous.x>h*2&&y-previous.y>h*2)breaks.push(offset);
+        if(x-previous.x>h*2&&y-previous.y>h*2&&!breaks.includes(offset))breaks.push(offset);
       }
-      offset+=anchorText(item.str).length;previous={x,y,height};
+      const last=sourceSpans.at(-1);
+      if(last&&last.sourceStart+last.end-last.start===originalOffset)last.end+=length;
+      else sourceSpans.push({start:offset,end:offset+length,sourceStart:originalOffset});
+      offset+=length;originalOffset+=length;previous={x,y,height};gap=false;
     }
-    return {text,pageIndex,breaks};
+    return {text:pdfText(kept),pageIndex,breaks,sourceSpans};
   }
   function layoutUnits(pages,selection=null,from=0) {
     const joined=cleanText(pages.map(p=>p.text).join(' ')),normalized=anchorText(joined),segments=[];
     let offset=0;
     for(const page of pages){
       const length=anchorText(page.text).length,cuts=[0,...(page.breaks||[]).filter(x=>x>0&&x<length),length];
-      for(let i=0;i<cuts.length-1;i++)if(cuts[i+1]>cuts[i])segments.push({start:offset+cuts[i],end:offset+cuts[i+1],pageIndex:page.pageIndex,pageStart:offset});
+      for(let i=0;i<cuts.length-1;i++)if(cuts[i+1]>cuts[i])segments.push({start:offset+cuts[i],end:offset+cuts[i+1],pageIndex:page.pageIndex,pageStart:offset,page,sourceDelta:sourceOffset(page,cuts[i])-cuts[i]});
       offset+=length;
     }
     const text=selection===null?joined:cleanText(selection);
@@ -240,11 +264,11 @@ var PaperVoiceCore = (() => {
       for(const segment of segments){
         const a=Math.max(start,segment.start),b=Math.min(end,segment.end);if(a>=b)continue;
         const rawStart=rawOffset(sentence,a-start),rawEnd=rawOffset(sentence,b-start),highlightText=sentence.slice(rawStart,rawEnd).trim();
-        let local=rawStart,anchorOffset=a-segment.pageStart;
+        let local=rawStart,anchorOffset=a-segment.pageStart+segment.sourceDelta;
         for(const part of chunks(highlightText)){
           const at=sentence.indexOf(part,local);local=at+part.length;
           const unitInPage=counts.get(segment.pageIndex)||0;counts.set(segment.pageIndex,unitInPage+1);
-          units.push({text:part,spokenText:speechText(masked.slice(at,local)),translationText:sentence,sentenceText:sentence,sentenceId:start,highlightText,highlightOffset:a-segment.pageStart,pageIndex:segment.pageIndex,anchorOffset,sentenceOffset:Math.max(0,start-segment.pageStart),unitInPage});
+          units.push({text:part,spokenText:speechText(masked.slice(at,local)),translationText:sentence,sentenceText:sentence,sentenceId:start,highlightText,highlightOffset:a-segment.pageStart+segment.sourceDelta,pageIndex:segment.pageIndex,anchorOffset,sentenceOffset:sourceOffset(segment.page,Math.max(0,start-segment.pageStart)),unitInPage});
           anchorOffset+=anchorText(part).length;
         }
       }
@@ -268,6 +292,6 @@ var PaperVoiceCore = (() => {
     while(index>0&&id!==undefined&&units[index-1].sentenceId===id)index--;
     return index;
   }
-  return { modes, voices, cleanText, chunks, sentences, rate, speechText, pdfText, pdfLayout, layoutUnits, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
+  return { modes, voices, cleanText, chunks, sentences, rate, speechText, pdfText, pdfLayout, sourceOffset, layoutUnits, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;

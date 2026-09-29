@@ -42,7 +42,7 @@ Choose the complete package for your computer from the [latest release](https://
 
 | Windows | Mac |
 |:--|:--|
-| [Windows x64 package](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.4/Paper-Voice-1.2.4-Windows-x64.zip) | [Apple Silicon package](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.4/Paper-Voice-1.2.4-macOS-arm64.zip) |
+| [Windows x64 package](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.5/Paper-Voice-1.2.5-Windows-x64.zip) | [Apple Silicon package](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.5/Paper-Voice-1.2.5-macOS-arm64.zip) |
 | Intel / AMD 64-bit computers | M-series chips · macOS 14 or later |
 
 **2 · Install**<br>

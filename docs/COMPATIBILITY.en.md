@@ -23,7 +23,7 @@ The Mac installer uses a local signature rather than Apple Developer ID notariza
 
 Highlights and translations are temporary overlays. They do not rewrite PDFs or create permanent annotations.
 
-Publication footers are skipped when recognizable metadata forms a trailing small-print block near the bottom of the page. Unusual PDFs that interleave footer and body text may still need selection-based reading.
+Publication footers are recognized from page coordinates, font sizes and metadata labels, even when the extraction order interleaves them with other page elements. Recognizable bibliographic running heads and page numbers are also skipped. Unusual layouts or metadata mixed into body text may still need selection-based reading.
 
 ## Translation and connectivity
 

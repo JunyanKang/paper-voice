@@ -251,6 +251,7 @@ var PaperVoice = {
         if(!Number.isInteger(offset)){
           offset=needle?text.indexOf(needle):-1;
           if(offset>=0&&text.indexOf(needle,offset+1)>=0)offset=-1;
+          if(offset>=0)offset=PaperVoiceCore.sourceOffset(page,offset);
         }
         const index=offset>=0?PaperVoiceCore.selectedSentenceIndex(units,selected.pageIndex,offset):-1;
         if(index<0)throw new Error('未能准确定位选区，请在 PDF 中重新划选后再开始');
