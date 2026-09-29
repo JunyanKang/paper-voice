@@ -437,7 +437,7 @@ var PaperVoice = {
         const all=await session.context;
         if(generation!==this.generation||this.dead)return;
         mode=session.pendingMode;session.pendingMode=null;this.playbackMode=mode;
-        const scoped=mode==='selection'?units:mode==='document'?(all.length?all:units):PaperVoiceCore.scopeUnits(all.length?all:units,units[0],mode);
+        const scoped=mode==='selection'?units:mode==='document'?(all.length?all.slice(Math.max(0,PaperVoiceCore.unitIndex(all,units[0]))):units):PaperVoiceCore.scopeUnits(all.length?all:units,units[0],mode);
         if(scoped.length)units=scoped;
         session.units=units;loops=1;
       }
