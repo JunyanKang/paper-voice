@@ -162,7 +162,8 @@ var PaperVoice = {
   setMode(mode) {
     if(!PaperVoiceCore.modes.some(x=>x.id===mode)||mode===this.get('mode','selection'))return;
     this.set('mode',mode);
-    if(this.session&&['playing','paused','loading'].includes(this.state)){
+    if(['playing','paused','loading'].includes(this.state)){
+      this.session ||= {units:[]};
       this.session.pendingMode=mode;
       this.session.context ||= this.documentUnits(this.currentReader).catch(()=>[]);
       this.playbackMode=mode;
@@ -419,7 +420,7 @@ var PaperVoice = {
     if(!units.length){this.setStatus('选区仅包含引文标记，无需朗读','idle');return;}
     if(this.state!=='paused')this.setStatus('正在准备自然语音…','loading');
     const voice=this.get('voice','af_heart'),rate=PaperVoiceCore.rate(this.get('rate',1));
-    const session=this.session={units,pendingMode:null};
+    const session=this.session={units,pendingMode:this.session?.pendingMode||null,context:this.session?.context};
     const cache=new Map();let lastPage=null;
     const prepare=unit=>{
       const spoken=unit.spokenText??PaperVoiceCore.speechText(unit.text);
@@ -432,6 +433,14 @@ var PaperVoice = {
     try {
       if(this.inflight){try{await this.inflight;}catch(_){}}
       if(generation!==this.generation || this.dead)return;
+      if(session.pendingMode){
+        const all=await session.context;
+        if(generation!==this.generation||this.dead)return;
+        mode=session.pendingMode;session.pendingMode=null;this.playbackMode=mode;
+        const scoped=mode==='selection'?units:mode==='document'?(all.length?all:units):PaperVoiceCore.scopeUnits(all.length?all:units,units[0],mode);
+        if(scoped.length)units=scoped;
+        session.units=units;loops=1;
+      }
       let next=prepare(units[0]);
       for(let cycle=0;loops===0 || cycle<loops;cycle++) {
         for(let i=0;i<units.length;i++) {
