@@ -20,7 +20,7 @@ New to Paper Voice? Choose the complete package for your computer. It includes t
 
 [Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/Paper-Voice-1.2.6-macOS-arm64.zip)
 
-Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/paper-voice-1.2.6.xpi). **To add Chinese, Japanese or French when upgrading from an older version, download this release’s complete package and run Install voices again.** Your old voice pack still works for English.
+Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/paper-voice-1.2.6.xpi). 
 
 For Zotero 10. [Release notes](CHANGELOG.md) · [Compatibility notes](docs/COMPATIBILITY.en.md)
 
