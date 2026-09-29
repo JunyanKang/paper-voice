@@ -17,8 +17,6 @@
 
 ## 01 · 准备声音
 
-![Mac 安装助手，Windows 使用相同的两步流程](assets/installer-macos.png)
-
 打开 **Paper Voice 安装助手**，点击「安装声音」。第一步右侧出现绿色「✓ 声音已就绪」后，点击「完成」。声音包已包含在下载文件中，无需另行下载或注册账户。
 
 Windows 用户请保留同目录的 `Resources` 文件夹；不要只把安装助手单独拖出。Mac 的声音资源已收纳在安装助手内部。
@@ -29,17 +27,13 @@ Windows 用户请保留同目录的 `Resources` 文件夹；不要只把安装�
 
 **工具 → 插件 → 右上角齿轮 → 从文件安装插件**
 
-![Zotero 插件管理器中的从文件安装入口](assets/plugin-install.png)
-
 英文界面为 **Tools → Plugins → Install Plugin From File**。选择下载包里的 `paper-voice-版本号.xpi`。
 
 ## 03 · 开始听读
 
 打开英文 PDF。右下角出现书页精灵后，划选文字即可开始；点击精灵，可调整声音和阅读模式。
 
-![第一次听读：打开精灵面板，选择阅读方式](assets/reader-overview.png)
-
-下一步：[了解四种模式、声音与随行译文](GUIDE.md)。
+下一步：[了解四种模式、声音与随行译文](../README.md#使用指南)。
 
 ## 更新已有插件
 

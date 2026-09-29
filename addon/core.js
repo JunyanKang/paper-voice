@@ -1,10 +1,10 @@
 /* Pure text and selection logic; shared with regression tests. */
 var PaperVoiceCore = (() => {
   const modes=[
-    {id:'selection',label:'划选即读',short:'划选',icon:'text-select'},
-    {id:'document',label:'全文连读',short:'全文',icon:'file-text'},
-    {id:'paragraph',label:'段落循环',short:'段落',icon:'mode-paragraph'},
     {id:'sentence',label:'单句精听',short:'单句',icon:'mode-sentence'},
+    {id:'selection',label:'划选即读',short:'划选',icon:'text-select'},
+    {id:'paragraph',label:'段落循环',short:'段落',icon:'mode-paragraph'},
+    {id:'document',label:'全文连读',short:'全文',icon:'file-text'},
   ];
   const voices = [
     { id: 'af_heart', label: '美音 · 女声 Heart', accent: 'US', gender: 'female' },
@@ -169,8 +169,41 @@ var PaperVoiceCore = (() => {
       offset+=anchorText(part).length;return unit;
     });});
   }
-  function publicationFooterItems(items,pageHeight) {
-    const rows=items.map((item,index)=>({index,text:cleanText(item.str),x:Number(item.transform?.[4]),y:Number(item.transform?.[5]),height:Math.abs(item.height||item.transform?.[3]||0)})).filter(x=>x.text&&Number.isFinite(x.y)&&x.height>0);
+  function pdfRows(items) {
+    return items.map((item,index)=>({index,text:cleanText(item.str),x:Number(item.transform?.[4]),y:Number(item.transform?.[5]),width:Math.abs(item.width||0),height:Math.abs(item.height||item.transform?.[3]||0)})).filter(x=>x.text&&Number.isFinite(x.y)&&x.height>0);
+  }
+  function pdfLines(rows) {
+    const baselines=[];
+    for(const row of [...rows].sort((a,b)=>b.y-a.y||a.x-b.x)){
+      let line=baselines.find(x=>Math.abs(x.y-row.y)<=Math.max(x.height,row.height)*.5);
+      if(!line){line={y:row.y,height:row.height,rows:[]};baselines.push(line);}
+      line.rows.push(row);line.height=Math.max(line.height,row.height);
+    }
+    const result=[];
+    for(const base of baselines){
+      let line=null,previous=null;
+      for(const row of base.rows.sort((a,b)=>a.x-b.x)){
+        if(!line||row.x-previous.x-previous.width>Math.max(18,base.height*4)){
+          line={y:base.y,height:base.height,rows:[]};result.push(line);
+        }
+        line.rows.push(row);previous=row;
+      }
+    }
+    for(const line of result)line.text=line.rows.map(x=>x.text).join(' ');
+    return result;
+  }
+  function marginKey(line,height) {return (line.y>height*.94?'top:':'bottom:')+anchorText(line.text).replace(/\d+/g,'#');}
+  function marginSignatures(pages) {
+    const counts=new Map();
+    for(const page of pages){
+      const height=page.height||page.view?.[3]-page.view?.[1];if(!height)continue;
+      const keys=new Set(pdfLines(pdfRows(page.items)).filter(x=>(x.y>height*.94||x.y<height*.06)&&x.height<height*.018&&/[a-z]{4}/i.test(x.text)).map(x=>marginKey(x,height)));
+      for(const key of keys)counts.set(key,(counts.get(key)||0)+1);
+    }
+    return new Set([...counts].filter(([,count])=>count>=2).map(([key])=>key));
+  }
+  function publicationFooterItems(items,pageHeight,context={}) {
+    const rows=pdfRows(items);
     const excluded=new Set();if(rows.length<3)return excluded;
     const height=pageHeight||Math.max(...rows.map(x=>x.y+x.height));
     const weights=new Map();for(const row of rows.filter(x=>x.y>height*.36)){const size=Math.round(row.height*2)/2;weights.set(size,(weights.get(size)||0)+row.text.length);}
@@ -181,14 +214,30 @@ var PaperVoiceCore = (() => {
       for(const peer of rows.filter(x=>Math.abs(x.y-row.y)<=bodySize*.5&&x.height<=bodySize*1.12))excluded.add(peer.index);
     }
     for(const row of rows.filter(x=>x.y<height*.05&&x.height<=bodySize*1.12&&/^\d{1,4}$/.test(x.text)))excluded.add(row.index);
-    // PDF painting order need not follow page layout: the publisher can append
-    // a running header between two footer lines. Group by coordinates instead.
-    const lines=[];
-    for(const row of rows.filter(x=>x.y<height*.36).sort((a,b)=>b.y-a.y||a.x-b.x)){
-      let line=lines.find(x=>Math.abs(x.y-row.y)<=bodySize*.5);
-      if(!line){line={y:row.y,rows:[]};lines.push(line);}line.rows.push(row);
+    const allLines=pdfLines(rows),remove=line=>line.rows.forEach(row=>excluded.add(row.index));
+    for(const line of allLines){
+      const margin=line.y>height*.94||line.y<height*.06;
+      if(margin&&context.margins?.has(marginKey(line,height)))remove(line);
+      if(line.y<height*.065&&(/(?:www\.|https?:\/\/|\|.*\b(?:Volume|Issue)\b)/i.test(line.text)||/\|\s*\((?:18|19|20)\d{2}\)\s*\d+\s*:\s*\d+/.test(line.text)))remove(line);
+      if(line.y>height*(context.firstPage?.6:.94)&&/^https?:\/\/(?:dx\.)?doi\.org\/10\./i.test(line.text)){
+        remove(line);for(const peer of allLines.filter(x=>Math.abs(x.y-line.y)<4&&/^Article$/i.test(x.text)))remove(peer);
+      }
+      if(context.firstPage&&/^(?:(?:Received|Accepted|Published(?: online)?)\s*:?\s*(?:\d{1,2}\s+[A-Za-z]+\s+\d{4}|[A-Za-z]+\s+\d{1,2},?\s+\d{4})[.;]?|Check for updates)$/i.test(line.text))remove(line);
     }
-    for(const line of lines){line.rows.sort((a,b)=>a.x-b.x);line.text=line.rows.map(x=>x.text).join(' ');}
+    const maxX=Math.max(...rows.map(x=>x.x+x.width));
+    for(const row of rows)if(row.x<maxX*.05&&/^1234567890[():,;]*$/.test(row.text.replace(/\s/g,'')))excluded.add(row.index);
+    // Some journals put their first-page publication panel below the abstract,
+    // above the introduction. Require a cluster of explicit metadata labels.
+    if(context.firstPage)for(let i=0;i<allLines.length;i++){
+      const first=allLines[i];if(!/^Citation\s*:/i.test(first.text)||first.height>bodySize*.9)continue;
+      const block=[first];
+      for(let j=i+1;j<allLines.length;j++){
+        const line=allLines[j];if(line.height>first.height*1.12||block.at(-1).y-line.y>first.height*4)break;block.push(line);
+      }
+      if(block.filter(x=>/^(?:Citation|Editor|Received|Accepted|Funding|Competing Interests)\b/i.test(x.text)).length>=3)block.forEach(remove);
+    }
+    // Publication footnotes are selected spatially, not by PDF painting order.
+    const lines=pdfLines(rows.filter(x=>x.y<height*.36&&!excluded.has(x.index)));
     const cue=/^(?:abbreviations?\s*:|[*∗†‡]?\s*correspond(?:ing|ence)\b|e[- ]?mail\s*(?:addresses?)?\s*:|(?:https?:\/\/(?:dx\.)?doi\.org\/|doi\s*:)|received\s+\d|accepted\s+\d|available\s+online\b|copyright\b|©|\d{4}-\d{3}[\dX]\s*\/)/i;
     for(let i=0;i<lines.length;i++){
       const candidate=lines[i];if(!cue.test(candidate.text))continue;
@@ -198,7 +247,17 @@ var PaperVoiceCore = (() => {
       // Continuation lines must be small print. Explicit metadata lines may use
       // the abstract's font size (common in Elsevier first-page publication data).
       if(!tail.every(line=>line.rows.every(x=>x.height<=bodySize*(cue.test(line.text)?1.12:.96))))continue;
-      for(const line of tail)for(const row of line.rows)excluded.add(row.index);
+      // An email line can close a numbered affiliation block without an
+      // explicit "Corresponding author" label (Nature-style first pages).
+      if(/e[- ]?mail/i.test(block)){
+        const above=[];for(let j=i-1;j>=0;j--){
+          const line=lines[j],below=above[0]||candidate;
+          if(line.y-below.y>bodySize*2.5||line.rows.some(x=>x.height>bodySize*.96))break;
+          above.unshift(line);
+        }
+        if(/\b(?:University|Institute|Department|Medicine|Hospital)\b/i.test(above.map(x=>x.text).join(' ')))tail.unshift(...above);
+      }
+      tail.forEach(remove);
       break;
     }
     return excluded;
@@ -209,8 +268,29 @@ var PaperVoiceCore = (() => {
     const span=spans.find(x=>offset>=x.start&&offset<x.end)||spans[spans.length-1];
     return offset+span.sourceStart-span.start;
   }
-  function pdfLayout(items,pageIndex,pageHeight) {
-    const excluded=publicationFooterItems(items,pageHeight),kept=[],breaks=[],sourceSpans=[];
+  function paragraphLayout(items) {
+    const lines=[];let offset=0,line=null,ended=true;
+    for(const item of items){
+      const length=anchorText(item.str).length;if(!length){if(item.hasEOL)ended=true;continue;}
+      const x=item.transform?.[4],y=item.transform?.[5],height=Math.abs(item.height||item.transform?.[3]||0);
+      if(!line||ended||Math.abs(y-line.y)>Math.max(height,line.height)*.55||x<line.x-height){line={x,y,height,right:x+(item.width||0),start:offset,text:''};lines.push(line);}
+      line.right=Math.max(line.right,x+(item.width||0));line.height=Math.max(line.height,height);line.text+=item.str;offset+=length;ended=!!item.hasEOL;
+    }
+    const starts=[];let startsParagraph=false;
+    for(let i=0;i<lines.length;i++){
+      const current=lines[i],previous=lines[i-1],h=current.height;if(!h)continue;
+      const peers=lines.filter(x=>Math.abs(x.x-current.x)<h*3&&Math.abs(x.height-h)<h*.18),left=Math.min(...peers.map(x=>x.x)),width=Math.max(...peers.map(x=>x.right-left));
+      const indent=current.x-left>h*.65&&current.x-left<h*3;
+      if(!previous){startsParagraph=indent||h>(lines[1]?.height||h)*1.18;continue;}
+      const sameColumn=Math.abs(current.x-previous.x)<h*4,gap=previous.y-current.y;
+      const shortEnding=sameColumn&&previous.right-left<width*.87&&/[.!?][”’"')]*$/.test(previous.text.trim());
+      const fontChange=Math.max(h,previous.height)>Math.min(h,previous.height)*1.18;
+      if((sameColumn&&gap>h*1.6)||(indent&&gap>h*.6)||(shortEnding&&gap>h*.6)||fontChange)starts.push(current.start);
+    }
+    return {paragraphStarts:starts,startsParagraph};
+  }
+  function pdfLayout(items,pageIndex,pageHeight,context={}) {
+    const excluded=publicationFooterItems(items,pageHeight,{...context,firstPage:pageIndex===0}),kept=[],breaks=[],sourceSpans=[];
     let offset=0,originalOffset=0,previous=null,gap=false;
     for(let index=0;index<items.length;index++){
       const item=items[index],length=anchorText(item.str).length;
@@ -228,12 +308,15 @@ var PaperVoiceCore = (() => {
       else sourceSpans.push({start:offset,end:offset+length,sourceStart:originalOffset});
       offset+=length;originalOffset+=length;previous={x,y,height};gap=false;
     }
-    return {text:pdfText(kept),pageIndex,breaks,sourceSpans};
+    const paragraphs=paragraphLayout(kept);
+    return {text:pdfText(kept),pageIndex,breaks:[...new Set([...breaks,...paragraphs.paragraphStarts])].sort((a,b)=>a-b),sourceSpans,...paragraphs};
   }
   function layoutUnits(pages,selection=null,from=0) {
-    const joined=cleanText(pages.map(p=>p.text).join(' ')),normalized=anchorText(joined),segments=[];
+    const joined=cleanText(pages.map(p=>p.text).join(' ')),normalized=anchorText(joined),segments=[],paragraphStarts=[0];
     let offset=0;
     for(const page of pages){
+      if(offset&&page.startsParagraph)paragraphStarts.push(offset);
+      for(const at of page.paragraphStarts||[])paragraphStarts.push(offset+at);
       const length=anchorText(page.text).length,cuts=[0,...(page.breaks||[]).filter(x=>x>0&&x<length),length];
       for(let i=0;i<cuts.length-1;i++)if(cuts[i+1]>cuts[i])segments.push({start:offset+cuts[i],end:offset+cuts[i+1],pageIndex:page.pageIndex,pageStart:offset,page,sourceDelta:sourceOffset(page,cuts[i])-cuts[i]});
       offset+=length;
@@ -268,12 +351,42 @@ var PaperVoiceCore = (() => {
         for(const part of chunks(highlightText)){
           const at=sentence.indexOf(part,local);local=at+part.length;
           const unitInPage=counts.get(segment.pageIndex)||0;counts.set(segment.pageIndex,unitInPage+1);
-          units.push({text:part,spokenText:speechText(masked.slice(at,local)),translationText:sentence,sentenceText:sentence,sentenceId:start,highlightText,highlightOffset:a-segment.pageStart+segment.sourceDelta,pageIndex:segment.pageIndex,anchorOffset,sentenceOffset:sourceOffset(segment.page,Math.max(0,start-segment.pageStart)),unitInPage});
+          units.push({text:part,speechSource:masked.slice(at,local),paragraphId:paragraphStarts.filter(x=>x<=a).at(-1)||0,spokenText:speechText(masked.slice(at,local)),translationText:sentence,sentenceText:sentence,sentenceId:start,highlightText,highlightOffset:a-segment.pageStart+segment.sourceDelta,pageIndex:segment.pageIndex,anchorOffset,sentenceOffset:sourceOffset(segment.page,Math.max(0,start-segment.pageStart)),unitInPage});
           anchorOffset+=anchorText(part).length;
         }
       }
     }
     return units;
+  }
+  function unitIndex(units,current) {
+    const start=current?.anchorOffset;
+    if(Number.isInteger(start))return units.findIndex(u=>u.pageIndex===current.pageIndex&&u.anchorOffset<=start&&start<u.anchorOffset+anchorText(u.text).length);
+    return units.findIndex(u=>u.pageIndex===current?.pageIndex&&anchorText(u.text).includes(anchorText(current?.text)));
+  }
+  function scopeUnits(units,current,mode,delta=0) {
+    const at=unitIndex(units,current);if(at<0)return [];
+    const key=mode==='sentence'?'sentenceId':'paragraphId';
+    const group=u=>u[key]??u.sentenceId??u.anchorOffset;
+    let target=at;
+    if(delta<0){while(target>0&&group(units[target-1])===group(units[at]))target--;if(!target)return [];target--;}
+    if(delta>0){while(target<units.length&&group(units[target])===group(units[at]))target++;if(target===units.length)return [];}
+    const id=group(units[target]);while(target>0&&group(units[target-1])===id)target--;
+    if(mode==='document')return units.slice(target);
+    return units.slice(target).filter(u=>group(u)===id);
+  }
+  function afterUnit(units,current) {
+    const end=(current.anchorOffset||0)+anchorText(current.text).length;
+    const result=[];
+    for(const unit of units){
+      if(unit.pageIndex<current.pageIndex)continue;
+      if(unit.pageIndex>current.pageIndex){result.push(unit);continue;}
+      const skip=end-unit.anchorOffset,length=anchorText(unit.text).length;
+      if(skip>=length)continue;if(skip<=0){result.push(unit);continue;}
+      let cut=0,count=0;for(;cut<unit.text.length&&count<skip;cut++)count+=anchorText(unit.text[cut]).length;
+      const raw=unit.text.slice(cut),text=raw.trimStart(),trim=raw.length-text.length;
+      result.push({...unit,text,anchorOffset:end,spokenText:speechText((unit.speechSource||unit.text).slice(cut+trim)),speechSource:(unit.speechSource||unit.text).slice(cut+trim)});
+    }
+    return result;
   }
   function resumeUnitIndex(units,saved) {
     if(!units.length)return 0;
@@ -292,6 +405,6 @@ var PaperVoiceCore = (() => {
     while(index>0&&id!==undefined&&units[index-1].sentenceId===id)index--;
     return index;
   }
-  return { modes, voices, cleanText, chunks, sentences, rate, speechText, pdfText, pdfLayout, sourceOffset, layoutUnits, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
+  return { modes, voices, cleanText, chunks, sentences, rate, speechText, pdfText, pdfLayout, sourceOffset, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;

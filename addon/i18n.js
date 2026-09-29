@@ -6,6 +6,7 @@ var PaperVoiceI18n = (() => {
   '声音与翻译设置':'Voice and translation settings','收起朗读面板':'Close panel','朗读模式':'Reading mode',
   '划选即读':'Read selection','全文连读':'Continuous reading','段落循环':'Paragraph repeat','单句精听':'Sentence repeat',
   '划选':'Select','全文':'Document','段落':'Paragraph','单句':'Sentence',
+  '上一段':'Previous paragraph','下一段':'Next paragraph','重读当前段':'Replay paragraph','重读当前句':'Replay sentence','1 次':'Once',
   '持续循环':'Keep repeating','循环次数':'Repeat count','循环':'Repeat','起点':'Start at','全文朗读起点':'Starting point',
   '从第 1 页':'First page','从当前页':'Current page','从上次进度':'Last position','从选定位置（句首）':'Selected sentence',
   '选择一段英文，留一点时间给耳朵。':'Select a passage. Make room to listen.',

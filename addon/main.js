@@ -65,11 +65,15 @@ var PaperVoice = {
         }
       };
       const key = e => {
-        if (e.key === 'Escape') this.stop();
+        const editable=e.target.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"]');
+        if(editable||e.isComposing||e.repeat||e.ctrlKey||e.metaKey)return;
+        const active=this.currentReader===reader&&['playing','paused','loading'].includes(this.state);
+        if(active&&(e.code==='Space'||e.key===' ')&&!e.altKey){e.preventDefault();e.stopPropagation();this.togglePause();return;}
+        if(active&&e.key==='Escape'){e.preventDefault();e.stopPropagation();this.stop();return;}
         if(e.altKey && e.code==='KeyT'){e.preventDefault();this.toggleTranslation();}
         if (e.altKey && e.code === 'KeyP') { e.preventDefault(); this.togglePause(); }
       };
-      d.addEventListener('pointerdown', down, true); d.addEventListener('keydown', key, true);
+      d.addEventListener('pointerdown', down, true); d.defaultView.addEventListener('keydown', key, true);
       hooks.push({doc:d, down, key});
     };
     hookDocument(doc);
@@ -83,7 +87,7 @@ var PaperVoice = {
   },
   detachReader(reader) {
     for (const h of this.readerHooks.get(reader) || []) {
-      try { h.doc.removeEventListener('pointerdown', h.down, true); h.doc.removeEventListener('keydown', h.key, true); } catch (_) {}
+      try { h.doc.removeEventListener('pointerdown', h.down, true); h.doc.defaultView.removeEventListener('keydown', h.key, true); } catch (_) {}
     }
     this.readerHooks.delete(reader); this.lastSelections.delete(reader);this.selectionContexts.delete(reader);
     this.panels.get(reader)?.root.remove(); this.panels.delete(reader);
@@ -157,8 +161,13 @@ var PaperVoice = {
   },
   setMode(mode) {
     if(!PaperVoiceCore.modes.some(x=>x.id===mode)||mode===this.get('mode','selection'))return;
-    this.stop(false);this.set('mode',mode);this.sentenceIndex=0;
-    this.syncSettings();this.setStatus(this.modeHint(),'idle');
+    this.set('mode',mode);
+    if(this.session&&['playing','paused','loading'].includes(this.state)){
+      this.session.pendingMode=mode;
+      this.session.context ||= this.documentUnits(this.currentReader).catch(()=>[]);
+      this.playbackMode=mode;
+      this.syncSettings();
+    }else{this.sentenceIndex=0;this.syncSettings();this.setStatus(this.modeHint(),'idle');}
   },
   cycleMode() {
     const modes=PaperVoiceCore.modes,index=modes.findIndex(x=>x.id===this.get('mode','selection'));
@@ -171,11 +180,10 @@ var PaperVoice = {
       find('voice').value=this.get('voice','af_heart');find('auto').checked=this.get('auto',true);
       find('rate').value=this.get('rate',1);find('rateLabel').textContent=`${Number(this.get('rate',1)).toFixed(2)}×`;
       find('documentRow').hidden=mode!=='document';find('documentStart').value=this.get('documentStart','begin');
-      find('repeat').value=this.get('repeat',0);find('repeatRow').hidden=!['paragraph','sentence'].includes(mode);
+      find('repeat').value=this.get(mode==='selection'?'selectionRepeat':'repeat',mode==='selection'?1:0);find('repeatRow').hidden=mode==='document';
       find('autoRow').hidden=mode==='document';find('modeNote').textContent=this.modeHint();
       for (const b of root.querySelectorAll('[data-mode]'))b.setAttribute('aria-pressed',String(b.dataset.mode===mode));
       const currentMode=PaperVoiceCore.modes.find(x=>x.id===mode)||PaperVoiceCore.modes[0];
-      find('modeTitle').textContent=currentMode.label;
       if(find('translation'))find('translation').checked=this.get('translation',false);
       if(find('provider'))find('provider').value=this.get('translationProvider','tencenttransmart');
       if(find('target'))find('target').value=this.get('translationTarget','zh-Hans');
@@ -203,8 +211,17 @@ var PaperVoice = {
       find('quickModeLabel').textContent=current.short;
       action('quickMode').setAttribute('aria-label',current.label+'；点击切换为'+next.label);action('quickMode').title=current.label+' → '+next.label;
       action('orb').title='Paper Voice · '+this.status;
-      action('previous').disabled=mode!=='sentence' || !(this.sentenceIndex>0);
-      action('next').disabled=mode!=='sentence' || (this.sentenceIndex||0)>=PaperVoiceCore.sentences(this.lastText).length-1;
+      for(const [name,delta] of [['Previous',-1],['Replay',0],['Next',1]]){
+        const button=action('quick'+name);if(!button)continue;
+        button.hidden=!active||mode==='selection';
+        const label=(delta<0?'上一':delta>0?'下一':'重读当前')+(mode==='sentence'?'句':'段');
+        button.setAttribute('aria-label',label);button.title=label;
+      }
+      for(const [name,delta] of [['previous',-1],['next',1]]){
+        action(name).disabled=mode==='selection'||!this.currentUnit;
+        action(name).setAttribute('aria-label',(delta<0?'上一':'下一')+(mode==='sentence'?'句':'段'));
+        action(name).title=action(name).getAttribute('aria-label');
+      }
       action('stop').disabled=!active;this.localize(root);
     }
     this.updateUpdateControls?.();
@@ -215,10 +232,45 @@ var PaperVoice = {
     if(this.lastText && this.lastReader===reader)return this.speak(this.lastText,reader);
     this.setStatus('请先在这篇 PDF 中划选一段英文');
   },
-  stepSentence(delta,reader) {
-    const count=PaperVoiceCore.sentences(this.lastText).length;
-    this.sentenceIndex=Math.max(0,Math.min(count-1,(this.sentenceIndex||0)+delta));
-    if(count)this.speak(this.lastText,reader,false,true);
+  stepSentence(delta,reader) { return this.navigateScope(delta,reader); },
+  async documentUnits(reader) {
+    const pdf=reader?._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfDocument;
+    if(!pdf)return [];
+    this.documentCache ||= new WeakMap();
+    if(!this.documentCache.has(pdf)){
+      const task=(async()=>{
+        const margins=await this.publicationMargins(pdf),pages=[];
+        for(let i=1;i<=pdf.numPages;i++){
+          const page=Components.utils.waiveXrays(await pdf.getPage(i));
+          pages.push(PaperVoiceCore.pdfLayout((await page.getTextContent()).items,i-1,Math.abs(page.view?.[3]-page.view?.[1])||undefined,{margins}));
+        }
+        return PaperVoiceCore.layoutUnits(pages);
+      })();
+      this.documentCache.set(pdf,task);task.catch(()=>this.documentCache.delete(pdf));
+    }
+    return this.documentCache.get(pdf);
+  },
+  async navigateScope(delta,reader) {
+    const current=this.currentUnit,mode=this.get('mode','selection'),generation=this.generation;
+    if(!current||mode==='selection')return;
+    try{
+      const all=await this.documentUnits(reader);
+      if(generation!==this.generation)return;
+      const units=PaperVoiceCore.scopeUnits(all.length?all:(this.session?.units||[]),current,mode,delta);
+      if(!units.length)return;
+      this.stop(false);this.currentReader=reader;this.playbackMode=mode;
+      return this.runUnits(units,reader,this.generation,{mode,loops:mode==='document'?1:Number(this.get('repeat',0))});
+    }catch(error){if(generation===this.generation)this.setStatus(error.message);}
+  },
+  async publicationMargins(pdf) {
+    this.pdfMarginCache ||= new WeakMap();
+    if(this.pdfMarginCache.has(pdf))return this.pdfMarginCache.get(pdf);
+    const pages=[];
+    for(let i=1;i<=Math.min(pdf.numPages,5);i++){
+      const page=Components.utils.waiveXrays(await pdf.getPage(i));
+      pages.push({items:(await page.getTextContent()).items,height:Math.abs(page.view?.[3]-page.view?.[1])});
+    }
+    const margins=PaperVoiceCore.marginSignatures(pages);this.pdfMarginCache.set(pdf,margins);return margins;
   },
   async startDocument(reader, origin='begin') {
     this.stop(false);const generation=this.generation;this.currentReader=reader;this.ensurePanel(reader);
@@ -227,6 +279,7 @@ var PaperVoice = {
     try {
       const pdf=reader._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfDocument;
       if(!pdf)throw new Error('当前阅读器未就绪，请等待 PDF 加载完成');
+      const margins=await this.publicationMargins(pdf);
       const selected=this.selectionContexts.get(reader);
       if(origin==='selection'&&(!selected?.text||!Number.isInteger(selected.pageIndex)))throw new Error('请先在这篇 PDF 中划选字母、单词或句子，再从选定位置开始');
       let saved={};try{saved=JSON.parse(this.get('progress.'+reader.itemID,'{}'))||{};}catch(_){}
@@ -238,7 +291,7 @@ var PaperVoice = {
         if(generation!==this.generation || this.dead)return;
         const page=Components.utils.waiveXrays(await pdf.getPage(i)),content=await page.getTextContent();
         if(generation!==this.generation || this.dead)return;
-        const layout=PaperVoiceCore.pdfLayout(content.items,i-1,Math.abs(page.view?.[3]-page.view?.[1])||undefined);
+        const layout=PaperVoiceCore.pdfLayout(content.items,i-1,Math.abs(page.view?.[3]-page.view?.[1])||undefined,{margins});
         if(!layout.text)empty++;
         pages.push(layout);
         this.setStatus(`正在读取第 ${i}/${pdf.numPages} 页…`,'loading');
@@ -358,7 +411,7 @@ var PaperVoice = {
     const units=sentences.flatMap(x=>PaperVoiceCore.chunks(x).map(part=>({text:part,sentenceText:x,pageIndex})));
     if(!sample)await this.locateSelectionUnits(reader,units,context?.text||text,generation);
     if(generation!==this.generation)return;
-    const loops=['sentence','paragraph'].includes(mode)?Number(this.get('repeat',0)):1;
+    const loops=sample?1:Number(this.get(mode==='selection'?'selectionRepeat':'repeat',mode==='selection'?1:0));
     return this.runUnits(units,reader,generation,{mode,loops,sample});
   },
   async runUnits(units,reader,generation,{mode,loops,sample=false}) {
@@ -366,11 +419,12 @@ var PaperVoice = {
     if(!units.length){this.setStatus('选区仅包含引文标记，无需朗读','idle');return;}
     if(this.state!=='paused')this.setStatus('正在准备自然语音…','loading');
     const voice=this.get('voice','af_heart'),rate=PaperVoiceCore.rate(this.get('rate',1));
+    const session=this.session={units,pendingMode:null};
     const cache=new Map();let lastPage=null;
     const prepare=unit=>{
       const spoken=unit.spokenText??PaperVoiceCore.speechText(unit.text);
       let speech=cache.get(spoken);
-      if(!speech){speech=this.synthesize(spoken,voice,rate);this.inflight=speech;if(['sentence','paragraph'].includes(mode))cache.set(spoken,speech);}
+      if(!speech){speech=this.synthesize(spoken,voice,rate);this.inflight=speech;if(mode!=='document'&&loops!==1)cache.set(spoken,speech);}
       const translation=this.get('translation',false)&&!sample?this.translate(unit.translationText||unit.text):Promise.resolve(null);
       translation.catch(()=>{});speech.catch(()=>{});
       return {speech,translation,unit,translationKey:this.get('translation',false)+'|'+this.get('translationProvider','tencenttransmart')+'|'+this.get('translationTarget','zh-Hans')};
@@ -401,9 +455,18 @@ var PaperVoice = {
           this.pendingProgress=sample?null:{reader,unit,generation,mode};
           await this.playAudio(result.audio,reader,generation,`${prefix}正在朗读 ${i+1}/${units.length}${suffix}`);
           if(generation!==this.generation || this.dead)return;
+          if(session.pendingMode){
+            const all=await session.context;
+            if(generation!==this.generation||this.dead)return;
+            mode=session.pendingMode;session.pendingMode=null;this.playbackMode=mode;
+            const scope=mode==='document'?(all.length?all:units):mode==='selection'?session.units:PaperVoiceCore.scopeUnits(all.length?all:units,unit,mode);
+            units=PaperVoiceCore.afterUnit(scope,unit).filter(u=>u.spokenText??PaperVoiceCore.speechText(u.text));
+            loops=1;cycle=0;i=-1;session.units=units;
+            if(units.length)next=prepare(units[0]);
+          }
         }
       }
-      if(generation===this.generation){this.releaseAudio();this.clearSentenceHighlight?.();this.setStatus(mode==='document'&&this.documentEmptyPages?`朗读完成 · ${this.documentEmptyPages} 页无文字，已跳过`:'朗读完成 · 可以继续划选下一段','idle');}
+      if(generation===this.generation){this.session=null;this.releaseAudio();this.clearSentenceHighlight?.();this.setStatus(mode==='document'&&this.documentEmptyPages?`朗读完成 · ${this.documentEmptyPages} 页无文字，已跳过`:'朗读完成 · 可以继续划选下一段','idle');}
     }catch(error){if(generation===this.generation && !this.dead){this.releaseAudio();this.clearSentenceHighlight?.();this.setStatus(error.message || String(error),'error');Zotero.logError(error);}}
   },
   async locateSelectionUnits(reader,units,selection,generation) {
@@ -412,11 +475,11 @@ var PaperVoice = {
     // Locate the complete selection across PDF pages before splitting at actual
     // column/page boundaries. This works before the next page's DOM is rendered.
     try{
-      const layouts=[];let joined='';
+      const margins=await this.publicationMargins(pdf),layouts=[];let joined='';
       for(let index=units[0]?.pageIndex||0;index<pdf.numPages;index++){
         if(generation!==this.generation)return;
         const page=Components.utils.waiveXrays(await pdf.getPage(index+1));
-        const layout=PaperVoiceCore.pdfLayout((await page.getTextContent()).items,index,Math.abs(page.view?.[3]-page.view?.[1])||undefined);layouts.push(layout);joined+=PaperVoiceCore.anchorText(layout.text);
+        const layout=PaperVoiceCore.pdfLayout((await page.getTextContent()).items,index,Math.abs(page.view?.[3]-page.view?.[1])||undefined,{margins});layouts.push(layout);joined+=PaperVoiceCore.anchorText(layout.text);
         if(joined.includes(PaperVoiceCore.anchorText(selection))){
           const selected=units.map(u=>u.text).join(' '),from=joined.indexOf(PaperVoiceCore.anchorText(selection));
           const located=PaperVoiceCore.layoutUnits(layouts,selected,from);
@@ -496,7 +559,7 @@ var PaperVoice = {
     this.audioDone?.(); this.audioDone=null;
   },
   stop(show = true) {
-    this.generation++; this.translationTicket++; this.currentUnit=null;this.pendingProgress=null;this.playbackMode=null; this.clearSelectionTimers(); this.releaseAudio();
+    this.session=null;this.generation++; this.translationTicket++; this.currentUnit=null;this.pendingProgress=null;this.playbackMode=null; this.clearSelectionTimers(); this.releaseAudio();
     this.hideTranslation?.();this.clearSentenceHighlight?.();
     this.state = 'idle';
     if (show) this.setStatus('已停止 · 拖选下一段即可朗读','idle');

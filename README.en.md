@@ -6,7 +6,7 @@
 
 <p align="center">Natural voices for your English papers, right inside Zotero.<br>Select a passage. Follow the thought. Stay with the original.</p>
 
-<p align="center"><a href="https://github.com/JunyanKang/paper-voice/releases/latest"><b>Download Paper Voice</b></a> · <a href="docs/INSTALL.en.md">Installation</a> · <a href="docs/GUIDE.en.md">User guide</a> · <a href="https://github.com/JunyanKang/paper-voice/issues">Feedback</a></p>
+<p align="center"><a href="https://github.com/JunyanKang/paper-voice/releases/latest"><b>Download Paper Voice</b></a> · <a href="docs/INSTALL.en.md">Installation</a> · <a href="#user-guide">User guide</a> · <a href="https://github.com/JunyanKang/paper-voice/issues">Feedback</a></p>
 
 <p align="center"><sub>Free to use · Offline voices · US / UK English · Windows / macOS · Zotero 10</sub></p>
 
@@ -26,10 +26,9 @@
 
 ## Find your voice
 
-| | American English | British English |
-|:--|:--|:--|
-| Female | Heart · Bella | Emma |
-| Male | Michael · Fenrir | George |
+**American English** · Heart and Bella (female); Michael and Fenrir (male).
+
+**British English** · Emma (female); George (male).
 
 Voices run on your computer. No subscription, speech quota or API key. Install once, then listen offline.
 
@@ -51,7 +50,7 @@ Extract the ZIP, open the **Paper Voice installer** and choose **Install voices*
 **3 · Listen**<br>
 Open an English PDF and select some text. Click the floating book mascot to choose a voice, reading mode or translation service.
 
-[View the illustrated installation guide →](docs/INSTALL.en.md)
+[View the installation guide →](docs/INSTALL.en.md)
 
 **Already installed?** Choose **Check for updates** in the plugin settings. Routine updates only need the plugin; keep your existing voice pack.
 
@@ -65,7 +64,47 @@ The installer and plugin interface offer **English and Simplified Chinese**. Swi
 
 Speech is generated locally. Translation is optional. Your papers, PDFs and annotations stay unchanged.
 
-[User guide](docs/GUIDE.en.md) · [Compatibility & usage notes](docs/COMPATIBILITY.en.md) · [Privacy](PRIVACY.md) · [Release notes](CHANGELOG.md)
+[User guide](#user-guide) · [Compatibility & usage notes](docs/COMPATIBILITY.en.md) · [Privacy](PRIVACY.md) · [Release notes](CHANGELOG.md)
+
+## User guide
+
+### Choose how much to read
+
+Click the floating book mascot in your PDF. Modes run from **Sentence → Selection → Paragraph → Document**. The floating mode button cycles in the same order; the active mode is highlighted.
+
+- **Sentence**: Select text to focus on one sentence. Use Previous sentence, Replay sentence and Next sentence to navigate.
+- **Selection**: Select exactly what you want to hear. Turn off automatic reading if you prefer to press Play. Read once, repeat 2, 3 or 5 times, or keep repeating.
+- **Paragraph**: Select a paragraph and choose a repeat count. Previous paragraph, Replay paragraph and Next paragraph move through nearby paragraphs.
+- **Document**: Read from the first page, current page, last position or a selected sentence. Navigation moves by paragraph, then continuous reading resumes.
+
+**Switch modes without cutting off the audio.** Switching from Document to Paragraph or Sentence finishes the current paragraph or sentence, then stops. Switching to Document continues through the paper. Previous, Replay and Next jump immediately to the requested passage.
+
+### Start where you want
+
+In Document mode, choose **Selected sentence**, select a letter, word or sentence, then choose **Read from this sentence**. Reading starts at the sentence beginning, including sentences spanning columns or pages.
+
+**Last position** remembers the most recent actual playback in this PDF, across all four modes. Ordinary clicks and scrolling do not interrupt continuous reading.
+
+### Keep controls close
+
+Collapse the panel to keep mode, navigation, pause, stop and translation controls beside the draggable mascot. Highlighting, scrolling and page turns follow the current passage.
+
+- **Space**: Pause; press again to resume.
+- **Esc**: Stop reading and clear the highlight and translation.
+- **Option / Alt + P**: Pause or resume.
+- **Option / Alt + T**: Show or hide translation.
+
+Use shortcuts in the PDF reading area. Space remains normal text input in search fields and notes.
+
+### Voices, translation and language
+
+Open Settings to choose a voice, preview it and adjust speed from **0.60–1.60×**. Voice and speed changes take effect the next time you start playback.
+
+**Follow-along translation** displays translated text near the passage being read and follows it across columns and pages. It does not read the translation aloud. Tencent is the default; Microsoft and Google are also available. Google requires network access to its service. Use Microsoft or Google for Traditional Chinese.
+
+Choose **English, 简体中文 or System** for the interface. Set the translation language separately: Simplified or Traditional Chinese, Japanese, Korean, French, German, Spanish or Russian.
+
+Common citation markers, author–year references and numbered figure/table references are skipped during narration, along with recognizable running headers, footers and publication details. The original PDF and annotations stay unchanged.
 
 ---
 
