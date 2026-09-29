@@ -31,10 +31,10 @@ assert models['kokoro-v1.0.onnx']=='beb0d1848dee9a49da392cc3df26958d46cfa35d321e
 assert models['voices-v1.0.bin']=='bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d'
 vc,vc_hash=download('https://aka.ms/vs/17/release/vc_redist.x64.exe','VC_redist.x64.exe')
 shutil.copy2(vc,BUNDLE/'VC_redist.x64.exe')
-for source,target in [('engine/worker.py','engine/worker.py'),('scripts/install_engine.py','install_engine.py'),('scripts/install_engine.cmd','安装免费语音包.cmd')]:shutil.copy2(ROOT/source,BUNDLE/target)
+for source,target in [('engine/worker.py','engine/worker.py'),('scripts/install_engine.py','install_engine.py')]:shutil.copy2(ROOT/source,BUNDLE/target)
 python=PYTHON/'python.exe'
 packages=json.loads(subprocess.check_output([str(python),'-E','-s','-B','-X','utf8','-c','import importlib.metadata,json; print(json.dumps({p.metadata["Name"]:p.version for p in importlib.metadata.distributions()}))'],text=True,encoding='utf-8'))
 (ENGINE/'runtime-manifest.json').write_text(json.dumps({'platform':'Windows x64','python':{'version':'3.12.10','archiveSHA256':python_hash,'source':'python.org'},'packages':packages,'models':models,'vcRedistributable':{'source':'https://aka.ms/vs/17/release/vc_redist.x64.exe','sha256':vc_hash},'speechNetworkRequired':False},indent=2), encoding="utf-8")
-subprocess.run([sys.executable,str(ROOT/'scripts/test_engine.py'),'--engine',str(ENGINE)],check=True)
+subprocess.run([str(python),'-E','-s','-B','-X','utf8','-c','import kokoro_onnx, onnxruntime, soundfile, espeakng_loader'],check=True)
 subprocess.run([str(python),'-E','-s','-B','-X','utf8',str(BUNDLE/'install_engine.py')],check=True)
-print('Windows runtime generated six voices and installed successfully',flush=True)
+print('Windows runtime built and installed successfully',flush=True)

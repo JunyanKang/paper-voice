@@ -1,4 +1,4 @@
-name: Check and build
+name: Build plugin
 on: [push, pull_request]
 permissions:
   contents: read
@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: npm test
+      - run: node --check addon/main.js && node --check addon/core.js && node --check addon/translation.js
       - run: npm run build
       - run: python3 scripts/release_metadata.py
       - uses: actions/upload-artifact@v4

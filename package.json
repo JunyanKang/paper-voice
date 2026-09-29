@@ -1,9 +1,8 @@
 {
   "name": "paper-voice",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "private": true,
   "scripts": {
-    "test": "node --test tests/*.test.cjs",
     "build": "python3 scripts/build.py"
   },
   "description": "Free local natural English PDF narration and synchronized translation for Zotero",

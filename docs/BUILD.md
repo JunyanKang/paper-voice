@@ -1,49 +1,66 @@
-# 构建与发布
+# 构建
 
-## 插件
+[← 返回产品首页](../README.md)
 
-需要 Node.js 22+ 和 Python 3.12+。没有 npm 安装依赖。
+本页供需要自行构建的开发者使用。一般用户请从 [Releases](https://github.com/JunyanKang/paper-voice/releases/latest) 下载。
+
+## Zotero 插件
+
+需要 Python 3.12+。运行：
 
 ```sh
-npm test
-npm run build
+python3 scripts/build.py
 python3 scripts/release_metadata.py
 ```
 
-产物位于 `dist/Paper Voice/`。构建会从 panel.css 生成 panel-style.js；XPI 仅收录 addon/。更新 JSON 包含实际 XPI 的 SHA512 与 Zotero 兼容范围。CI 只验证和提供构建产物，不代表实机验收，不自动发布未测试版本。
+产物位于 `dist/Paper Voice/`。XPI 仅收录 `addon/`；更新清单包含实际 XPI 的 SHA512 和 Zotero 兼容范围。
 
-## 离线语音包
+## 图形安装助手
 
-分别分发 Apple Silicon / macOS 14+ 与 Windows x64。直接依赖版本见 `engine/requirements-runtime.txt`，完整依赖和模型哈希见 release 语音包内的 runtime-manifest.json。
+```sh
+python3 scripts/build_installer.py
+```
 
-准备下列目录，再运行 `python3 scripts/build_engine.py PORTABLE_SOURCE_DIR`：
+- macOS：需要 Xcode Command Line Tools，以 Swift / AppKit 构建 Apple Silicon 应用。
+- Windows x64：使用 .NET Framework 编译器构建 WinForms 应用，运行权限为当前用户。
+
+安装助手源代码位于 `installers/`。Apple Developer ID 公证和 Windows Authenticode 签名需要发布者自己的证书；当前构建不声称具备这些签名。
+
+## 离线语音环境
+
+Mac 构建需要已有的便携 Python 与模型目录：
 
 ```text
 PORTABLE_SOURCE_DIR/
-  runtime/python/   # 可搬移 CPython 及安装好的依赖
+  runtime/python/
   models/tts/kokoro-v1.0.onnx
   models/tts/voices-v1.0.bin
 ```
 
-CPython 来自 [Astral python-build-standalone](https://github.com/astral-sh/python-build-standalone/releases/tag/20260924) 的 CPython 3.12.14 aarch64-apple-darwin install_only，归档 SHA256 为 `9763f43db2481a6af36af82ec40302aab7a73632f880129d07a6e81aec846277`。使用其 Python 安装依赖后，审计所有 Mach-O 动态库，确保没有指向 Homebrew 或构建机绝对目录的非系统链接；必要时调整 install-name 为相对路径并进行 ad-hoc 签名。
+```sh
+python3 scripts/build_engine.py PORTABLE_SOURCE_DIR
+```
 
-模型来源：[kokoro-onnx v1.0 models](https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0)。文件 SHA256：
+Python 来自 [Astral python-build-standalone](https://github.com/astral-sh/python-build-standalone/releases/tag/20260924) 的 CPython 3.12.14 aarch64-apple-darwin install_only。依赖版本见 `engine/requirements-runtime.txt`。运行目录必须可搬移，不得依赖构建机的 Homebrew 路径。
 
-- kokoro-v1.0.onnx：`beb0d1848dee9a49da392cc3df26958d46cfa35d321edf434f52949153f0df3a`
-- voices-v1.0.bin：`bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d`
+Windows 使用 `python scripts/build_windows.py`，构建 CPython 3.12.10 embedded x64 和对应依赖。模型与许可源使用脚本中固定哈希的历史归档，不能直接替换该归档内容。
 
-打包时保留 Python 许可、所有实际依赖许可、Kokoro 模型与 voicebank 的上游许可、eSpeak NG/phonemizer/libsndfile 对应源码和构建入口。语音包、模型、测试资料库均不进入 Git 源码仓库。
+模型来源：[Kokoro ONNX models](https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0)。
 
-## 实机验证与 release
+| 文件 | SHA256 |
+|---|---|
+| kokoro-v1.0.onnx | `beb0d1848dee9a49da392cc3df26958d46cfa35d321edf434f52949153f0df3a` |
+| voices-v1.0.bin | `bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d` |
 
-`tests/harness.js` 及 `*-integration.js` 仅用于独立测试 profile。`scripts/build_test_plugin.py` 为测试 XPI 注入本机测试路径和命令轮询器；它们绝不可随正式 XPI 发布。不要用个人资料库运行测试。
+保留 Python、依赖、模型及 voicebank 的许可；eSpeak NG、phonemizer、libsndfile 对应源码与构建入口随依赖许可一起提供。
 
-发布前检查：实际鼠标选区、六种声音、暂停/停止、各循环模式、跨页/当前页/断点续读、翻译服务与语言、字幕不覆盖原文、面板无滚动条、安装器和离线运行。网络服务可用性报告应保留超时与不支持组合，不能改写成全部成功。
+## 分发
 
-更新 manifest 与 package.json 版本，完成 CHANGELOG 和测试报告，构建最终 XPI 并运行 `python3 scripts/package_release.py` 生成包含语音运行环境的完整 ZIP。计算每个附件 SHA256，创建相同版本的 `vX.Y.Z` 标签，再将通用 XPI、两个平台的完整 ZIP 与必要的 updates.json 发布到对应 GitHub release。校验记录和测试报告留在仓库，不额外堆叠下载附件。Zotero 的更新地址指向 latest release 的 updates.json；语音包独立于插件更新。
+```sh
+python3 scripts/package_release.py
+python3 scripts/package_release.py --platform Windows-x64
+```
 
-## Windows 构建
+分别在原生安装助手和对应运行环境已准备好的目录中执行。Mac 声音资源内置于 `.app`，Windows 保留与 `.exe` 同目录的 `Resources`。交付包仅包含安装助手、插件、入门指南及运行所需资源，不包含项目测试资料。
 
-在 Windows x64 上运行 `python scripts/build_windows.py`，使用官方 CPython 3.12.10 embedded x64 和 Windows 依赖 wheel。模型及许可来自校验过的 v1.0.0 归档，不复制 Mac 可执行文件。`python scripts/test_windows_zotero.py` 会在独立资料库内运行官方 Zotero 测试；Windows Actions 工作流保留证据与通过验证的 runtime。
-
-`python scripts/package_release.py --platform Windows-x64` 生成精简安装包；默认平台为 macOS-arm64。打包器检查 ZIP 完整性、中文路径与启动权限。
+发布附件固定为：通用 XPI、两个平台的完整 ZIP、`updates.json`。插件通过 Zotero 原生更新机制从 GitHub 获取新版本；声音包独立于插件更新。

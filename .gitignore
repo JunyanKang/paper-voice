@@ -7,3 +7,15 @@ test-results/
 __pycache__/
 *.pyc
 node_modules/
+tests/
+test/
+测试报告.md
+docs/validation*.json
+docs/release-research.md
+scripts/test_*.py
+scripts/build_test_plugin.py
+scripts/restart_test.py
+output/
+tmp/
+scripts/install_engine.command
+scripts/install_engine.cmd

@@ -17,7 +17,7 @@ else:
     raise SystemExit('请使用与你的操作系统和芯片匹配的语音包。')
 if not (source/relative_python).is_file() or not (source/'models/kokoro-v1.0.onnx').is_file():
     raise SystemExit('语音包不完整或平台不匹配，请解压完整安装包并保留 engine 文件夹。')
-print('正在安装免费离线语音包，不需要联网，也不需要管理员密码。',flush=True)
+print('正在安装离线声音，无需联网下载，也不需要管理员密码。',flush=True)
 stamp=datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 staging=destination.with_name(destination.name+'.install-'+stamp)
 staging.parent.mkdir(parents=True,exist_ok=True)
@@ -32,4 +32,4 @@ if destination.exists():
     print('旧版本已保留为：'+str(backup))
 staging.rename(destination)
 print('安装完成：'+str(destination))
-print('在 Zotero 中安装同一文件夹的 paper-voice 插件（.xpi），打开 PDF 后点击「听读」即可。')
+print('声音已就绪。请在 Zotero 插件管理器中添加下载包里的 .xpi 文件。')
