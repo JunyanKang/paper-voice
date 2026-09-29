@@ -78,6 +78,16 @@ test('speech drops citations while keeping original sentence for highlighting',a
  played.length=0;await p.speak('[12]',{});assert.equal(played.length,0);assert.equal(p.state,'idle');
 });
 function progressReader(id=42){return {itemID:id,navigate(){},_internalReader:{_primaryView:{_iframeWindow:{PDFViewerApplication:{pdfViewer:{currentPageNumber:1},pdfDocument:{numPages:2,getPage:async n=>({getTextContent:async()=>({items:[{str:n===1?'First sentence. Second sentence.':'Neural signals travel to the brain. The final sentence.'}]})})}}}}}};}
+test('selected letter starts at its containing sentence and continues to the end',async()=>{
+ const {p,played}=setup(),r=progressReader();p.synthesize=async text=>({audio:text});
+ p.selectionContexts.set(r,{text:'e',pageIndex:0,anchorOffset:core.anchorText('First sentence. S').length});
+ await p.startDocument(r,'selection');assert.deepEqual(played,['Second sentence.','Neural signals travel to the brain.','The final sentence.']);
+});
+test('selected start never substitutes the first occurrence when a letter is ambiguous',async()=>{
+ const {p,played}=setup(),r=progressReader();p.synthesize=async text=>({audio:text});
+ p.selectionContexts.set(r,{text:'e',pageIndex:0});await p.startDocument(r,'selection');assert.equal(played.length,0);assert.match(p.status,/重新划选/);
+ await p.startDocument(progressReader(43),'selection');assert.equal(played.length,0);assert.match(p.status,/请先/);
+});
 test('resume follows the latest actual reading in every mode, including partial sentences',async()=>{
  const {p,played}=setup(),r=progressReader();p.synthesize=async text=>({audio:text});
  p.playAudio=async text=>{p.rememberPlayback(p.pendingProgress);played.push(text);};

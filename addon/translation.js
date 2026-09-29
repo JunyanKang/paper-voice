@@ -60,6 +60,34 @@ var PaperVoiceTranslation = {
   this.translationJobs.set(key,task);
   try{return await task;}finally{this.translationJobs.delete(key);}
  },
+ selectionAnchor(reader,position) {
+  // Zotero supplies PDF-space selection rectangles. Resolve the actual selected
+  // glyph, not the first matching word/letter elsewhere on the page.
+  try{
+   if(!Number.isInteger(position?.pageIndex)||!position.rects?.length)return null;
+   const win=reader._internalReader?._primaryView?._iframeWindow,doc=win?.document;
+   const page=doc?.querySelector(`.page[data-page-number="${position.pageIndex+1}"]`),view=win?.PDFViewerApplication?.pdfViewer?.getPageView(position.pageIndex);
+   if(!page||!view?.viewport)return null;
+   const bounds=page.getBoundingClientRect(),targets=position.rects.map(rect=>{
+    const [x1,y1,x2,y2]=view.viewport.convertToViewportRectangle(Components.utils.cloneInto(Array.from(rect),win));
+    return {left:bounds.left+page.clientLeft+Math.min(x1,x2),right:bounds.left+page.clientLeft+Math.max(x1,x2),top:bounds.top+page.clientTop+Math.min(y1,y2),bottom:bounds.top+page.clientTop+Math.max(y1,y2)};
+   });
+   const overlaps=(r,t)=>Math.min(r.right,t.right)-Math.max(r.left,t.left)>Math.min(r.width,t.right-t.left)*.25&&Math.min(r.bottom,t.bottom)-Math.max(r.top,t.top)>Math.min(r.height,t.bottom-t.top)*.4;
+   let offset=0;
+   for(const span of page.querySelectorAll('.textLayer span[role="presentation"]')){
+    const text=span.textContent||'',targetsHere=targets.filter(t=>overlaps(span.getBoundingClientRect(),t));
+    for(let i=0;i<text.length;i++){
+     const length=PaperVoiceCore.anchorText(text[i]).length;
+     if(targetsHere.length&&span.firstChild?.nodeType===3){
+      const range=doc.createRange();range.setStart(span.firstChild,i);range.setEnd(span.firstChild,i+1);
+      if(targetsHere.some(t=>overlaps(range.getBoundingClientRect(),t)))return Math.max(0,offset-(length?0:1));
+     }
+     offset+=length;
+    }
+   }
+  }catch(_){}
+  return null;
+ },
  findSentence(reader,unit) {
   const view=reader._internalReader?._primaryView,doc=view?._iframeWindow?.document;
   if(!doc)return null;

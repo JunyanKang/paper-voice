@@ -191,7 +191,7 @@ var PaperVoiceCore = (() => {
         for(const part of chunks(highlightText)){
           const at=sentence.indexOf(part,local);local=at+part.length;
           const unitInPage=counts.get(segment.pageIndex)||0;counts.set(segment.pageIndex,unitInPage+1);
-          units.push({text:part,spokenText:speechText(masked.slice(at,local)),translationText:sentence,sentenceText:sentence,highlightText,highlightOffset:a-segment.pageStart,pageIndex:segment.pageIndex,anchorOffset,sentenceOffset:Math.max(0,start-segment.pageStart),unitInPage});
+          units.push({text:part,spokenText:speechText(masked.slice(at,local)),translationText:sentence,sentenceText:sentence,sentenceId:start,highlightText,highlightOffset:a-segment.pageStart,pageIndex:segment.pageIndex,anchorOffset,sentenceOffset:Math.max(0,start-segment.pageStart),unitInPage});
           anchorOffset+=anchorText(part).length;
         }
       }
@@ -208,6 +208,13 @@ var PaperVoiceCore = (() => {
     if(needle){const at=units.findIndex(unit=>anchorText(unit.text).includes(needle)||needle.includes(anchorText(unit.text)));if(at>=0)return at;}
     return Math.max(0,Math.min(units.length-1,Number.isInteger(saved.unitInPage)?saved.unitInPage:0));
   }
-  return { modes, voices, cleanText, chunks, sentences, rate, speechText, pdfText, pdfLayout, layoutUnits, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
+  function selectedSentenceIndex(units,pageIndex,offset) {
+    let index=units.findIndex(u=>u.pageIndex===pageIndex&&u.anchorOffset<=offset&&offset<u.anchorOffset+anchorText(u.text).length);
+    if(index<0)return -1;
+    const id=units[index].sentenceId;
+    while(index>0&&id!==undefined&&units[index-1].sentenceId===id)index--;
+    return index;
+  }
+  return { modes, voices, cleanText, chunks, sentences, rate, speechText, pdfText, pdfLayout, layoutUnits, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;

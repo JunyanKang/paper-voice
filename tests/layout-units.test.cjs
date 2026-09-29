@@ -44,3 +44,9 @@ test('figure references spanning a layout boundary never leak into either spoken
  assert.equal(units.map(u=>u.spokenText).join(' '),'Cells guide light into the retina.');
  assert.ok(units.every(u=>u.translationText.includes('Supplementary')));
 });
+test('selected position rewinds to sentence start across column and page fragments',()=>{
+ const pages=[core.pdfLayout([item('First sentence.',48,700),item(a,48,50)],0),core.pdfLayout([item(b,48,700),item('Final sentence.',48,670)],1)];
+ const units=core.layoutUnits(pages),index=core.selectedSentenceIndex(units,1,10);
+ assert.equal(units[index].text,a);assert.equal(units[index].pageIndex,0);assert.equal(units.slice(index).at(-1).text,'Final sentence.');
+ assert.equal(core.selectedSentenceIndex(units,8,0),-1);
+});

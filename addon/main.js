@@ -110,11 +110,12 @@ var PaperVoice = {
     if (!text) return;
     this.lastText = text; this.lastReader = reader;
     const button = doc.createElement('button'); button.dataset.paperVoice = 'selection';
-    button.textContent = '▶ 自然朗读'; button.style.cssText = 'padding:5px 10px;cursor:pointer;';
-    button.addEventListener('click', e => { e.stopPropagation(); this.clearSelectionTimers(); if(this.get('mode','selection')==='document'){this.stop();this.set('mode','selection');this.syncSettings();}this.speak(text, reader); });
+    const fromSelection=()=>this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection';
+    button.textContent = fromSelection()?'▶ 从此句开始连读':'▶ 自然朗读'; button.style.cssText = 'padding:5px 10px;cursor:pointer;';
+    button.addEventListener('click', e => { e.stopPropagation(); this.clearSelectionTimers();if(fromSelection()){this.startDocument(reader,'selection');return;} if(this.get('mode','selection')==='document'){this.stop();this.set('mode','selection');this.syncSettings();}this.speak(text, reader); });
     append(button);
     this.selectedPage=params.annotation?.position?.pageIndex ?? null;
-    this.selectionContexts.set(reader,{text,pageIndex:this.selectedPage});
+    this.selectionContexts.set(reader,{text,pageIndex:this.selectedPage,anchorOffset:this.selectionAnchor?.(reader,params.annotation?.position)??null});
     if (!this.get('auto', true) || this.get('mode','selection')==='document') return;
     const key = text + JSON.stringify(params.annotation?.position || {});
     if (this.lastSelections.get(reader) === key) return;
@@ -147,6 +148,7 @@ var PaperVoice = {
     panel.hidden=toggle ? !panel.hidden : false;
   },
   modeHint() {
+    if(this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection')return '划选字母或词，从所在句句首一直读到文末。';
     return ({selection:'拖选英文，松开即读。悬浮按钮随时暂停。',document:'按页连续听读，可选择起点或继续上次进度。',paragraph:'划选一个段落，按设定次数反复朗读。',sentence:'划选一段文字，逐句循环；用左右按钮切换。'})[this.get('mode','selection')];
   },
   setMode(mode) {
@@ -220,6 +222,8 @@ var PaperVoice = {
     try {
       const pdf=reader._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfDocument;
       if(!pdf)throw new Error('当前阅读器未就绪，请等待 PDF 加载完成');
+      const selected=this.selectionContexts.get(reader);
+      if(origin==='selection'&&(!selected?.text||!Number.isInteger(selected.pageIndex)))throw new Error('请先在这篇 PDF 中划选字母、单词或句子，再从选定位置开始');
       let saved={};try{saved=JSON.parse(this.get('progress.'+reader.itemID,'{}'))||{};}catch(_){}
       const current=(reader._internalReader._primaryView._iframeWindow.PDFViewerApplication.pdfViewer?.currentPageNumber||1)-1;
       const requested=origin==='resume'?saved.pageIndex:origin==='current'?current:0;
@@ -236,6 +240,17 @@ var PaperVoice = {
       }
       if(generation!==this.generation)return;
       let units=PaperVoiceCore.layoutUnits(pages);
+      if(origin==='selection'){
+        const page=pages.find(p=>p.pageIndex===selected.pageIndex),text=PaperVoiceCore.anchorText(page?.text||''),needle=PaperVoiceCore.anchorText(selected.text);
+        let offset=selected.anchorOffset;
+        if(!Number.isInteger(offset)){
+          offset=needle?text.indexOf(needle):-1;
+          if(offset>=0&&text.indexOf(needle,offset+1)>=0)offset=-1;
+        }
+        const index=offset>=0?PaperVoiceCore.selectedSentenceIndex(units,selected.pageIndex,offset):-1;
+        if(index<0)throw new Error('未能准确定位选区，请在 PDF 中重新划选后再开始');
+        units=units.slice(index);
+      }
       if(origin==='resume')units=units.slice(PaperVoiceCore.resumeUnitIndex(units.filter(u=>u.pageIndex===startPage),saved));
       if(!units.length)throw new Error('PDF 没有可提取文字，请先进行 OCR 文字识别');
       this.documentEmptyPages=empty;
