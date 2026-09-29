@@ -7,19 +7,55 @@ var PaperVoiceCore = (() => {
     {id:'document',label:'全文连读',short:'全文',icon:'file-text'},
   ];
   const voices = [
-    { id: 'af_heart', label: '美音 · 女声 Heart', accent: 'US', gender: 'female' },
-    { id: 'af_bella', label: '美音 · 女声 Bella', accent: 'US', gender: 'female' },
-    { id: 'am_michael', label: '美音 · 男声 Michael', accent: 'US', gender: 'male' },
-    { id: 'am_fenrir', label: '美音 · 男声 Fenrir', accent: 'US', gender: 'male' },
-    { id: 'bf_emma', label: '英音 · 女声 Emma', accent: 'GB', gender: 'female' },
-    { id: 'bm_george', label: '英音 · 男声 George', accent: 'GB', gender: 'male' },
+    { id: 'af_heart', label: '美音 · 女声 Heart', language: 'en', accent: 'US', gender: 'female' },
+    { id: 'af_bella', label: '美音 · 女声 Bella', language: 'en', accent: 'US', gender: 'female' },
+    { id: 'am_michael', label: '美音 · 男声 Michael', language: 'en', accent: 'US', gender: 'male' },
+    { id: 'am_fenrir', label: '美音 · 男声 Fenrir', language: 'en', accent: 'US', gender: 'male' },
+    { id: 'bf_emma', label: '英音 · 女声 Emma', language: 'en', accent: 'GB', gender: 'female' },
+    { id: 'bm_george', label: '英音 · 男声 George', language: 'en', accent: 'GB', gender: 'male' },
+    {id:'zm_yunxi', label:'普通话 · 男声 Yunxi', language:'zh', gender:'male'},
+    {id:'zf_xiaobei', label:'普通话 · 女声 Xiaobei', language:'zh', gender:'female'},
+    {id:'zf_xiaoxiao', label:'普通话 · 女声 Xiaoxiao', language:'zh', gender:'female'},
+    {id:'zm_yunjian', label:'普通话 · 男声 Yunjian', language:'zh', gender:'male'},
+    {id:'jf_tebukuro', label:'日本語 · 女声 Tebukuro', language:'ja', gender:'female'},
+    {id:'jf_alpha', label:'日本語 · 女声 Alpha', language:'ja', gender:'female'},
+    {id:'jm_kumo', label:'日本語 · 男声 Kumo', language:'ja', gender:'male'},
+    {id:'ff_siwis', label:'Français · 女声 Siwis', language:'fr', gender:'female'},
   ];
+  const speechLanguages=[{id:'en',label:'English',sample:'The human retina transforms light into signals that allow us to see the world.'},
+    {id:'zh',label:'中文（普通话）',sample:'视网膜将光线转化为神经信号，让我们看见丰富多彩的世界。'},
+    {id:'ja',label:'日本語',sample:'網膜は光を神経信号に変換し、私たちが世界を見ることを可能にします。'},
+    {id:'fr',label:'Français',sample:'La rétine transforme la lumière en signaux nerveux qui nous permettent de voir le monde.'}];
+  const languageDetector=typeof PaperVoiceLanguageDetector!=='undefined'?PaperVoiceLanguageDetector:typeof require==='function'?require('./vendor/tinyld.js'):null;
+  function detectSpeechLanguage(value,context='') {
+    const text=cleanText(value),surrounding=cleanText(context);
+    if(/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(text))return 'ja';
+    if((text.match(/\p{Script=Han}/gu)||[]).length>=2){
+      if(text.length<12&&/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(surrounding))return 'ja';
+      return 'zh';
+    }
+    const identify=sample=>{
+      if(!languageDetector||(sample.match(/\p{L}/gu)||[]).length<12)return null;
+      const ranked=languageDetector.detectAll(sample),a=ranked[0],b=ranked[1];
+      return a&&a.accuracy>=.35&&a.accuracy-(b?.accuracy||0)>=.15?a.lang:null;
+    };
+    // Short words and abbreviations inherit the surrounding PDF language.
+    const local=(text.match(/\p{L}/gu)||[]).length>=35?identify(text):null;
+    if(local)return local;
+    if(surrounding){
+      if(/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(surrounding))return 'ja';
+      if((surrounding.match(/\p{Script=Han}/gu)||[]).length>surrounding.length*.2)return 'zh';
+      const broader=identify(surrounding);if(broader)return broader;
+    }
+    return identify(text);
+  }
   function cleanText(value) {
     return String(value || '').normalize('NFC')
       .replace(/[ﬀﬁﬂﬃﬄ]/g, c => ({'ﬀ':'ff','ﬁ':'fi','ﬂ':'fl','ﬃ':'ffi','ﬄ':'ffl'}[c]))
       .replace(/\u00ad/g, '')
       .replace(/([a-z])-\s*\n\s*([a-z])/g, '$1$2')
       .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/([\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}])\s+(?=[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}])/gu, '$1')
       .replace(/\s+/g, ' ').trim();
   }
   // Prefer sentence/clause boundaries while bounding synthesis latency. Preserve every character.
@@ -30,7 +66,7 @@ var PaperVoiceCore = (() => {
       let cut = -1;
       const protectedRanges=protectedTextRanges(text);
       const safe=cut=>!protectedRanges.some(range=>cut>range.start&&cut<range.end);
-      for (const m of prefix.matchAll(/[.!?;:]\s+/g)) {
+      for (const m of prefix.matchAll(/(?:[.!?;:]\s+|[。！？；：])/g)) {
         if (m.index >= 70&&safe(m.index+1)) cut = m.index + 1;
       }
       if (cut < 0) cut = prefix.lastIndexOf(' ');
@@ -49,8 +85,8 @@ var PaperVoiceCore = (() => {
     // Keep source offsets stable while shielding citation/abbreviation dots from segmentation.
     let mask=text;
     for(const range of protectedTextRanges(text))mask=mask.slice(0,range.start)+mask.slice(range.start,range.end).replace(/[.!?]/g,'·')+mask.slice(range.end);
-    if (typeof Intl.Segmenter === 'function') return Array.from(new Intl.Segmenter('en', {granularity:'sentence'}).segment(mask), x => text.slice(x.index,x.index+x.segment.length).trim()).filter(Boolean);
-    return Array.from(mask.matchAll(/[^.!?]+(?:[.!?]+(?=\s|$)|$)/g),m=>text.slice(m.index,m.index+m[0].length).trim()).filter(Boolean);
+    if (typeof Intl.Segmenter === 'function') return Array.from(new Intl.Segmenter(/[ぁ-ヿ]/.test(text)?'ja':/[\p{Script=Han}]/u.test(text)?'zh':'fr', {granularity:'sentence'}).segment(mask), x => text.slice(x.index,x.index+x.segment.length).trim()).filter(Boolean);
+    return Array.from(mask.matchAll(/[^.!?。！？]+(?:[。！？]+|[.!?]+(?=\s|$)|$)/g),m=>text.slice(m.index,m.index+m[0].length).trim()).filter(Boolean);
   }
   function abbreviationPattern(){return /\b(?:i\s*\.\s*e\s*\.|e\s*\.\s*g\s*\.|et\s+al\s*\.|(?:figs?|eqs?|dr|prof|vs)\.)/gi;}
   function figureReferencePattern() {
@@ -276,18 +312,23 @@ var PaperVoiceCore = (() => {
       if(!line||ended||Math.abs(y-line.y)>Math.max(height,line.height)*.55||x<line.x-height){line={x,y,height,right:x+(item.width||0),start:offset,text:''};lines.push(line);}
       line.right=Math.max(line.right,x+(item.width||0));line.height=Math.max(line.height,height);line.text+=item.str;offset+=length;ended=!!item.hasEOL;
     }
-    const starts=[];let startsParagraph=false;
+    const gaps=lines.slice(1).map((line,i)=>({line,previous:lines[i]}))
+      .filter(({line,previous})=>Math.abs(line.x-previous.x)<line.height*4&&previous.y-line.y>line.height*.7&&previous.y-line.y<line.height*4)
+      .map(({line,previous})=>(previous.y-line.y)/line.height).sort((a,b)=>a-b);
+    const leading=gaps.length?gaps[Math.floor((gaps.length-1)/2)]:1.2;
+    const starts=[],sentenceStarts=[];let startsParagraph=false;
     for(let i=0;i<lines.length;i++){
       const current=lines[i],previous=lines[i-1],h=current.height;if(!h)continue;
       const peers=lines.filter(x=>Math.abs(x.x-current.x)<h*3&&Math.abs(x.height-h)<h*.18),left=Math.min(...peers.map(x=>x.x)),width=Math.max(...peers.map(x=>x.right-left));
       const indent=current.x-left>h*.65&&current.x-left<h*3;
       if(!previous){startsParagraph=indent||h>(lines[1]?.height||h)*1.18;continue;}
       const sameColumn=Math.abs(current.x-previous.x)<h*4,gap=previous.y-current.y;
-      const shortEnding=sameColumn&&previous.right-left<width*.87&&/[.!?][”’"')]*$/.test(previous.text.trim());
+      const shortEnding=sameColumn&&previous.right-left<width*.87&&/[.!?。！？][”’"')」』]*$/.test(previous.text.trim());
       const fontChange=Math.max(h,previous.height)>Math.min(h,previous.height)*1.18;
-      if((sameColumn&&gap>h*1.6)||(indent&&gap>h*.6)||(shortEnding&&gap>h*.6)||fontChange)starts.push(current.start);
+      if(fontChange)sentenceStarts.push(current.start);
+      if((sameColumn&&(gap>h*2.5||gap>h*leading*1.4&&gap>h*1.5))||(indent&&gap>h*.6)||(shortEnding&&gap>h*.6)||fontChange)starts.push(current.start);
     }
-    return {paragraphStarts:starts,startsParagraph};
+    return {paragraphStarts:starts,startsParagraph,sentenceStarts};
   }
   function pdfLayout(items,pageIndex,pageHeight,context={}) {
     const excluded=publicationFooterItems(items,pageHeight,{...context,firstPage:pageIndex===0}),kept=[],breaks=[],sourceSpans=[];
@@ -312,10 +353,11 @@ var PaperVoiceCore = (() => {
     return {text:pdfText(kept),pageIndex,breaks:[...new Set([...breaks,...paragraphs.paragraphStarts])].sort((a,b)=>a-b),sourceSpans,...paragraphs};
   }
   function layoutUnits(pages,selection=null,from=0) {
-    const joined=cleanText(pages.map(p=>p.text).join(' ')),normalized=anchorText(joined),segments=[],paragraphStarts=[0];
+    const joined=cleanText(pages.map(p=>p.text).join(' ')),normalized=anchorText(joined),segments=[],paragraphStarts=[0],sentenceStarts=[];
     let offset=0;
     for(const page of pages){
       if(offset&&page.startsParagraph)paragraphStarts.push(offset);
+      for(const at of page.sentenceStarts||[])sentenceStarts.push(offset+at);
       for(const at of page.paragraphStarts||[])paragraphStarts.push(offset+at);
       const length=anchorText(page.text).length,cuts=[0,...(page.breaks||[]).filter(x=>x>0&&x<length),length];
       for(let i=0;i<cuts.length-1;i++)if(cuts[i+1]>cuts[i])segments.push({start:offset+cuts[i],end:offset+cuts[i+1],pageIndex:page.pageIndex,pageStart:offset,page,sourceDelta:sourceOffset(page,cuts[i])-cuts[i]});
@@ -335,7 +377,10 @@ var PaperVoiceCore = (() => {
       }
       return value.length;
     };
-    for(const sentence of sentences(text)){
+    // A heading without terminal punctuation must not become the start of the next body sentence.
+    const protectedRanges=protectedTextRanges(text),cuts=[0,...sentenceStarts.filter(x=>x>cursor&&x<cursor+anchorText(text).length).map(x=>rawOffset(text,x-cursor)).filter(x=>!protectedRanges.some(r=>x>r.start&&x<r.end)),text.length];
+    const sentenceList=cuts.slice(0,-1).flatMap((at,i)=>sentences(text.slice(at,cuts[i+1])));
+    for(const sentence of sentenceList){
       const start=cursor,end=start+anchorText(sentence).length;cursor=end;
       // Silence citations before layout splitting, even when a reference itself
       // crosses a column/page. Keep string offsets unchanged for PDF anchoring.
@@ -405,6 +450,6 @@ var PaperVoiceCore = (() => {
     while(index>0&&id!==undefined&&units[index-1].sentenceId===id)index--;
     return index;
   }
-  return { modes, voices, cleanText, chunks, sentences, rate, speechText, pdfText, pdfLayout, sourceOffset, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
+  return { modes, voices, speechLanguages, detectSpeechLanguage, cleanText, chunks, sentences, rate, speechText, pdfText, pdfLayout, sourceOffset, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;

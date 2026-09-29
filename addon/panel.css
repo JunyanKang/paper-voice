@@ -15,3 +15,5 @@
 @media(max-height:640px){.pv-panel{padding:15px 20px}.pv-header{margin-bottom:12px}.pv-settings-title{font-size:18px;margin-bottom:8px}.pv-setting-row{min-height:26px;margin:2px 0}.pv-translation-row{margin-top:9px}.pv-privacy{margin:7px 0 8px}.pv-sample{padding:5px!important}.pv-mode-title{font-size:20px;margin-bottom:6px}.pv-mode-options button{padding:7px 4px}.pv-preview{margin:13px 0}.pv-transport{margin:12px 0}.pv-about{margin-top:7px}.pv-range{margin-bottom:9px}}@media(prefers-reduced-motion:reduce){.pv-mode-options button{transition:none}}
 
 .pv-shell[lang=en] .pv-panel{width:340px}.pv-shell[lang=en] .pv-brand span{letter-spacing:.1px}.pv-shell[lang=en] .pv-mode-title{font-size:21px}.pv-shell[lang=en] .pv-footer{gap:8px}
+
+.pv-language-token{font:600 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.02em}

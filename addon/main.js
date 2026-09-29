@@ -4,7 +4,7 @@ var PaperVoice = {
   prefix: 'extensions.paperVoice.',
   panels: new Map(), windows: new Map(), readerHooks: new Map(),
   generation: 0, process: null, processStart: null, pending: new Map(), sequence: 0,
-  audio: null, audioURL: null, lastText: '', currentReader: null, state: 'idle', status: '拖选 PDF 英文，松开鼠标即可朗读',
+  audio: null, audioURL: null, lastText: '', currentReader: null, state: 'idle', status: '拖选 PDF 文字，松开鼠标即可朗读',
   lastSelections: new Map(), selectionContexts: new Map(), timers: new Map(), dead: false, translationTicket: 0,
   get(name, fallback) { return Zotero.Prefs.get(this.prefix + name, true) ?? fallback; },
   set(name, value) { Zotero.Prefs.set(this.prefix + name, name==='rate'?String(value):value, true); },
@@ -157,7 +157,7 @@ var PaperVoice = {
   },
   modeHint() {
     if(this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection')return '划选字母或词，从所在句句首一直读到文末。';
-    return ({selection:'拖选英文，松开即读。悬浮按钮随时暂停。',document:'按页连续听读，可选择起点或继续上次进度。',paragraph:'划选一个段落，按设定次数反复朗读。',sentence:'划选一段文字，逐句循环；用左右按钮切换。'})[this.get('mode','selection')];
+    return ({selection:'拖选文字，松开即读。悬浮按钮随时暂停。',document:'按页连续听读，可选择起点或继续上次进度。',paragraph:'划选段中任意文字，朗读所在完整段落。',sentence:'划选句中任意文字，朗读所在完整句子。'})[this.get('mode','selection')];
   },
   setMode(mode) {
     if(!PaperVoiceCore.modes.some(x=>x.id===mode)||mode===this.get('mode','selection'))return;
@@ -174,10 +174,28 @@ var PaperVoice = {
     const modes=PaperVoiceCore.modes,index=modes.findIndex(x=>x.id===this.get('mode','selection'));
     this.setMode(modes[(index+1)%modes.length].id);
   },
+  speechLanguage() { return PaperVoiceCore.voices.find(v=>v.id===this.get('voice','af_heart'))?.language||'en'; },
+  setSpeechLanguage(language) {
+    if(language!=='auto'&&!PaperVoiceCore.speechLanguages.some(x=>x.id===language))return;
+    this.set('voiceFor_'+this.speechLanguage(),this.get('voice','af_heart'));
+    this.set('speechLanguage',language);
+    if(language!=='auto')this.selectVoiceLanguage(language);
+    this.syncSettings();this.setStatus('声音已保存，下次开始朗读生效');
+  },
+  selectVoiceLanguage(language) {
+    const available=PaperVoiceCore.voices.filter(v=>v.language===language),saved=this.get('voiceFor_'+language,'');
+    if(!available.length)return;
+    this.set('voice',available.find(v=>v.id===saved)?.id||available[0].id);
+  },
   syncSettings() {
     const mode=this.get('mode','selection');
     for (const {root,find} of this.livePanels()) {
       if(find('language'))find('language').value=this.get('interfaceLanguage','auto');
+      if(find('speechLanguage')) {
+        find('speechLanguage').value=this.get('speechLanguage','auto');
+        const select=find('voice');select.replaceChildren();
+        for(const v of PaperVoiceCore.voices.filter(v=>v.language===this.speechLanguage())){const option=root.ownerDocument.createElement('option');option.value=v.id;option.textContent=v.label;select.append(option);}
+      }
       find('voice').value=this.get('voice','af_heart');find('auto').checked=this.get('auto',true);
       find('rate').value=this.get('rate',1);find('rateLabel').textContent=`${Number(this.get('rate',1)).toFixed(2)}×`;
       find('documentRow').hidden=mode!=='document';find('documentStart').value=this.get('documentStart','begin');
@@ -192,15 +210,22 @@ var PaperVoice = {
     }
     this.updatePanels();
   },
+  translationLanguage() {
+    const languages={'zh-Hans':['简','简体中文'],'zh-Hant':['繁','繁體中文'],ja:['日','日本語'],ko:['한','한국어'],fr:['FR','Français'],de:['DE','Deutsch'],es:['ES','Español'],ru:['RU','Русский']};
+    const code=this.get('translationTarget','zh-Hans'),[badge,label]=languages[code]||languages['zh-Hans'];return {code,badge,label};
+  },
   setStatus(message, state = this.state) { this.status = message; this.state = state; this.updatePanels(); },
   updatePanels() {
     const active=['playing','paused','loading'].includes(this.state),mode=this.get('mode','selection');
     for (const {root,find,action} of this.livePanels()) {
       root.dataset.state=this.state;find('status').textContent=this.status;
-      find('preview').textContent=this.currentSentence || this.lastText.slice(0,220);if(!find('preview').textContent)find('preview').textContent='选择一段英文，留一点时间给耳朵。';
+      find('preview').textContent=this.currentSentence || this.lastText.slice(0,220);if(!find('preview').textContent)find('preview').textContent='选择一段文字，留一点时间给耳朵。';
       find('progressBar').style.width=(this.readProgress?100*this.readProgress.current/this.readProgress.total:0)+'%';
       action('quickTranslate').setAttribute('aria-pressed',String(this.get('translation',false)));
-      action('quickTranslate').title=(this.get('translation',false)?'关闭':'开启')+'跟读翻译 · Option/Alt + T';
+      const language=this.translationLanguage();
+      find('quickTranslateLabel').textContent=language.badge;
+      action('quickTranslate').title=(this.get('translation',false)?'关闭':'开启')+'跟读翻译 · '+language.label+' · Option/Alt + T';
+      action('quickTranslate').setAttribute('aria-label',action('quickTranslate').title);
       find('quick').hidden=false;
       action('quickStop').hidden=!active;action('quickTranslate').hidden=!active;
       action('quickPause').hidden=!active&&!this.lastText&&mode!=='document';
@@ -231,7 +256,7 @@ var PaperVoice = {
     if(['playing','paused','loading'].includes(this.state))return this.togglePause();
     if(this.get('mode','selection')==='document')return this.startDocument(reader,this.get('documentStart','begin'));
     if(this.lastText && this.lastReader===reader)return this.speak(this.lastText,reader);
-    this.setStatus('请先在这篇 PDF 中划选一段英文');
+    this.setStatus('请先在这篇 PDF 中划选一段文字');
   },
   stepSentence(delta,reader) { return this.navigateScope(delta,reader); },
   async documentUnits(reader) {
@@ -362,7 +387,7 @@ var PaperVoice = {
               const line = buffer.slice(0, end); buffer = buffer.slice(end+1);
               if (!line) continue;
               const result = JSON.parse(line);
-              if (result.ready) { this.host.clearTimeout(timeout); readyResolve(); }
+              if (result.ready) { this.workerVoices=result.voices||[];this.host.clearTimeout(timeout); readyResolve(); }
               else {
                 const request = this.pending.get(result.id); this.pending.delete(result.id);
                 if (request) { this.host.clearTimeout(request.timer); result.ok ? request.resolve(result) : request.reject(new Error(result.error)); }
@@ -382,6 +407,7 @@ var PaperVoice = {
   rejectPending(error) { for (const p of this.pending.values()) { this.host.clearTimeout(p.timer); p.reject(error); } this.pending.clear(); },
   async synthesize(text, voice, rate) {
     await this.ensureWorker();
+    if(this.workerVoices&&!this.workerVoices.includes(voice))throw new Error('请下载最新版完整包，重新安装离线声音以启用多语言朗读。');
     const id = ++this.sequence;
     return new Promise((resolve,reject) => {
       const timer = this.host.setTimeout(() => {
@@ -400,8 +426,31 @@ var PaperVoice = {
     this.stop(false);const generation=this.generation;this.currentReader=reader;this.ensurePanel(reader);
     if(text.length>24000){this.setStatus('选区过长，请分段选择或使用全文连读','error');return;}
     if(!sample){this.lastText=text;this.lastReader=reader;if(!keepSentence)this.sentenceIndex=0;}
+    const requestedMode=sample?'selection':this.get('mode','selection');
+    const pdf=reader?._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfDocument;
+    if(!sample&&pdf&&['sentence','paragraph'].includes(requestedMode)){
+      this.playbackMode=requestedMode;this.setStatus('正在定位所选文字…','loading');
+      try{
+        const all=await this.documentUnits(reader);
+        if(generation!==this.generation)return;
+        const context=this.selectionContexts.get(reader);
+        const pageIndex=context?.pageIndex??(reader._internalReader._primaryView._iframeWindow.PDFViewerApplication.pdfViewer?.currentPageNumber||1)-1;
+        let offset=context?.anchorOffset;
+        if(!Number.isInteger(offset)){
+          const page=Components.utils.waiveXrays(await pdf.getPage(pageIndex+1));
+          const raw=PaperVoiceCore.anchorText(PaperVoiceCore.pdfText((await page.getTextContent()).items));
+          const needle=PaperVoiceCore.anchorText(context?.text||text);
+          offset=needle?raw.indexOf(needle):-1;
+          if(offset>=0&&raw.indexOf(needle,offset+1)>=0)offset=-1;
+        }
+        if(generation!==this.generation)return;
+        const units=offset>=0?PaperVoiceCore.scopeUnits(all,{pageIndex,anchorOffset:offset,text},requestedMode):[];
+        if(!units.length)throw new Error('未能准确定位选区，请在 PDF 中重新划选后再开始');
+        return this.runUnits(units,reader,generation,{mode:requestedMode,loops:Number(this.get('repeat',0))});
+      }catch(error){if(generation===this.generation)this.setStatus(error.message||String(error),'error');return;}
+    }
     if(!PaperVoiceCore.speechText(text)){this.setStatus('选区仅包含引文标记，无需朗读','idle');return;}
-    if(!/[a-zA-Z]/.test(text)){this.setStatus('请选择英文正文；扫描 PDF 需要先做文字识别','error');return;}
+    if(!/\p{L}/u.test(text)){this.setStatus('请选择可识别的正文；扫描 PDF 需要先做文字识别','error');return;}
     const mode=sample?'selection':this.get('mode','selection');
     this.setStatus('正在定位所选文字…','loading');
     let sentences=PaperVoiceCore.sentences(text);
@@ -419,16 +468,24 @@ var PaperVoice = {
     units=units.filter(unit=>unit.spokenText??PaperVoiceCore.speechText(unit.text));
     if(!units.length){this.setStatus('选区仅包含引文标记，无需朗读','idle');return;}
     if(this.state!=='paused')this.setStatus('正在准备自然语音…','loading');
-    const voice=this.get('voice','af_heart'),rate=PaperVoiceCore.rate(this.get('rate',1));
+    const languageMode=sample?this.speechLanguage():this.get('speechLanguage','auto');
+    const selectedVoice=this.get('voice','af_heart'),voiceChoices=Object.fromEntries(PaperVoiceCore.speechLanguages.map(x=>[x.id,this.get('voiceFor_'+x.id,PaperVoiceCore.voices.find(v=>v.language===x.id).id)]));
+    voiceChoices[this.speechLanguage()]=selectedVoice;
+    let contextText='',documentLanguage=languageMode;
+    const rate=PaperVoiceCore.rate(this.get('rate',1));
     const session=this.session={units,pendingMode:this.session?.pendingMode||null,context:this.session?.context};
     const cache=new Map();let lastPage=null;
     const prepare=unit=>{
       const spoken=unit.spokenText??PaperVoiceCore.speechText(unit.text);
-      let speech=cache.get(spoken);
-      if(!speech){speech=this.synthesize(spoken,voice,rate);this.inflight=speech;if(mode!=='document'&&loops!==1)cache.set(spoken,speech);}
-      const translation=this.get('translation',false)&&!sample?this.translate(unit.translationText||unit.text):Promise.resolve(null);
+      const paragraphText=unit.paragraphId===undefined?contextText:session.units.filter(u=>u.paragraphId===unit.paragraphId).map(u=>u.text).join(' ');
+      const language=languageMode==='auto'?(PaperVoiceCore.detectSpeechLanguage(unit.sentenceText||unit.translationText||unit.text,paragraphText||contextText)||documentLanguage):languageMode;
+      if(!PaperVoiceCore.speechLanguages.some(x=>x.id===language))throw new Error('无法确定受支持的朗读语言，请在设置中手动选择英语、中文、日语或法语。');
+      const voice=voiceChoices[language],cacheKey=voice+'\0'+spoken;
+      let speech=cache.get(cacheKey);
+      if(!speech){speech=this.synthesize(spoken,voice,rate);this.inflight=speech;if(mode!=='document'&&loops!==1)cache.set(cacheKey,speech);}
+      const translation=this.get('translation',false)&&!sample?this.translate(unit.translationText||unit.text,language):Promise.resolve(null);
       translation.catch(()=>{});speech.catch(()=>{});
-      return {speech,translation,unit,translationKey:this.get('translation',false)+'|'+this.get('translationProvider','tencenttransmart')+'|'+this.get('translationTarget','zh-Hans')};
+      return {speech,translation,unit,language,voice,translationKey:this.get('translation',false)+'|'+this.get('translationProvider','tencenttransmart')+'|'+this.get('translationTarget','zh-Hans')};
     };
     try {
       if(this.inflight){try{await this.inflight;}catch(_){}}
@@ -441,11 +498,23 @@ var PaperVoice = {
         if(scoped.length)units=scoped;
         session.units=units;loops=1;
       }
+      if(languageMode==='auto'){
+        contextText=units.slice(0,30).map(u=>u.text).join(' ').slice(0,6000);
+        if(contextText.length<400){
+          const all=await this.documentUnits(reader).catch(()=>[]);
+          if(generation!==this.generation||this.dead)return;
+          const page=units[0].pageIndex;
+          contextText=all.filter(u=>u.pageIndex===page).slice(0,30).map(u=>u.text).join(' ').slice(0,6000)||contextText;
+        }
+        documentLanguage=PaperVoiceCore.detectSpeechLanguage(contextText);
+      }
       let next=prepare(units[0]);
       for(let cycle=0;loops===0 || cycle<loops;cycle++) {
         for(let i=0;i<units.length;i++) {
           const prepared=next,result=await prepared.speech;
           if(generation!==this.generation || this.dead)return;
+          this.activeSpeechLanguage=prepared.language;
+          if(languageMode==='auto'&&this.get('speechLanguage','auto')==='auto'){this.set('voice',prepared.voice);this.syncSettings();}
           const hasNext=i+1<units.length || loops===0 || cycle+1<loops;
           if(hasNext)next=prepare(units[(i+1)%units.length]);
           const unit=units[i];this.currentSentence=unit.text;this.currentUnit=unit;this.readProgress={current:i+1,total:units.length};

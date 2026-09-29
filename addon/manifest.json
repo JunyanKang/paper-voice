@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "Paper Voice · 论文听读",
-  "version": "1.2.5",
-  "description": "英文 PDF 划选即读、全文连读、循环精听，六种免费离线自然声音与多语言跟读翻译。",
+  "version": "1.2.6",
+  "description": "PDF 划选即读、全文连读、循环精听，英语、中文、日语、法语离线朗读与多语言跟读翻译。",
   "author": "Junyan Kang",
   "applications": {
     "zotero": {

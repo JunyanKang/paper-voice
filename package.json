@@ -1,11 +1,11 @@
 {
   "name": "paper-voice",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "private": true,
   "scripts": {
     "build": "python3 scripts/build.py"
   },
-  "description": "Free local natural English PDF narration and synchronized translation for Zotero",
+  "description": "Free local natural multilingual PDF narration and synchronized translation for Zotero",
   "author": "Junyan Kang",
   "license": "MIT",
   "homepage": "https://github.com/JunyanKang/paper-voice",

@@ -42,8 +42,8 @@ start=f'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="vi
 <main><small>PAPER VOICE / {platform_label}</small><h1>让论文，读给你听。</h1><p>欢迎使用 Paper Voice {version}。只需两步，为 Zotero 开启自然听读。</p>
 <h2>01　准备声音</h2><p>完整解压后打开 <b>{launcher.name}</b>，点击「安装声音」。{'请保留同目录的 Resources 文件夹。' if windows else '声音资源已包含在安装助手中。'}</p>
 <h2>02　添加插件</h2><p>打开 Zotero → 工具 → 插件 → 齿轮 → 从文件安装，选择 <b>{xpi.name}</b>。</p>
-<h2>开始你的第一段听读</h2><p>打开英文 PDF，划选文字。点击右下角书页精灵，可切换声音、模式和译文。</p>
-<footer><a href="https://github.com/JunyanKang/paper-voice/blob/main/docs/INSTALL.md">安装帮助与系统安全提示</a> · <a href="https://github.com/JunyanKang/paper-voice">使用指南</a><p>已安装过声音包？以后只需更新 .xpi。声音离线运行，翻译和更新需要联网。</p></footer></main></html>'''
+<h2>开始你的第一段听读</h2><p>打开 PDF，插件会自动识别原文语言，划选文字即可朗读。点击右下角书页精灵，可切换声音、模式和译文。</p>
+<footer><a href="https://github.com/JunyanKang/paper-voice/blob/main/docs/INSTALL.md">安装帮助与系统安全提示</a> · <a href="https://github.com/JunyanKang/paper-voice">使用指南</a><p>从旧版升级到多语言朗读？请先重新安装本版声音包。声音离线运行，翻译和更新需要联网。</p></footer></main></html>'''
 (stage/'开始使用.html').write_text(start,encoding='utf-8')
 with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
  for p in sorted(stage.rglob('*')):

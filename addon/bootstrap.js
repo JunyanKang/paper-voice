@@ -2,6 +2,7 @@ var PaperVoiceScope;
 async function startup({ rootURI }, reason) {
   await Zotero.initializationPromise;
   PaperVoiceScope = { Zotero, ChromeUtils, Services, IOUtils, PathUtils, Components };
+  Services.scriptloader.loadSubScript(rootURI + 'vendor/tinyld.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'core.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'i18n.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'panel-style.js', PaperVoiceScope);

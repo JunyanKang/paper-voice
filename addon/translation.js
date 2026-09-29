@@ -12,9 +12,10 @@ var PaperVoiceTranslation = {
     this.translate(unit.translationText||unit.text).then(result=>{if(ticket===this.translationTicket&&generation===this.generation&&this.get('translation',false))this.showTranslation(reader,unit,result.text,result.source);},error=>{if(ticket===this.translationTicket&&generation===this.generation)this.showTranslation(reader,unit,error.message||'翻译暂不可用');});
   }
  },
- async translate(text) {
+ async translate(text,sourceLanguage=null) {
   text=PaperVoiceCore.speechText(text);
-  const provider=this.get('translationProvider','tencenttransmart'),target=this.get('translationTarget','zh-Hans'),key=provider+'\0'+target+'\0'+text;
+  sourceLanguage=sourceLanguage||this.activeSpeechLanguage||this.speechLanguage?.()||'en';
+  const provider=this.get('translationProvider','tencenttransmart'),target=this.get('translationTarget','zh-Hans'),key=provider+'\0'+sourceLanguage+'\0'+target+'\0'+text;
   if(provider==='tencenttransmart'&&target==='zh-Hant')throw new Error('腾讯通道暂不提供繁体中文，请选择微软或 Google');
   const code=provider==='tencenttransmart'?(target==='zh-Hans'?'zh':target):provider==='google'?({'zh-Hans':'zh-CN','zh-Hant':'zh-TW'}[target]||target):target;
   if(this.translationCache.has(key))return this.translationCache.get(key);
@@ -25,7 +26,7 @@ var PaperVoiceTranslation = {
    if(Zotero.PDFTranslate?.api?.translate){
     let timeout;
     try{
-     const translated=await Promise.race([Zotero.PDFTranslate.api.translate(text,{pluginID:this.id,service:provider,langfrom:'en',langto:code}),new Promise((_,reject)=>{timeout=this.host.setTimeout(()=>reject(new Error('翻译超时')),12000);})]);
+     const translated=await Promise.race([Zotero.PDFTranslate.api.translate(text,{pluginID:this.id,service:provider,langfrom:sourceLanguage,langto:code}),new Promise((_,reject)=>{timeout=this.host.setTimeout(()=>reject(new Error('翻译超时')),12000);})]);
      if(translated?.result && translated.status!=='error')result={text:translated.result,source:serviceName+' · Translate for Zotero'};
     }catch(_){}finally{if(timeout)this.host.clearTimeout(timeout);}
    }
@@ -33,7 +34,7 @@ var PaperVoiceTranslation = {
     const headers={'Content-Type':'application/json','User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0'};
     let translated;
     if(provider==='google'){
-      const endpoint='https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl='+encodeURIComponent(code)+'&dt=t';
+      const endpoint='https://translate.googleapis.com/translate_a/single?client=gtx&sl='+encodeURIComponent(sourceLanguage)+'&tl='+encodeURIComponent(code)+'&dt=t';
       headers['Content-Type']='application/x-www-form-urlencoded';
       let response;
       for(let attempt=0;attempt<2;attempt++){
@@ -45,8 +46,8 @@ var PaperVoiceTranslation = {
       }
       translated=response.response?.[0]?.map(x=>x[0]).join('');
     }else{
-      const endpoint=provider==='bing'?'https://edge.microsoft.com/translate/translatetext?from=en&to='+encodeURIComponent(code)+'&isEnterpriseClient=false':'https://transmart.qq.com/api/imt';
-      const body=provider==='bing'?[text]:{header:{fn:'auto_translation',client_key:'browser-chrome-131.0.0-Mac OS-paper-voice'},type:'plain',model_category:'normal',source:{lang:'en',text_list:[text]},target:{lang:code}};
+      const endpoint=provider==='bing'?'https://edge.microsoft.com/translate/translatetext?from='+encodeURIComponent(sourceLanguage)+'&to='+encodeURIComponent(code)+'&isEnterpriseClient=false':'https://transmart.qq.com/api/imt';
+      const body=provider==='bing'?[text]:{header:{fn:'auto_translation',client_key:'browser-chrome-131.0.0-Mac OS-paper-voice'},type:'plain',model_category:'normal',source:{lang:sourceLanguage,text_list:[text]},target:{lang:code}};
       if(provider==='tencenttransmart')headers.Referer='https://transmart.qq.com/zh-CN/index';
       const response=await Zotero.HTTP.request('POST',endpoint,{body:JSON.stringify(body),headers,responseType:'json',timeout:12000,logBody:false});
       translated=provider==='bing'?response.response?.[0]?.translations?.[0]?.text:response.response?.auto_translation?.join('\n');
@@ -224,6 +225,7 @@ var PaperVoiceTranslation = {
    c.layout();
   }
   if(c.unit&&c.unit!==unit)c.layout();
+  c.box.lang=this.get('translationTarget','zh-Hans');c.box.setAttribute('aria-label',(this.t?.('跟读译文')||'跟读译文')+' · '+(this.translationLanguage?.().label||c.box.lang));
   c.unit=unit;c.box.textContent=source?text:(this.t?.(text)||text);c.box.title=this.t?.(source||'跟读译文')||(source||'跟读译文');c.box.dataset.provider=source;
   this.positionTranslation(c);
  },
