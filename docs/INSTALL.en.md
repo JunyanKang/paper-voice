@@ -6,30 +6,33 @@
 
 Download the complete ZIP for your computer from [Releases](https://github.com/JunyanKang/paper-voice/releases/latest), then extract it.
 
-| Platform | Installer |
-|---|---|
-| Windows · Intel / AMD x64 | `Paper Voice Setup.exe` |
-| Mac · Apple Silicon, macOS 14+ | `Paper Voice Installer.app` |
+**Windows · Intel / AMD x64**: Open `Paper Voice Setup.exe` after extracting the complete Windows package.
 
-## 01 · Set up offline voices
+**Mac · Apple Silicon, macOS 14+**: Open `Paper Voice Installer.app` after extracting the complete Mac package.
+
+## 1. Install offline voices
 
 Open the installer and choose **English** or **简体中文** at the bottom of the window. The default follows your system language.
 
 Click **Install voices**. When **✓ Voices ready** appears beside step 1, the voice setup is complete. No account, extra download or administrator password is required.
 
+<p align="center"><img src="assets/installer-macos-en.png" width="600" alt="The installer shows Voices ready beside step one when setup is complete"></p>
+
 On Windows, keep the `Resources` folder beside the installer. On Mac, resources are included inside the app.
 
-## 02 · Add the Zotero plugin
+## 2. Add the plugin to Zotero
 
 In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select the included `paper-voice-version.xpi` file.
 
-## 03 · Start listening
+## 3. Listen to your first passage
 
-Open an English PDF and select some text. Click the floating book mascot to choose a voice or reading mode.
+Open a PDF, let the plugin detect its language, and select some text. Click the floating book mascot to choose a voice or reading mode.
 
 Explore the [user guide](../README.en.md#user-guide) for reading modes, voice choices and translation.
 
 ## Updates
+
+**Version 1.2.6 adds Chinese, Japanese and French voices.** To use them when upgrading, download the latest complete package, run Install voices again, then update the plugin. The earlier voice pack still supports English.
 
 Use **Check for updates** in the plugin settings, or install the latest `.xpi` through Zotero. Existing users do not need to download the full voice package again unless the release notes say otherwise.
 

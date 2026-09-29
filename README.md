@@ -1,127 +1,144 @@
 <p align="right"><b>简体中文</b> · <a href="README.en.md">English</a></p>
 
-<p align="center">
-  <img src="docs/assets/paper-voice-hero.png" alt="Paper Voice — Read deeply. Listen naturally. 为 Zotero 而生的论文听读工具" width="960">
-</p>
+<p align="center"><img src="docs/assets/paper-voice-hero.png" width="880" alt="Paper Voice — 为 Zotero 而生的论文听读工具"></p>
 
 <h1 align="center">让论文，读给你听。</h1>
 
-<p align="center">
-  在 Zotero 中，用自然的声音听英文论文。<br>
-  划选即读，译文随行，让注意力回到内容本身。
-</p>
+<p align="center">在 Zotero 中听论文，让目光跟随声音，让译文贴近原文。</p>
+<p align="center">免费使用 · 四种语言 · 离线语音 · 中文与英文界面</p>
+<p align="center"><a href="#下载">下载</a> · <a href="#快速开始">快速开始</a> · <a href="#使用指南">使用指南</a> · <a href="#常见问题">常见问题</a></p>
 
-<p align="center">
-  <a href="https://github.com/JunyanKang/paper-voice/releases/latest"><b>下载 Paper Voice</b></a> ·
-  <a href="docs/INSTALL.md">安装指南</a> ·
-  <a href="#使用指南">使用指南</a> ·
-  <a href="https://github.com/JunyanKang/paper-voice/issues">反馈与建议</a>
-</p>
+## 下载
 
-<p align="center"><sub>免费使用 · 离线声音 · 美音 / 英音 · Windows / macOS · Zotero 10</sub></p>
+第一次使用，请下载与你的电脑匹配的完整包。安装助手、离线声音和 Zotero 插件都已包含在内。
 
-<br>
+**Windows · Intel / AMD 64 位电脑**
 
-## 阅读，有了另一种节奏
+[下载 Windows 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/Paper-Voice-1.2.6-Windows-x64.zip)
 
-**选中，便开始。** 一个句子、一段论述，鼠标轻轻划选，即刻进入听读。悬浮精灵随手可及，控制面板按需展开。
+**Mac · Apple 芯片（M 系列），macOS 14 或更新版本**
 
-**从一句，听到整篇。** 从首页、当前页、最近进度，或你刚刚选中的那一句开始。随朗读高亮、滚动与翻页，让目光自然跟上声音。
+[下载 Mac 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/Paper-Voice-1.2.6-macOS-arm64.zip)
 
-**理解，紧随原文。** 译文浮现在当前原句附近，跨栏、跨页也随之移动。默认腾讯翻译，也可选择微软或 Google，并切换八种译文语言。
+已安装 Paper Voice？在插件设置中点击 **检查更新**，或[下载插件文件 `.xpi`](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/paper-voice-1.2.6.xpi)。**从旧版升级并使用中文、日语或法语时，请下载本版完整包，再运行一次安装声音。** 只听英文可以继续使用原有声音包。
 
-**把难句，听得更清楚。** 段落循环、单句精听，配合六种英文声音与可调语速。常见文献标记和图表引用会在朗读时略过，让句子更连贯。
+适用于 Zotero 10。[查看版本记录](CHANGELOG.md) · [查看兼容性说明](docs/COMPATIBILITY.md)
 
-<br>
+## 快速开始
 
-## 你的声音，你的节奏
+### 1. 安装离线声音
 
-**美式英语** · 女声 Heart、Bella；男声 Michael、Fenrir。
+完整解压下载的 ZIP，打开 **Paper Voice 安装助手**，选择中文或 English，然后点击 **安装声音**。第一步右侧出现绿色的 **✓ 声音已就绪**，就可以进入下一步。
 
-**英式英语** · 女声 Emma；男声 George。
+<p align="center"><img src="docs/assets/installer-macos.png" width="600" alt="安装助手：第一步安装离线声音，完成后在同一行显示绿色的声音已就绪"></p>
 
-声音在电脑本地运行。无需订阅、无需语音额度、无需 API 密钥。安装一次，即可离线听读。
+Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音资源已包含在安装助手中。
 
-<br>
+### 2. 将插件添加到 Zotero
 
-## 三步，开始听读
+在 Zotero 中打开 **工具 → 插件 → 右上角齿轮 → 从文件安装插件**，选择完整包里的 `paper-voice-1.2.6.xpi`。
 
-**1 · 下载**<br>
-在 [最新版本](https://github.com/JunyanKang/paper-voice/releases/latest) 中，选择适合电脑的完整安装包。
+英文菜单对应 **Tools → Plugins → Install Plugin From File**。[需要更详细的安装帮助？](docs/INSTALL.md)
 
-| Windows | Mac |
-|:--|:--|
-| [下载 Windows x64 完整包](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.5/Paper-Voice-1.2.5-Windows-x64.zip) | [下载 Apple Silicon 完整包](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.5/Paper-Voice-1.2.5-macOS-arm64.zip) |
-| Intel / AMD 64 位电脑 | M 系列芯片 · macOS 14 或更新版本 |
+### 3. 开始第一次听读
 
-**2 · 安装**<br>
-完整解压，打开 **Paper Voice 安装助手**，点击「安装声音」。随后在 Zotero 的插件管理器中，选择「从文件安装」，添加下载包里的 `.xpi` 文件。
+打开一篇可以选中文字的 PDF，插件会 **自动识别原文语言**，**拖选文字，松开鼠标即可开始朗读**。点击右下角的书页精灵，可展开播放面板；点击面板右上角的 ×，即可收起。
 
-**3 · 聆听**<br>
-打开一篇英文 PDF，划选文字。点击右下角的书页精灵，选择声音、阅读模式，或开启随行译文。
-
-[查看安装指南 →](docs/INSTALL.md)
-
-**已经安装？** 在插件设置中点击「检查更新」即可。日常更新只需插件，无需重复下载声音包。
-
-<br>
-
-## 为专注而设计
-
-四种阅读模式，覆盖浏览、通读与精读。小巧的悬浮控制、柔和的句子高亮，以及紧贴原文的译文，让工具留在视线边缘，让内容处于中心。
-
-安装助手与插件界面均支持 **简体中文 / English**，可独立于译文语言切换。
-
-声音合成在本地完成；翻译由你主动开启。文献、PDF 与批注保持原样。
-
-[使用指南](#使用指南) · [兼容性与使用说明](docs/COMPATIBILITY.md) · [隐私说明](PRIVACY.md) · [版本记录](CHANGELOG.md)
+<p align="center"><img src="docs/assets/quick-start-zh.png" width="960" alt="Paper Voice 中文播放面板：右下角书页精灵展开后，可选择阅读模式与循环次数"></p>
+<p align="center"><sub>从右下角的书页精灵进入。图标上的底色表示当前模式，循环次数可按需调整。</sub></p>
 
 ## 使用指南
 
-### 选择阅读范围
+### 选择想听的范围
 
-点击 PDF 右下角的书页精灵。模式从左到右依次为 **单句 → 划选 → 段落 → 全文**，悬浮按钮也按此顺序切换；有底色的图标表示当前模式。
+四个模式按 **单句 → 划选 → 段落 → 全文** 排列。点击图标切换；悬浮工具栏上的模式按钮也按这个顺序轮换。
 
-- **单句**：划选文字，精听其中一句。使用「上一句／重读当前句／下一句」定位与复听。
-- **划选**：拖选你想听的文字，松开即读；可关闭自动朗读，再点击播放。支持读 1 次、2 次、3 次、5 次或持续循环。
-- **段落**：划选段落后开始听读，用「上一段／重读当前段／下一段」浏览相邻段落，可设置循环次数。
-- **全文**：从第 1 页、当前页、最近进度或选定位置开始，连续读到文末。三个导航按钮按段落移动，跳转后继续连读。
+- **单句**：选中句中的任意文字，就会从句首读完整句，用「上一句／重读当前句／下一句」逐句精听。
+- **划选**：只读鼠标选中的内容，适合快速听一个词、一句话或一段论述。
+- **段落**：选中段中的任意文字，就会从段首读完整段落，用「上一段／重读当前段／下一段」浏览相邻段落。
+- **全文**：从指定位置连续读到文末；导航按钮按段落移动，跳转后继续连读。
 
-**切换模式，声音保持连贯。** 全文切到段落或单句，会读完当前段落或句子再停；单句切到全文，会接着读下去。主动点击上一段、重读或下一段时，立即跳到相应位置。
+单句、划选和段落都可以选择 **1 次、2 次、3 次、5 次或持续循环**。
 
-### 从想听的地方开始
+播放中切换模式，当前音频会保持连贯：全文切到单句或段落，会读完当前句或段落再停；切到全文，会从当前位置继续往下读。
 
-全文模式选择「从选定位置（句首）」，划选句中的字母、单词或整句，再点击「从此句开始连读」。跨栏或跨页的句子也从句首开始。
+### 从想听的位置继续
 
-「从上次进度」记住这篇 PDF 最近一次实际朗读的位置，包括单句、划选和段落模式。全文播放时，普通点击或滚动不会打断朗读。
+全文模式提供四种起点：**第 1 页、当前页、上次进度、选定位置（句首）**。
 
-### 把播放留在手边
+想从某句话开始，先选择 **从选定位置（句首）**，再划选其中的字母、单词或整句，点击 **从此句开始连读**。选择 **从上次进度**，则会回到这篇 PDF 最近一次实际朗读的位置，无论上次使用的是哪种模式。
 
-收起面板后，精灵旁保留模式、导航、暂停、停止及译文开关；精灵可以拖动。当前片段会高亮，页面随朗读滚动和翻页。
+<p align="center"><img src="docs/assets/continuous-zh.png" width="960" alt="全文连读示例：原句高亮、附近译文、起点选项，以及浮动工具栏中的段落导航和播放控制"></p>
+<p align="center"><sub>高亮指向当前朗读片段，译文显示在原句附近。收起面板后，浮动工具栏仍可控制播放。</sub></p>
+
+页面会随朗读滚动、换栏和翻页。全文播放时，普通点击或手动滚动不会打断朗读；需要跳转时，使用导航按钮即可。
+
+### 用键盘控制播放
 
 - **空格**：暂停，再按一次继续。
-- **Esc**：停止朗读，清除高亮和译文。
+- **Esc**：停止朗读，同时清除高亮和译文。
 - **Option / Alt + P**：暂停或继续。
 - **Option / Alt + T**：显示或隐藏译文。
 
-在 PDF 阅读区域使用快捷键；在搜索框、笔记等输入区域打字时，空格保持正常输入。
+在 PDF 阅读区域使用快捷键。在搜索框或笔记中打字时，空格保持正常输入。
 
-### 声音、译文与语言
+### 选择声音，开启译文
 
-打开设置选择声音，点击「试听当前声音」比较音色；语速支持 **0.60–1.60×**。声音和语速的修改在下次开始朗读时生效。
+点击面板右上角的 **设置** 图标。**朗读语言** 默认选择「自动识别 PDF 语言」，也可手动指定。选择声音后点击 **试听当前声音**，找到适合自己的音色。语速可在 **0.60–1.60×** 之间调整，声音和语速的修改会在下次开始朗读时生效。
 
-开启「跟读译文」后，译文显示在正在朗读的原句附近，跨栏、跨页时随之移动。这个选项仅显示译文，不会额外朗读译文。默认腾讯翻译，也可选择微软或 Google；Google 需要网络可达。繁体中文请使用微软或 Google。
+<p align="center"><img src="docs/assets/preferences-zh.png" width="960" alt="中文设置界面：界面语言、朗读声音、语速、翻译服务、译文语言和更新入口"></p>
+<p align="center"><sub>朗读语言、界面语言和译文语言分别设置，听读与翻译可以自由搭配。</sub></p>
 
-界面支持 **简体中文 / English / 跟随系统**；译文语言独立设置，可选简体中文、繁体中文、日语、韩语、法语、德语、西班牙语和俄语。
+**美式英语**：女声 Heart、Bella；男声 Michael、Fenrir。<br>
+**英式英语**：女声 Emma；男声 George。<br>
+**中文（普通话）**：默认男声 **Yunxi**；可选男声 Yunjian、女声 Xiaobei 和 Xiaoxiao。<br>
+**日语**：默认女声 **Tebukuro**；可选女声 Alpha、男声 Kumo。<br>
+**法语**：女声 Siwis。
 
-常见文献标记、作者年份和带编号的图表引用会在朗读时略过；可识别的页眉、页脚和出版信息也会跳过。PDF 原文与批注保持原样。
+自动识别在本机完成，无需联网。短词会参考所在 PDF 的正文；混合语言段落可自动切换音色。无法确定或遇到尚不支持的语言时，会提示手动选择。每种语言会记住上次使用的声音。切换语言后，点击试听可听到对应语言的示例。
+
+开启 **跟读译文**，翻译就会显示在正在朗读的原句附近。它只显示译文，不会额外朗读译文。默认使用腾讯，也可选择微软或 Google；Google 需要网络可达，繁体中文请使用微软或 Google。
+
+悬浮工具栏的译文按钮会显示目标语言标记：**简／繁／日／한／FR／DE／ES／RU**。修改译文语言后立即同步，底色表示是否开启。
+
+译文支持简体中文、繁体中文、日语、韩语、法语、德语、西班牙语和俄语。界面可独立选择 **简体中文、English 或跟随系统**。
+
+<sub>截图使用 macOS 上的 Paper Voice 1.2.6 和专门制作的演示文档。Windows 使用相同的插件控件；系统菜单外观可能不同。点击图片可查看大图。</sub>
+
+## 常见问题
+
+<details>
+<summary><b>语音需要联网、付费或另外安装 Python 吗？</b></summary>
+
+不需要。完整包自带 Kokoro 离线语音引擎、模型和运行环境，安装后由本机生成语音，不使用系统自带的朗读声音，也无需语音订阅或 API 密钥。翻译和插件更新需要联网。
+
+</details>
+
+<details>
+<summary><b>为什么有些文献标记没有读出来？</b></summary>
+
+Paper Voice 会略过可识别的数字引文、作者年份、图表引用和出版信息，让正文听起来更连贯。它只处理用于朗读的文字，不会修改 PDF 或批注。
+
+</details>
+
+<details>
+<summary><b>划选后没有声音，先检查什么？</b></summary>
+
+先确认 PDF 能选中文字；扫描件需要先进行 OCR。然后在设置中点击「试听当前声音」，确认声音已安装，并检查电脑的音量与输出设备。若关闭了「划选后自动朗读」，选中文字后需要点击播放。
+
+</details>
+
+<details>
+<summary><b>更新时需要重新下载完整包吗？</b></summary>
+
+**升级到 1.2.6 的多语言声音，需要重新下载完整包并安装声音一次。** 原来的英文声音包仍可使用。之后的常规插件更新，在设置中点击「检查更新」，或安装最新的 `.xpi` 即可。除发布说明另有提示外，原有声音包可以继续使用。`updates.json` 由插件自动使用，无需手动下载。
+
+</details>
 
 ---
 
-<p align="center">
-  <img src="addon/assets/mascot.png" width="64" alt="Paper Voice 书页精灵"><br>
-  <b>Paper Voice</b><br>
-  <sub>Created by <a href="https://github.com/JunyanKang">Junyan Kang</a> · <a href="LICENSE">MIT License</a></sub>
-</p>
+[安装帮助](docs/INSTALL.md) · [兼容性说明](docs/COMPATIBILITY.md) · [隐私说明](PRIVACY.md) · [反馈问题](https://github.com/JunyanKang/paper-voice/issues)
 
-<p align="center"><sub>Built with <a href="https://github.com/thewh1teagle/kokoro-onnx">Kokoro ONNX</a>, <a href="https://huggingface.co/hexgrad/Kokoro-82M">Kokoro-82M</a> and <a href="https://lucide.dev">Lucide</a>. 翻译适配参考 <a href="https://github.com/windingwind/zotero-pdf-translate">Translate for Zotero</a>。</sub></p>
+Created by [Junyan Kang](https://github.com/JunyanKang) · [MIT License](LICENSE)
+
+<sub>语言识别使用 <a href="https://github.com/komodojp/tinyld">TinyLD</a>；中日文发音使用 <a href="https://github.com/hexgrad/misaki">Misaki</a> 与随包词典；语音由 <a href="https://github.com/thewh1teagle/kokoro-onnx">Kokoro ONNX</a> 与 <a href="https://huggingface.co/hexgrad/Kokoro-82M">Kokoro-82M</a> 提供；图标来自 <a href="https://lucide.dev">Lucide</a>；翻译适配参考 <a href="https://github.com/windingwind/zotero-pdf-translate">Translate for Zotero</a>。</sub>

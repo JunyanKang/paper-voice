@@ -10,18 +10,19 @@
 
 从 [最新版本](https://github.com/JunyanKang/paper-voice/releases/latest) 下载对应电脑的完整 ZIP，先解压，再开始安装。
 
-| 电脑 | 下载文件 | 打开的安装助手 |
-|---|---|---|
-| Windows · Intel / AMD 64 位 | `Paper-Voice-版本号-Windows-x64.zip` | `Paper Voice Setup.exe` |
-| Mac · M 系列芯片 | `Paper-Voice-版本号-macOS-arm64.zip` | `Paper Voice Installer.app` |
+**Windows · Intel / AMD 64 位**：下载 Windows x64 完整包，解压后打开 `Paper Voice Setup.exe`。
 
-## 01 · 准备声音
+**Mac · M 系列芯片**：下载 macOS arm64 完整包，解压后打开 `Paper Voice Installer.app`。
+
+## 1. 安装离线声音
 
 打开 **Paper Voice 安装助手**，点击「安装声音」。第一步右侧出现绿色「✓ 声音已就绪」后，点击「完成」。声音包已包含在下载文件中，无需另行下载或注册账户。
 
+<p align="center"><img src="assets/installer-macos.png" width="600" alt="安装完成后，声音已就绪显示在第一步右侧"></p>
+
 Windows 用户请保留同目录的 `Resources` 文件夹；不要只把安装助手单独拖出。Mac 的声音资源已收纳在安装助手内部。
 
-## 02 · 添加 Zotero 插件
+## 2. 将插件添加到 Zotero
 
 打开 Zotero，依次选择：
 
@@ -29,13 +30,15 @@ Windows 用户请保留同目录的 `Resources` 文件夹；不要只把安装�
 
 英文界面为 **Tools → Plugins → Install Plugin From File**。选择下载包里的 `paper-voice-版本号.xpi`。
 
-## 03 · 开始听读
+## 3. 开始第一次听读
 
-打开英文 PDF。右下角出现书页精灵后，划选文字即可开始；点击精灵，可调整声音和阅读模式。
+打开PDF。右下角出现书页精灵后，划选文字即可开始；点击精灵，可调整声音和阅读模式。
 
 下一步：[了解四种模式、声音与随行译文](../README.md#使用指南)。
 
 ## 更新已有插件
+
+**1.2.6 新增中文、日语、法语声音。** 从旧版升级时，如需这些语言，请下载最新完整包，重新运行一次「安装声音」，然后更新插件。旧声音包仍可朗读英文。
 
 点击书页精灵 → 设置 → **检查更新** → **安装更新**。
 
