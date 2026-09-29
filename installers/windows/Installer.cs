@@ -69,7 +69,7 @@ class Installer : Form {
         progress=new ProgressBar{Location=new Point(40,367),Size=new Size(520,4),Style=ProgressBarStyle.Marquee,Visible=false};Controls.Add(progress);
         action=new Button{Text="安装声音",Location=new Point(410,385),Size=new Size(150,36),FlatStyle=FlatStyle.Flat,BackColor=teal,ForeColor=Color.White};
         action.FlatAppearance.BorderSize=0;action.Click+=Start;Controls.Add(action);AcceptButton=action;
-        help=new LinkLabel{Text="安装帮助",Location=new Point(40,396),AutoSize=true,LinkColor=teal};help.LinkClicked+=(s,e)=>Process.Start("https://github.com/JunyanKang/paper-voice/blob/main/docs/INSTALL.md");Controls.Add(help);
+        help=new LinkLabel{Text="安装帮助",Location=new Point(40,396),AutoSize=true,LinkColor=teal};help.LinkClicked+=(s,e)=>Process.Start("https://github.com/JunyanKang/paper-voice/blob/main/docs/"+(english?"INSTALL.en.md":"INSTALL.md"));Controls.Add(help);
         language=new ComboBox{Location=new Point(140,390),Size=new Size(120,28),DropDownStyle=ComboBoxStyle.DropDownList,AccessibleName="Language / 语言"};
         language.Items.AddRange(new object[]{"简体中文","English"});language.SelectedIndex=english?1:0;
         language.SelectedIndexChanged+=(s,e)=>{english=language.SelectedIndex==1;RefreshLanguage();};Controls.Add(language);RefreshLanguage();

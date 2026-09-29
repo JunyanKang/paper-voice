@@ -23,6 +23,6 @@ elif sys.platform=='win32':
  out=ROOT/'.build/installers';out.mkdir(parents=True,exist_ok=True)
  subprocess.run(['powershell','-NoProfile','-ExecutionPolicy','Bypass','-File',str(ROOT/'installers/windows/build.ps1'),'-Root',str(ROOT)],check=True)
  csc=Path(os.environ['WINDIR'])/'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
- subprocess.run([str(csc),'/nologo','/target:winexe','/platform:x64','/optimize+','/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll','/reference:System.Core.dll',f'/win32icon:{out / "PaperVoice.ico"}',f'/win32manifest:{ROOT / "installers/windows/app.manifest"}',f'/resource:{ROOT / "addon/assets/mascot.png"},mascot.png',f'/out:{out / "Paper Voice Setup.exe"}',str(ROOT/'installers/windows/Installer.cs')],check=True)
+ subprocess.run([str(csc),'/nologo','/target:winexe','/platform:x64','/optimize+','/codepage:65001','/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll','/reference:System.Core.dll',f'/win32icon:{out / "PaperVoice.ico"}',f'/win32manifest:{ROOT / "installers/windows/app.manifest"}',f'/resource:{ROOT / "addon/assets/mascot.png"},mascot.png',f'/out:{out / "Paper Voice Setup.exe"}',str(ROOT/'installers/windows/Installer.cs')],check=True)
  print(out/'Paper Voice Setup.exe')
 else:raise SystemExit('Build installers on macOS arm64 or Windows x64.')

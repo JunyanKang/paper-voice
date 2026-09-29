@@ -127,7 +127,7 @@ final class InstallerDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate
             }
         }
     }
-    @objc func helpPage() { NSWorkspace.shared.open(URL(string: "https://github.com/JunyanKang/paper-voice/blob/main/docs/INSTALL.md")!) }
+    @objc func helpPage() { NSWorkspace.shared.open(URL(string: "https://github.com/JunyanKang/paper-voice/blob/main/docs/" + (language == "en" ? "INSTALL.en.md" : "INSTALL.md"))!) }
     func windowShouldClose(_ sender: NSWindow) -> Bool { return !working }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply { return working ? .terminateCancel : .terminateNow }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { return true }
