@@ -14,13 +14,13 @@ New to Paper Voice? Choose the complete package for your computer. It includes t
 
 **Windows · Intel / AMD 64-bit computers**
 
-[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/Paper-Voice-1.2.6-Windows-x64.zip)
+[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.7/Paper-Voice-1.2.7-Windows-x64.zip)
 
 **Mac · Apple Silicon (M series), macOS 14 or later**
 
-[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/Paper-Voice-1.2.6-macOS-arm64.zip)
+[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.7/Paper-Voice-1.2.7-macOS-arm64.zip)
 
-Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/paper-voice-1.2.6.xpi). 
+Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.7/paper-voice-1.2.7.xpi).
 
 For Zotero 10. [Release notes](CHANGELOG.md) · [Compatibility notes](docs/COMPATIBILITY.en.md)
 
@@ -36,7 +36,7 @@ On Windows, keep the installer and `Resources` folder together. On Mac, the voic
 
 ### 2. Add the plugin to Zotero
 
-In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.6.xpi` from the package.
+In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.7.xpi` from the package.
 
 Using Zotero in Chinese? The menu is **工具 → 插件 → 从文件安装插件**. [Need more installation help?](docs/INSTALL.en.md)
 
@@ -117,7 +117,7 @@ No. The complete package includes the Kokoro speech engine, models and runtime. 
 <details>
 <summary><b>Why are some citation markers not read aloud?</b></summary>
 
-Paper Voice skips recognizable numeric citations, author–year references, figure/table references and publication details to make narration easier to follow. It only processes the text used for speech; your PDF and annotations stay unchanged.
+Paper Voice skips recognizable numeric citations, author–year references, figure/table references, identifiable figure captions and publication details to make narration easier to follow. It only processes the text used for speech; your PDF and annotations stay unchanged.
 
 </details>
 

@@ -101,7 +101,8 @@ var PaperVoiceCore = (() => {
     const label='(?:(?:supplementary|supplemental|supp\\.?|supporting(?:\\s+information)?|extended(?:\\s+data)?)\\s+)?(?:fig(?:ure)?s?|tables?)\\.?';
     const id='(?:S?\\d+[a-z]{0,3}|[IVX]+)';
     const next='(?:'+id+'|[a-z])';
-    return new RegExp('\\b'+label+'\\s*'+id+'\\b(?:\\s*(?:[,;–−-]|and|&)\\s*'+next+'\\b)*','gi');
+    const separator='(?:[,;]\\s*(?:(?:and|&)\\s*)?|[–−-]|and|&)';
+    return new RegExp('\\b'+label+'\\s*'+id+'\\b(?:\\s*'+separator+'\\s*'+next+'\\b)*','gi');
   }
   function isFigureCitation(inside) {
     const text=inside.replace(/^\s*(?:see\s+)?(?:also\s+)?(?:e\.g\.,?\s*)?/i,'');
@@ -112,6 +113,9 @@ var PaperVoiceCore = (() => {
     // PDF fonts use several visually identical hyphens in compound surnames.
     // Normalize only the recognition copy; source offsets and scientific text stay intact.
     inside=inside.replace(/[\p{Pd}−]/gu,'-').replace(/([\p{L}])\s*\u0000\s*(?=[\p{L}])/gu,'$1-').replace(/\s*-\s*/g,'-');
+    // PDF.js may emit a ligature as its own text item (Rosen / fi / eld).
+    // Repair only the citation recognition copy, preserving PDF highlight offsets.
+    inside=inside.replace(/([\p{L}])\s+(ff[il]?|fi|fl)\s+(?=\p{Ll})/gu,'$1$2');
     const author="[\\p{Lu}][\\p{L}'’.-]+(?:\\s+(?:[\\p{Lu}][\\p{L}'’.-]+|(?:and|&)\\s+[\\p{Lu}][\\p{L}'’.-]+|et\\s+al\\.?))*";
     const citation=new RegExp('^'+author+',?\\s*(?:18|19|20)\\d{2}[a-z]?(?:\\s*,\\s*(?:18|19|20)\\d{2}[a-z]?)*$','u');
     return inside.split(/\s*;\s*/).every(part=>citation.test(part.trim())&&!/^(?:January|February|March|April|May|June|July|August|September|October|November|December|Figure|Table|Version|Group|Cohort|Trial)\b/.test(part.trim()));
@@ -259,6 +263,12 @@ var PaperVoiceCore = (() => {
     }
     for(const row of rows.filter(x=>x.y<height*.05&&x.height<=bodySize*1.12&&/^\d{1,4}$/.test(x.text)))excluded.add(row.index);
     const allLines=pdfLines(rows),remove=line=>line.rows.forEach(row=>excluded.add(row.index));
+    // Elsevier's first-page article badge is painted after the body text despite
+    // sitting beside the abstract. It must not interrupt the next-page sentence.
+    if(context.firstPage&&rows.some(row=>/journal homepage:.*elsevier/i.test(row.text))){
+      const last=rows.at(-1);
+      if(last?.text==='T'&&last.height>bodySize*1.18)excluded.add(last.index);
+    }
     for(const line of allLines){
       const margin=line.y>height*.94||line.y<height*.06;
       if(margin&&context.margins?.has(marginKey(line,height)))remove(line);
@@ -312,6 +322,41 @@ var PaperVoiceCore = (() => {
     const span=spans.find(x=>offset>=x.start&&offset<x.end)||spans[spans.length-1];
     return offset+span.sourceStart-span.start;
   }
+  function figureCaptionItems(items) {
+    const rows=pdfRows(items),sizes=[],excluded=new Set();
+    // Keep small caption print separate from body text on the same baseline.
+    for(const row of rows){
+      let group=sizes.find(g=>Math.abs(g.height-row.height)<g.height*.065);
+      if(!group){group={height:row.height,rows:[]};sizes.push(group);}group.rows.push(row);
+    }
+    const lines=sizes.flatMap(group=>pdfLines(group.rows));
+    const bounds=line=>({left:Math.min(...line.rows.map(x=>x.x)),right:Math.max(...line.rows.map(x=>x.x+x.width))});
+    // Caption labels terminate the figure number with a period, colon or divider.
+    // Body references such as "Fig. 1A" and "Fig. 1 shows" are not labels.
+    const label=/^(?:(?:Supplementary|Extended Data)\s+)?Fig(?:ure)?\.?\s+S?\d+\s*[.:|](?:\s|$)/i;
+    for(const first of lines.filter(line=>label.test(line.text))){
+      const block=[first],seen=new Set(block),size=first.height;
+      for(let i=0;i<block.length;i++){
+        const previous=block[i],a=bounds(previous);
+        for(const next of lines){
+          if(seen.has(next)||next.y>first.y+size*.5||Math.abs(next.height-size)>size*.065)continue;
+          const gap=previous.y-next.y,b=bounds(next);
+          const overlap=Math.min(a.right,b.right)-Math.max(a.left,b.left);
+          // Follow small-print lines beside the image and across full-width
+          // continuations beneath it. Aligned columns may share a caption.
+          const aligned=Math.abs(next.y-first.y)<size*.5;
+          if((gap>size*.5&&gap<size*2.05&&overlap>size)||(aligned&&Math.abs(gap)<size*.5)){
+            seen.add(next);block.push(next);
+          }
+        }
+      }
+      for(const line of block){
+        const box=bounds(line);
+        for(const row of rows)if(row.x>=box.left-size*.2&&row.x+row.width<=box.right+size*.2&&Math.abs(row.y-line.y)<size*.6&&row.height<=size*1.065)excluded.add(row.index);
+      }
+    }
+    return excluded;
+  }
   function paragraphLayout(items) {
     const lines=[];let offset=0,line=null,ended=true;
     for(const item of items){
@@ -340,6 +385,7 @@ var PaperVoiceCore = (() => {
   }
   function pdfLayout(items,pageIndex,pageHeight,context={}) {
     const excluded=publicationFooterItems(items,pageHeight,{...context,firstPage:pageIndex===0}),kept=[],breaks=[],sourceSpans=[];
+    if(context.skipCaptions!==false)for(const index of figureCaptionItems(items))excluded.add(index);
     let offset=0,originalOffset=0,previous=null,gap=false;
     for(let index=0;index<items.length;index++){
       const item=items[index],length=anchorText(item.str).length;
