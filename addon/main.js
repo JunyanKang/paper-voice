@@ -238,7 +238,7 @@ var PaperVoice = {
         if(generation!==this.generation || this.dead)return;
         const page=Components.utils.waiveXrays(await pdf.getPage(i)),content=await page.getTextContent();
         if(generation!==this.generation || this.dead)return;
-        const layout=PaperVoiceCore.pdfLayout(content.items,i-1);
+        const layout=PaperVoiceCore.pdfLayout(content.items,i-1,Math.abs(page.view?.[3]-page.view?.[1])||undefined);
         if(!layout.text)empty++;
         pages.push(layout);
         this.setStatus(`正在读取第 ${i}/${pdf.numPages} 页…`,'loading');
@@ -415,7 +415,7 @@ var PaperVoice = {
       for(let index=units[0]?.pageIndex||0;index<pdf.numPages;index++){
         if(generation!==this.generation)return;
         const page=Components.utils.waiveXrays(await pdf.getPage(index+1));
-        const layout=PaperVoiceCore.pdfLayout((await page.getTextContent()).items,index);layouts.push(layout);joined+=PaperVoiceCore.anchorText(layout.text);
+        const layout=PaperVoiceCore.pdfLayout((await page.getTextContent()).items,index,Math.abs(page.view?.[3]-page.view?.[1])||undefined);layouts.push(layout);joined+=PaperVoiceCore.anchorText(layout.text);
         if(joined.includes(PaperVoiceCore.anchorText(selection))){
           const selected=units.map(u=>u.text).join(' '),from=joined.indexOf(PaperVoiceCore.anchorText(selection));
           const located=PaperVoiceCore.layoutUnits(layouts,selected,from);

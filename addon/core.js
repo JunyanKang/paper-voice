@@ -55,7 +55,7 @@ var PaperVoiceCore = (() => {
   function abbreviationPattern(){return /\b(?:i\s*\.\s*e\s*\.|e\s*\.\s*g\s*\.|et\s+al\s*\.|(?:figs?|eqs?|dr|prof|vs)\.)/gi;}
   function figureReferencePattern() {
     const label='(?:(?:supplementary|supplemental|supp\\.?|supporting(?:\\s+information)?|extended(?:\\s+data)?)\\s+)?(?:fig(?:ure)?s?|tables?)\\.?';
-    const id='(?:S?\\d+[a-z]?|[IVX]+)';
+    const id='(?:S?\\d+[a-z]{0,3}|[IVX]+)';
     const next='(?:'+id+'|[a-z])';
     return new RegExp('\\b'+label+'\\s*'+id+'\\b(?:\\s*(?:[,;–−-]|and|&)\\s*'+next+'\\b)*','gi');
   }
@@ -65,6 +65,9 @@ var PaperVoiceCore = (() => {
     return remainder!==text&&/^[\s,;.\/&]*(?:and[\s,;.]*)?$/i.test(remainder);
   }
   function isAuthorCitation(inside) {
+    // PDF fonts use several visually identical hyphens in compound surnames.
+    // Normalize only the recognition copy; source offsets and scientific text stay intact.
+    inside=inside.replace(/[\p{Pd}−]/gu,'-').replace(/([\p{L}])\u0000(?=[\p{L}])/gu,'$1-').replace(/\s*-\s*/g,'-');
     const author="[\\p{Lu}][\\p{L}'’.-]+(?:\\s+(?:[\\p{Lu}][\\p{L}'’.-]+|(?:and|&)\\s+[\\p{Lu}][\\p{L}'’.-]+|et\\s+al\\.?))*";
     const citation=new RegExp('^'+author+',?\\s*(?:18|19|20)\\d{2}[a-z]?(?:\\s*,\\s*(?:18|19|20)\\d{2}[a-z]?)*$','u');
     return inside.split(/\s*;\s*/).every(part=>citation.test(part.trim())&&!/^(?:January|February|March|April|May|June|July|August|September|October|November|December|Figure|Table|Version|Group|Cohort|Trial)\b/.test(part.trim()));
@@ -72,10 +75,32 @@ var PaperVoiceCore = (() => {
   function protectedTextRanges(text){
     const ranges=[];
     for(const m of text.matchAll(/\(([^()]*)\)|[\[【][\d\s,;–−-]+[\]】]/g)){
-      if(!m[1]||isAuthorCitation(m[1])||isFigureCitation(m[1]))ranges.push({start:m.index,end:m.index+m[0].length});
+      if(!m[1])ranges.push({start:m.index,end:m.index+m[0].length});
+      else {
+        const citations=parentheticalCitationRanges(m[1]);
+        if(citations.length){
+          // Protect the complete aside during chunking; silence only citation spans.
+          ranges.push({start:m.index,end:m.index+m[0].length});
+          if(citations[0].start===0&&citations[0].end===m[1].length)ranges[ranges.length-1].silent=true;
+          else for(const range of citations)ranges.push({start:m.index+1+range.start,end:m.index+1+range.end,silent:true});
+        }
+      }
     }
     for(const m of text.matchAll(figureReferencePattern()))ranges.push({start:m.index,end:m.index+m[0].length});
     for(const m of text.matchAll(abbreviationPattern()))ranges.push({start:m.index,end:m.index+m[0].length});
+    return ranges;
+  }
+  function parentheticalCitationRanges(inside){
+    const parts=Array.from(inside.matchAll(/[^;]+/g),m=>({start:m.index,end:m.index+m[0].length,silent:isAuthorCitation(m[0].trim())||isFigureCitation(m[0].trim())}));
+    if(!parts.length)return [];
+    if(parts.every(part=>part.silent))return [{start:0,end:inside.length}];
+    const ranges=[];
+    for(let i=0;i<parts.length;i++){
+      if(!parts[i].silent)continue;
+      const first=i;while(i+1<parts.length&&parts[i+1].silent)i++;
+      // Keep the scientific aside and its brackets; remove the adjacent separator.
+      ranges.push({start:first===0?0:parts[first-1].end,end:first===0?parts[i+1].start:parts[i].end});
+    }
     return ranges;
   }
   const superDigits='⁰¹²³⁴⁵⁶⁷⁸⁹';
@@ -122,7 +147,12 @@ var PaperVoiceCore = (() => {
       if(/\b[\p{L}]$/u.test(before))return whole;
       return '';
     });
-    text=text.replace(/\(([^()]+)\)/g,(whole,inside)=>isAuthorCitation(inside)||isFigureCitation(inside)?'':whole);
+    text=text.replace(/\(([^()]+)\)/g,(whole,inside)=>{
+      const ranges=parentheticalCitationRanges(inside);
+      if(ranges.length===1&&ranges[0].start===0&&ranges[0].end===inside.length)return '';
+      for(const range of ranges.reverse())inside=inside.slice(0,range.start)+inside.slice(range.end);
+      return '('+inside.trim()+')';
+    });
     text=text.replace(figureReferencePattern(),'');
     text=text.replace(/([\p{L}]{3,}[.,;:!?)]*)\s*([⁰¹²³⁴⁵⁶⁷⁸⁹]+(?:\s*[,–−⁻-]\s*[⁰¹²³⁴⁵⁶⁷⁸⁹]+)*)/gu,(whole,word)=>scientificUnits.test(word)?whole:word);
     text=text.replace(/\band\s*\/\s*or\b/gi,'and or')
@@ -139,7 +169,30 @@ var PaperVoiceCore = (() => {
       offset+=anchorText(part).length;return unit;
     });});
   }
-  function pdfLayout(items,pageIndex) {
+  function trimPublicationFooter(items,pageHeight) {
+    // Only trim a trailing, small-print metadata block near the bottom. Keeping
+    // the body prefix intact preserves every DOM character offset used by selections.
+    const rows=items.map((item,index)=>({index,text:cleanText(item.str),y:Number(item.transform?.[5]),height:Math.abs(item.height||item.transform?.[3]||0)})).filter(x=>x.text&&Number.isFinite(x.y)&&x.height>0);
+    if(rows.length<3)return items;
+    const height=pageHeight||Math.max(...rows.map(x=>x.y+x.height));
+    const weights=new Map();for(const row of rows.filter(x=>x.y>height*.36)){const size=Math.round(row.height*2)/2;weights.set(size,(weights.get(size)||0)+row.text.length);}
+    const bodySize=[...weights].sort((a,b)=>b[1]-a[1])[0]?.[0];if(!bodySize)return items;
+    const candidates=rows.filter(x=>x.y<height*.36&&x.height<=bodySize*.93);if(!candidates.length)return items;
+    const cue=/^(?:abbreviations?\s*:|[*†‡]?\s*correspond(?:ing|ence)\b|e[- ]?mail\s*(?:address)?\s*:|(?:https?:\/\/(?:dx\.)?doi\.org\/|doi\s*:)|received\s+\d|accepted\s+\d|available\s+online\b|copyright\b|©|\d{4}-\d{3}[\dX]\s*\/)/i;
+    for(const candidate of candidates){
+      // Labels may be separate PDF text items, so inspect their line continuation.
+      const tail=rows.filter(x=>x.index>=candidate.index),lead=tail.slice(0,4).map(x=>x.text).join(' ');
+      if(!cue.test(lead))continue;
+      if(!tail.every(x=>x.y<height*.39&&x.height<=bodySize*.96))continue;
+      const block=tail.map(x=>x.text).join(' ');
+      // Abbreviation lists are only suppressed when accompanied by publication metadata.
+      if(/^abbreviations?\s*:/i.test(lead)&&!/(?:corresponding author|doi\.org|e[- ]?mail|received\s+\d|©)/i.test(block))continue;
+      return items.slice(0,candidate.index);
+    }
+    return items;
+  }
+  function pdfLayout(items,pageIndex,pageHeight) {
+    items=trimPublicationFooter(items,pageHeight);
     const text=pdfText(items),breaks=[];let offset=0,previous=null;
     for(const item of items){
       if(!anchorText(item.str))continue;
@@ -182,7 +235,7 @@ var PaperVoiceCore = (() => {
       let masked=sentence;
       for(const range of protectedTextRanges(sentence)){
         const part=sentence.slice(range.start,range.end);
-        if(!speechText(part)&&!(/^[\[【]/.test(part)&&/[\p{L}]$/u.test(sentence.slice(0,range.start))))masked=masked.slice(0,range.start)+' '.repeat(range.end-range.start)+masked.slice(range.end);
+        if((range.silent||!speechText(part))&&!(/^[\[【]/.test(part)&&/[\p{L}]$/u.test(sentence.slice(0,range.start))))masked=masked.slice(0,range.start)+' '.repeat(range.end-range.start)+masked.slice(range.end);
       }
       for(const segment of segments){
         const a=Math.max(start,segment.start),b=Math.min(end,segment.end);if(a>=b)continue;

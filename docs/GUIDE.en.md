@@ -55,7 +55,7 @@ Tencent is the default. Microsoft and Google are alternatives; use Microsoft or 
 | `Option/Alt + T` | Show / hide translation |
 | `Esc` | Stop |
 
-Common citation markers and numbered figure references are skipped during narration. Expressions such as `and/or`, `i.e.` and `e.g.` are expanded for natural listening.
+Common citation markers and numbered figure references, including `Fig. 1Ba`, are skipped during narration. In mixed parentheses, scientific explanations are retained while citations are omitted. Continuous reading also skips recognizable small-print publication metadata at the bottom of a page. Expressions such as `and/or`, `i.e.` and `e.g.` are expanded for natural listening.
 
 ---
 

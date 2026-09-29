@@ -1,6 +1,8 @@
 # Install Paper Voice
 
-[Product home](../README.md) · [简体中文](INSTALL.md)
+[Product home](../README.en.md) · [简体中文](INSTALL.md) / **English**
+
+> Download → Set up voices → Add the plugin. Open a PDF and make room to listen.
 
 Download the complete ZIP for your computer from [Releases](https://github.com/JunyanKang/paper-voice/releases/latest), then extract it.
 
@@ -9,7 +11,9 @@ Download the complete ZIP for your computer from [Releases](https://github.com/J
 | Windows · Intel / AMD x64 | `Paper Voice Setup.exe` |
 | Mac · Apple Silicon, macOS 14+ | `Paper Voice Installer.app` |
 
-## 1. Set up offline voices
+## 01 · Set up offline voices
+
+![The English installer after voice setup completes](assets/installer-macos-en.png)
 
 Open the installer and choose **English** or **简体中文** at the bottom of the window. The default follows your system language.
 
@@ -17,11 +21,19 @@ Click **Install voices**. When **✓ Voices ready** appears beside step 1, the v
 
 On Windows, keep the `Resources` folder beside the installer. On Mac, resources are included inside the app.
 
-## 2. Add the Zotero plugin
+## 02 · Add the Zotero plugin
+
+![Install Plugin From File in Zotero’s plugin manager](assets/plugin-install.png)
 
 In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select the included `paper-voice-version.xpi` file.
 
+## 03 · Start listening
+
+![The English Paper Voice panel in Zotero](assets/reader-overview-en.png)
+
 Open an English PDF and select some text. Click the floating book mascot to choose a voice or reading mode.
+
+Explore the [illustrated user guide](GUIDE.en.md) for reading modes, voice choices and translation.
 
 ## Updates
 

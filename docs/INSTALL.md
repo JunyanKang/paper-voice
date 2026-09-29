@@ -29,11 +29,17 @@ Windows 用户请保留同目录的 `Resources` 文件夹；不要只把安装�
 
 **工具 → 插件 → 右上角齿轮 → 从文件安装插件**
 
+![Zotero 插件管理器中的从文件安装入口](assets/plugin-install.png)
+
 英文界面为 **Tools → Plugins → Install Plugin From File**。选择下载包里的 `paper-voice-版本号.xpi`。
 
 ## 03 · 开始听读
 
 打开英文 PDF。右下角出现书页精灵后，划选文字即可开始；点击精灵，可调整声音和阅读模式。
+
+![第一次听读：打开精灵面板，选择阅读方式](assets/reader-overview.png)
+
+下一步：[了解四种模式、声音与随行译文](GUIDE.md)。
 
 ## 更新已有插件
 
