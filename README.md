@@ -20,7 +20,7 @@
 
 [下载 Mac 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/Paper-Voice-1.2.6-macOS-arm64.zip)
 
-已安装 Paper Voice？在插件设置中点击 **检查更新**，或[下载插件文件 `.xpi`](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/paper-voice-1.2.6.xpi)。**从旧版升级并使用中文、日语或法语时，请下载本版完整包，再运行一次安装声音。** 只听英文可以继续使用原有声音包。
+已安装 Paper Voice？在插件设置中点击 **检查更新**，或[下载插件文件 `.xpi`](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.6/paper-voice-1.2.6.xpi)。
 
 适用于 Zotero 10。[查看版本记录](CHANGELOG.md) · [查看兼容性说明](docs/COMPATIBILITY.md)
 
