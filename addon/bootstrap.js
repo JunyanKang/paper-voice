@@ -3,6 +3,7 @@ async function startup({ rootURI }, reason) {
   await Zotero.initializationPromise;
   PaperVoiceScope = { Zotero, ChromeUtils, Services, IOUtils, PathUtils, Components };
   Services.scriptloader.loadSubScript(rootURI + 'core.js', PaperVoiceScope);
+  Services.scriptloader.loadSubScript(rootURI + 'i18n.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'panel-style.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'panel.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'translation.js', PaperVoiceScope);

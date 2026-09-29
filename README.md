@@ -1,3 +1,5 @@
+<p align="right"><b>简体中文</b> · <a href="README.en.md">English</a></p>
+
 <p align="center">
   <img src="docs/assets/paper-voice-hero.png" alt="Paper Voice — Read deeply. Listen naturally. 为 Zotero 而生的论文听读工具" width="960">
 </p>
@@ -68,6 +70,8 @@
 ## 为专注而设计
 
 四种阅读模式，覆盖浏览、通读与精读。小巧的悬浮控制、柔和的句子高亮，以及紧贴原文的译文，让工具留在视线边缘，让内容处于中心。
+
+安装助手与插件界面均支持 **简体中文 / English**，可独立于译文语言切换。
 
 声音合成在本地完成；翻译由你主动开启。文献、PDF 与批注保持原样。
 

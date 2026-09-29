@@ -4,11 +4,11 @@ var PaperVoiceUpdater = {
  addonManager(){return ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs').AddonManager;},
  setUpdateState(state,message){this.updateState=state;this.updateMessage=message;if(!this.dead)this.updateUpdateControls();},
  updateUpdateControls(){
-  for(const {find,action} of this.livePanels()){
+  for(const {root,find,action} of this.livePanels()){
    find('autoUpdate').checked=!!this.updateAuto;
    find('updateStatus').textContent=this.updateMessage;
    action('checkUpdate').textContent=this.updateState==='available'?'安装更新':this.updateState==='checking'?'正在检查':this.updateState==='installing'?'正在更新':'检查更新';
-   action('checkUpdate').disabled=['checking','installing'].includes(this.updateState);
+   action('checkUpdate').disabled=['checking','installing'].includes(this.updateState);this.localize?.(root);
   }
  },
  async loadUpdateSettings(){

@@ -8,6 +8,10 @@ var PaperVoice = {
   lastSelections: new Map(), selectionContexts: new Map(), timers: new Map(), dead: false, translationTicket: 0,
   get(name, fallback) { return Zotero.Prefs.get(this.prefix + name, true) ?? fallback; },
   set(name, value) { Zotero.Prefs.set(this.prefix + name, name==='rate'?String(value):value, true); },
+  language() { const chosen=this.get('interfaceLanguage','auto');return chosen==='auto'?((Zotero.locale||Services.locale?.appLocaleAsBCP47||'en').startsWith('zh')?'zh':'en'):chosen; },
+  t(text) { return typeof PaperVoiceI18n==='undefined'?text:PaperVoiceI18n.translate(text,this.language()); },
+  localize(root) { if(typeof PaperVoiceI18n!=='undefined')PaperVoiceI18n.apply(root,this.language()); },
+  setLanguage(value) { this.set('interfaceLanguage',value);this.syncSettings();for(const [reader] of this.panels){for(const el of reader._iframeWindow.document.querySelectorAll('[data-paper-voice="toolbar"]')){el.textContent=this.t('听读');el.title=this.t('Paper Voice · 免费离线自然朗读');el.setAttribute('aria-label',this.t('Paper Voice 论文听读'));}for(const el of reader._iframeWindow.document.querySelectorAll('[data-paper-voice="selection"]'))el.textContent=this.t(this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection'?'▶ 从此句开始连读':'▶ 自然朗读');}for(const item of this.windows.values())item.setAttribute('label',this.t('Paper Voice · 论文听读')); },
   get host() { return Zotero.getMainWindow(); },
   async start() {
     this.dead = false;
@@ -34,11 +38,11 @@ var PaperVoice = {
     if (this.windows.has(win)) return;
     const menu = win.document.getElementById('menu_ToolsPopup');
     const item = win.document.createXULElement('menuitem');
-    item.id = 'paper-voice-tools'; item.setAttribute('label', 'Paper Voice · 论文听读');
+    item.id = 'paper-voice-tools'; item.setAttribute('label', this.t('Paper Voice · 论文听读'));
     item.addEventListener('command', () => {
       const reader = Zotero.Reader.getByTabID(win.Zotero_Tabs.selectedID);
       if (reader) this.showPanel(reader);
-      else win.alert('请先打开一篇 PDF，再点击阅读器右上角的「听读」。');
+      else win.alert(this.t('请先打开一篇 PDF，再点击阅读器右上角的「听读」。'));
     });
     menu?.append(item);
     this.windows.set(win, item);
@@ -91,7 +95,7 @@ var PaperVoice = {
     button.setAttribute('aria-label', 'Paper Voice 论文听读');
     button.style.cssText = 'width:auto;min-width:44px;padding:0 9px;font-size:13px;white-space:nowrap;';
     button.addEventListener('click', () => this.showPanel(reader, true));
-    return button;
+    this.localize(button);return button;
   },
   onToolbar({doc, reader, append}) { append(this.toolbarButton(doc, reader)); },
   markSelectionCitations(text,reader,pageIndex) {
@@ -113,7 +117,7 @@ var PaperVoice = {
     const fromSelection=()=>this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection';
     button.textContent = fromSelection()?'▶ 从此句开始连读':'▶ 自然朗读'; button.style.cssText = 'padding:5px 10px;cursor:pointer;';
     button.addEventListener('click', e => { e.stopPropagation(); this.clearSelectionTimers();if(fromSelection()){this.startDocument(reader,'selection');return;} if(this.get('mode','selection')==='document'){this.stop();this.set('mode','selection');this.syncSettings();}this.speak(text, reader); });
-    append(button);
+    this.localize(button);append(button);
     this.selectedPage=params.annotation?.position?.pageIndex ?? null;
     this.selectionContexts.set(reader,{text,pageIndex:this.selectedPage,anchorOffset:this.selectionAnchor?.(reader,params.annotation?.position)??null});
     if (!this.get('auto', true) || this.get('mode','selection')==='document') return;
@@ -163,6 +167,7 @@ var PaperVoice = {
   syncSettings() {
     const mode=this.get('mode','selection');
     for (const {root,find} of this.livePanels()) {
+      if(find('language'))find('language').value=this.get('interfaceLanguage','auto');
       find('voice').value=this.get('voice','af_heart');find('auto').checked=this.get('auto',true);
       find('rate').value=this.get('rate',1);find('rateLabel').textContent=`${Number(this.get('rate',1)).toFixed(2)}×`;
       find('documentRow').hidden=mode!=='document';find('documentStart').value=this.get('documentStart','begin');
@@ -200,7 +205,7 @@ var PaperVoice = {
       action('orb').title='Paper Voice · '+this.status;
       action('previous').disabled=mode!=='sentence' || !(this.sentenceIndex>0);
       action('next').disabled=mode!=='sentence' || (this.sentenceIndex||0)>=PaperVoiceCore.sentences(this.lastText).length-1;
-      action('stop').disabled=!active;
+      action('stop').disabled=!active;this.localize(root);
     }
     this.updateUpdateControls?.();
   },
@@ -279,7 +284,7 @@ var PaperVoice = {
     this.processStart = (async () => {
       const root = this.engineRoot();
       const command = Zotero.isWin ? PathUtils.join(root,'python','python.exe') : PathUtils.join(root,'python','bin','python3');
-      if (!(await IOUtils.exists(command))) throw new Error('尚未安装免费语音包。请运行安装包中的「安装免费语音包」脚本，然后点击试听。');
+      if (!(await IOUtils.exists(command))) throw new Error('尚未安装离线声音。请打开 Paper Voice 安装助手，完成声音安装后重试。');
       const { Subprocess } = ChromeUtils.importESModule('resource://gre/modules/Subprocess.sys.mjs');
       const proc = await Subprocess.call({ command, arguments: ['-E','-s','-B','-X','utf8',PathUtils.join(root, 'worker.py')],
         environment: this.workerEnvironment(), stderr: 'pipe' });

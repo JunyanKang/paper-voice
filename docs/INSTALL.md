@@ -1,6 +1,8 @@
 # 安装 Paper Voice
 
-[← 返回产品首页](../README.md)
+[← 产品首页](../README.md) · **简体中文** / [English](INSTALL.en.md)
+
+> 下载 → 安装声音 → 添加插件。完成后，打开 PDF 即可开始听读。
 
 安装助手支持 **简体中文 / English**，默认跟随系统语言，也可在窗口底部切换。
 
@@ -13,7 +15,7 @@
 | Windows · Intel / AMD 64 位 | `Paper-Voice-版本号-Windows-x64.zip` | `Paper Voice Setup.exe` |
 | Mac · M 系列芯片 | `Paper-Voice-版本号-macOS-arm64.zip` | `Paper Voice Installer.app` |
 
-### 1. 准备声音
+## 01 · 准备声音
 
 ![Mac 安装助手，Windows 使用相同的两步流程](assets/installer-macos.png)
 
@@ -21,7 +23,7 @@
 
 Windows 用户请保留同目录的 `Resources` 文件夹；不要只把安装助手单独拖出。Mac 的声音资源已收纳在安装助手内部。
 
-### 2. 添加 Zotero 插件
+## 02 · 添加 Zotero 插件
 
 打开 Zotero，依次选择：
 
@@ -29,7 +31,7 @@ Windows 用户请保留同目录的 `Resources` 文件夹；不要只把安装�
 
 英文界面为 **Tools → Plugins → Install Plugin From File**。选择下载包里的 `paper-voice-版本号.xpi`。
 
-### 3. 开始听读
+## 03 · 开始听读
 
 打开英文 PDF。右下角出现书页精灵后，划选文字即可开始；点击精灵，可调整声音和阅读模式。
 

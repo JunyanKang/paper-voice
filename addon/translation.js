@@ -224,7 +224,7 @@ var PaperVoiceTranslation = {
    c.layout();
   }
   if(c.unit&&c.unit!==unit)c.layout();
-  c.unit=unit;c.box.textContent=text;c.box.title=source||'跟读译文';c.box.dataset.provider=source;
+  c.unit=unit;c.box.textContent=source?text:(this.t?.(text)||text);c.box.title=this.t?.(source||'跟读译文')||(source||'跟读译文');c.box.dataset.provider=source;
   this.positionTranslation(c);
  },
  positionTranslation(c) {

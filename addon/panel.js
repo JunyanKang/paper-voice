@@ -18,6 +18,7 @@ var PaperVoiceUI = {
    </div>
    <div data-field="settingsPage" hidden>
     <div class="pv-settings-title">声音与翻译</div>
+    <div class="pv-setting-row"><label for="pv-language">界面语言</label><select id="pv-language" data-field="language" aria-label="Interface language / 界面语言"><option value="auto">System / 跟随系统</option><option value="zh">简体中文</option><option value="en">English</option></select></div>
     <div class="pv-setting-row"><label for="pv-voice">声音</label><select id="pv-voice" data-field="voice" aria-label="朗读声音"></select></div>
     <div class="pv-setting-row"><label for="pv-rate">语速</label><span data-field="rateLabel"></span></div><input id="pv-rate" class="pv-range" aria-label="朗读语速" data-field="rate" type="range" min="0.6" max="1.6" step="0.05"/>
     <label class="pv-setting-row" data-field="autoRow"><span>划选后自动朗读</span><input type="checkbox" data-field="auto"/></label>
@@ -30,10 +31,11 @@ var PaperVoiceUI = {
   </section><div class="pv-mini"><div class="pv-quick" data-field="quick" hidden><button class="pv-quick-mode" data-action="quickMode" aria-label="切换朗读模式">${icon("text-select")}<span data-field="quickModeLabel">划选</span></button><button data-action="quickPause" aria-label="暂停或继续">${icon('pause')}</button><button data-action="quickStop" aria-label="停止朗读">${icon('square')}</button><button data-action="quickTranslate" aria-label="切换跟读翻译" title="译文开关 · Option/Alt + T">${icon('languages')}</button></div><button class="pv-orb" data-action="orb" aria-label="展开 Paper Voice 朗读面板" title="Paper Voice · 点击展开听读"><img class="pv-mascot" src="${controller.assetURI}mascot.png" alt="Paper Voice 书页精灵"/><img class="pv-mascot pv-mascot-reading" src="${controller.assetURI}mascot-reading.png" alt=""/><span class="pv-waves" aria-hidden="true"><i></i><i></i><i></i></span><span class="pv-dot"></span></button></div>`;
   const find=name=>root.querySelector(`[data-field="${name}"]`),action=name=>root.querySelector(`[data-action="${name}"]`),panel=root.querySelector('.pv-panel');
   for(const v of PaperVoiceCore.voices){const o=doc.createElement('option');o.value=v.id;o.textContent=v.label;find('voice').append(o);}
-  const settings=(open)=>{find('home').hidden=open;find('settingsPage').hidden=!open;action('settings').querySelector('img').src=controller.assetURI+'icons/'+(open?'chevron-left':'settings')+'.svg';action('settings').setAttribute('aria-label',open?'返回播放控制':'声音与翻译设置');};
+  const settings=(open)=>{find('home').hidden=open;find('settingsPage').hidden=!open;action('settings').querySelector('img').src=controller.assetURI+'icons/'+(open?'chevron-left':'settings')+'.svg';action('settings').setAttribute('aria-label',open?'返回播放控制':'声音与翻译设置');controller.localize?.(root);};
   action('settings').onclick=()=>{settings(find('settingsPage').hidden);controller.loadUpdateSettings();fit();};action('voiceSettings').onclick=()=>{settings(true);fit();};
   const fit=()=>{const right=parseFloat(root.style.right)||18,bottom=parseFloat(root.style.bottom)||18;panel.style.transform=`translate(${Math.max(0,right+panel.offsetWidth+8-doc.defaultView.innerWidth)}px,${Math.max(0,bottom+root.offsetHeight+8-doc.defaultView.innerHeight)}px)`;};
   action('orb').onclick=()=>{controller.showPanel(reader,true);fit();};action('close').onclick=()=>{panel.hidden=true;};
+  find('language').onchange=e=>{controller.setLanguage(e.target.value);fit();};
   find('translation').onchange=e=>controller.toggleTranslation(e.target.checked);
   action('quickTranslate').onclick=()=>controller.toggleTranslation();
   find('target').onchange=e=>{controller.set('translationTarget',e.target.value);controller.translationTicket++;controller.hideTranslation();controller.syncSettings();if(controller.get('translation',false))controller.toggleTranslation(true);};
@@ -50,7 +52,7 @@ var PaperVoiceUI = {
   find('autoUpdate').onchange=e=>controller.setAutoUpdate(e.target.checked);
   action('primary').onclick=()=>controller.primary(reader);action('previous').onclick=()=>controller.stepSentence(-1,reader);action('next').onclick=()=>controller.stepSentence(1,reader);
   action('stop').onclick=action('quickStop').onclick=()=>controller.stop();action('quickPause').onclick=()=>controller.primary(reader);
-  for(const [name,path] of Object.entries({help:'#readme',feedback:'/issues',privacy:'/blob/main/PRIVACY.md'}))action(name).onclick=()=>Zotero.launchURL('https://github.com/JunyanKang/paper-voice'+path);
+  for(const [name,path] of Object.entries({help:'/blob/main/docs/GUIDE.md',feedback:'/issues',privacy:'/blob/main/PRIVACY.md'}))action(name).onclick=()=>Zotero.launchURL('https://github.com/JunyanKang/paper-voice'+(name==='help'&&controller.language?.()==='en'?'/blob/main/docs/GUIDE.en.md':path));
   action('sample').onclick=()=>controller.speak('The human retina transforms light into signals that allow us to see the world. Select a passage, relax, and listen.',reader,true);
   let drag=null,moved=false;
   action('orb').addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,right:parseFloat(root.style.right)||18,bottom:parseFloat(root.style.bottom)||18};moved=false;action('orb').setPointerCapture(e.pointerId);});
