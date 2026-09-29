@@ -1,0 +1,145 @@
+{
+  "checks": [
+    {
+      "name": "Native updater discovers public v1.2.3",
+      "ok": true
+    },
+    {
+      "name": "Downloaded production XPI is installed as v1.2.3",
+      "ok": true
+    },
+    {
+      "name": "Published plugin passes selected-start-integration.js",
+      "ok": true
+    },
+    {
+      "name": "Published plugin reports the installed version as current",
+      "ok": true,
+      "message": "已是最新版本 1.2.3"
+    }
+  ],
+  "suites": [
+    {
+      "file": "selected-start-integration.js",
+      "checks": [
+        {
+          "name": "Document start menu includes selected-position sentence start",
+          "ok": true
+        },
+        {
+          "name": "PDF selection geometry resolves letter",
+          "ok": true,
+          "context": {
+            "text": "e",
+            "pageIndex": 0,
+            "anchorOffset": 25
+          }
+        },
+        {
+          "name": "Selection popup offers sentence-start continuous reading",
+          "ok": true
+        },
+        {
+          "name": "Selecting letter skips the earlier duplicate and reads from the complete Beta sentence to the end",
+          "ok": true,
+          "played": [
+            {
+              "text": "Beta cells detect light.",
+              "page": 0
+            },
+            {
+              "text": "Final cells preserve signals.",
+              "page": 0
+            }
+          ],
+          "status": "朗读完成 · 可以继续划选下一段"
+        },
+        {
+          "name": "PDF selection geometry resolves word",
+          "ok": true,
+          "context": {
+            "text": "cells",
+            "pageIndex": 0,
+            "anchorOffset": 24
+          }
+        },
+        {
+          "name": "Selecting word skips the earlier duplicate and reads from the complete Beta sentence to the end",
+          "ok": true,
+          "played": [
+            {
+              "text": "Beta cells detect light.",
+              "page": 0
+            },
+            {
+              "text": "Final cells preserve signals.",
+              "page": 0
+            }
+          ],
+          "status": "朗读完成 · 可以继续划选下一段"
+        },
+        {
+          "name": "PDF selection geometry resolves sentence",
+          "ok": true,
+          "context": {
+            "text": "Beta cells detect light.",
+            "pageIndex": 0,
+            "anchorOffset": 20
+          }
+        },
+        {
+          "name": "Selecting sentence skips the earlier duplicate and reads from the complete Beta sentence to the end",
+          "ok": true,
+          "played": [
+            {
+              "text": "Beta cells detect light.",
+              "page": 0
+            },
+            {
+              "text": "Final cells preserve signals.",
+              "page": 0
+            }
+          ],
+          "status": "朗读完成 · 可以继续划选下一段"
+        },
+        {
+          "name": "Selecting the right-column continuation rewinds to the sentence beginning in the left column",
+          "ok": true,
+          "first": [
+            {
+              "text": "The retinal cells collect light and guide it toward the photoreceptors",
+              "page": 0
+            },
+            {
+              "text": "while preserving the spatial pattern across the neural tissue.",
+              "page": 0
+            }
+          ]
+        },
+        {
+          "name": "Selecting on page two starts at the sentence beginning on page one and continues across pages",
+          "ok": true,
+          "played": [
+            {
+              "text": "The retinal cells collect light and guide it toward the photoreceptors",
+              "page": 0
+            },
+            {
+              "text": "while preserving the spatial pattern across the neural tissue.",
+              "page": 1
+            }
+          ]
+        },
+        {
+          "name": "A different PDF without a selection prompts for selection instead of borrowing another document position",
+          "ok": true
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "pluginVersion": "1.2.3",
+  "sourceCommit": "128b45fae60823d4667c0f98cf337c25159c8c29",
+  "isolatedProfile": true
+}
