@@ -39,16 +39,24 @@ var PaperVoiceCore = (() => {
       const ranked=languageDetector.detectAll(sample),a=ranked[0],b=ranked[1];
       return a&&a.accuracy>=.35&&a.accuracy-(b?.accuracy||0)>=.15?a.lang:null;
     };
-    // Short words and abbreviations inherit the surrounding PDF language.
-    const local=(text.match(/\p{L}/gu)||[]).length>=35?identify(text):null;
-    if(local)return local;
+    // Biomedical names and abbreviations are weak language signals. Function words
+    // and surrounding prose stabilize the statistical detector on scientific PDFs.
+    const proseLanguage=sample=>{
+      const words=sample.toLowerCase().replace(/\bet\s+al\.?/g,'').match(/[\p{L}]+/gu)||[];
+      const english=new Set('the and of to is are was were with from by for which that these this as be been into between while may can also not through our their its it we than but when whether have has without during after before'.split(' '));
+      const french=new Set('le la les des du de un une et est sont dans pour par qui que ce ces cette cet se sur aux avec sans au en entre leur leurs nous notre nos ses son elle elles ils il peut peuvent été être dont comme mais lorsque plus ne pas'.split(' '));
+      const en=words.filter(w=>english.has(w)).length,fr=words.filter(w=>french.has(w)).length;
+      return en>=2&&en>fr*1.5?'en':fr>=2&&fr>en*1.5&&identify(sample)==='fr'?'fr':null;
+    };
+    const local=proseLanguage(text);if(local)return local;
     if(surrounding){
       if(/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(surrounding))return 'ja';
       if((surrounding.match(/\p{Script=Han}/gu)||[]).length>surrounding.length*.2)return 'zh';
-      const broader=identify(surrounding);if(broader)return broader;
+      const broader=proseLanguage(surrounding)||identify(surrounding);if(broader)return broader;
     }
     return identify(text);
   }
+
   function cleanText(value) {
     return String(value || '').normalize('NFC')
       .replace(/[ﬀﬁﬂﬃﬄ]/g, c => ({'ﬀ':'ff','ﬁ':'fi','ﬂ':'fl','ﬃ':'ffi','ﬄ':'ffl'}[c]))
@@ -309,7 +317,7 @@ var PaperVoiceCore = (() => {
     for(const item of items){
       const length=anchorText(item.str).length;if(!length){if(item.hasEOL)ended=true;continue;}
       const x=item.transform?.[4],y=item.transform?.[5],height=Math.abs(item.height||item.transform?.[3]||0);
-      if(!line||ended||Math.abs(y-line.y)>Math.max(height,line.height)*.55||x<line.x-height){line={x,y,height,right:x+(item.width||0),start:offset,text:''};lines.push(line);}
+      if(!line||ended||Math.abs(y-line.y)>Math.max(height,line.height)*.55||x<line.x-height){line={x,y,height,fontName:item.fontName,right:x+(item.width||0),start:offset,text:''};lines.push(line);}
       line.right=Math.max(line.right,x+(item.width||0));line.height=Math.max(line.height,height);line.text+=item.str;offset+=length;ended=!!item.hasEOL;
     }
     const gaps=lines.slice(1).map((line,i)=>({line,previous:lines[i]}))
@@ -324,7 +332,7 @@ var PaperVoiceCore = (() => {
       if(!previous){startsParagraph=indent||h>(lines[1]?.height||h)*1.18;continue;}
       const sameColumn=Math.abs(current.x-previous.x)<h*4,gap=previous.y-current.y;
       const shortEnding=sameColumn&&previous.right-left<width*.87&&/[.!?。！？][”’"')」』]*$/.test(previous.text.trim());
-      const fontChange=Math.max(h,previous.height)>Math.min(h,previous.height)*1.18;
+      const fontChange=Math.max(h,previous.height)>Math.min(h,previous.height)*1.18||(current.fontName&&previous.fontName&&current.fontName!==previous.fontName&&previous.text.length<100&&gap>h*1.5);
       if(fontChange)sentenceStarts.push(current.start);
       if((sameColumn&&(gap>h*2.5||gap>h*leading*1.4&&gap>h*1.5))||(indent&&gap>h*.6)||(shortEnding&&gap>h*.6)||fontChange)starts.push(current.start);
     }
