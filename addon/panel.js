@@ -37,8 +37,9 @@ var PaperVoiceUI = {
   find('language').onchange=e=>{controller.setLanguage(e.target.value);fit();};
   find('speechLanguage').onchange=e=>{controller.setSpeechLanguage(e.target.value);fit();};
   find('translation').onchange=e=>controller.toggleTranslation(e.target.checked);
-  action('quickTranslate').onclick=()=>controller.toggleTranslation();
-  find('target').onchange=e=>{controller.set('translationTarget',e.target.value);controller.translationTicket++;controller.hideTranslation();controller.syncSettings();if(controller.get('translation',false))controller.toggleTranslation(true);};
+  action('quickTranslate').onclick=e=>controller.quickTranslationClick(e);
+  action('quickTranslate').ondblclick=e=>{e.preventDefault();controller.quickTranslationDoubleClick();};
+  find('target').onchange=e=>controller.setTranslationTarget(e.target.value);
   find('provider').onchange=e=>{controller.set('translationProvider',e.target.value);controller.translationTicket++;controller.hideTranslation();controller.syncSettings();if(controller.get('translation',false))controller.toggleTranslation(true);};
   find('voice').onchange=e=>{controller.set('voice',e.target.value);controller.set('voiceFor_'+controller.speechLanguage(),e.target.value);controller.syncSettings();controller.setStatus('声音已保存，下次开始朗读生效');};
   find('rate').oninput=e=>{controller.set('rate',PaperVoiceCore.rate(e.target.value));controller.syncSettings();};

@@ -1,6 +1,7 @@
 /* Interface language is independent of the language chosen for translations. */
 var PaperVoiceI18n = (() => {
  const pairs = {
+  '单击切换译文语言 · 双击关闭译文':'Click to switch language · Double-click to hide translation',
   '自动识别 PDF 语言':'Detect PDF language',
   '无法确定受支持的朗读语言，请在设置中手动选择英语、中文、日语或法语。':'Language could not be matched to an available voice. Select English, Chinese, Japanese or French in Settings.',
   '朗读语言':'Reading language','中文（普通话）':'Chinese (Mandarin)',

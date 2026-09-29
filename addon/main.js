@@ -210,6 +210,25 @@ var PaperVoice = {
     }
     this.updatePanels();
   },
+  cancelTranslationClick() {
+    if(this.translationClickTimer!==undefined){this.host.clearTimeout(this.translationClickTimer);this.translationClickTimer=undefined;}
+  },
+  quickTranslationClick(event) {
+    this.cancelTranslationClick();
+    if(event?.detail>1)return;
+    this.translationClickTimer=this.host.setTimeout(()=>{this.translationClickTimer=undefined;this.cycleTranslationLanguage();},500);
+  },
+  quickTranslationDoubleClick() { this.cancelTranslationClick();this.toggleTranslation(false); },
+  setTranslationTarget(target) {
+    this.cancelTranslationClick();this.set('translationTarget',target);this.translationTicket++;this.hideTranslation();this.syncSettings();
+    if(this.get('translation',false))this.toggleTranslation(true);
+  },
+  cycleTranslationLanguage() {
+    const languages=['zh-Hans','zh-Hant','ja','ko','fr','de','es','ru'].filter(x=>x!=='zh-Hant'||this.get('translationProvider','tencenttransmart')!=='tencenttransmart');
+    const index=languages.indexOf(this.get('translationTarget','zh-Hans'));
+    this.setTranslationTarget(languages[(index+1)%languages.length]);
+    if(!this.get('translation',false))this.toggleTranslation(true);
+  },
   translationLanguage() {
     const languages={'zh-Hans':['简','简体中文'],'zh-Hant':['繁','繁體中文'],ja:['日','日本語'],ko:['한','한국어'],fr:['FR','Français'],de:['DE','Deutsch'],es:['ES','Español'],ru:['RU','Русский']};
     const code=this.get('translationTarget','zh-Hans'),[badge,label]=languages[code]||languages['zh-Hans'];return {code,badge,label};
@@ -224,7 +243,7 @@ var PaperVoice = {
       action('quickTranslate').setAttribute('aria-pressed',String(this.get('translation',false)));
       const language=this.translationLanguage();
       find('quickTranslateLabel').textContent=language.badge;
-      action('quickTranslate').title=(this.get('translation',false)?'关闭':'开启')+'跟读翻译 · '+language.label+' · Option/Alt + T';
+      action('quickTranslate').title='单击切换译文语言 · 双击关闭译文 · '+language.label+' · Option/Alt + T';
       action('quickTranslate').setAttribute('aria-label',action('quickTranslate').title);
       find('quick').hidden=false;
       action('quickStop').hidden=!active;action('quickTranslate').hidden=!active;
@@ -637,6 +656,7 @@ var PaperVoice = {
     this.audioDone?.(); this.audioDone=null;
   },
   stop(show = true) {
+    this.cancelTranslationClick();
     this.session=null;this.generation++; this.translationTicket++; this.currentUnit=null;this.pendingProgress=null;this.playbackMode=null; this.clearSelectionTimers(); this.releaseAudio();
     this.hideTranslation?.();this.clearSentenceHighlight?.();
     this.state = 'idle';

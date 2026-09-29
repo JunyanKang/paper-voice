@@ -99,7 +99,7 @@ Language detection runs locally. Short selections use the surrounding PDF text; 
 
 **Show translation** displays a translation near the passage being read. It does not read the translation aloud. Tencent is the default; Microsoft and Google are also available. Google requires access to its service. Use Microsoft or Google for Traditional Chinese.
 
-The floating translation button shows the target language: **简 / 繁 / 日 / 한 / FR / DE / ES / RU**. It updates as soon as you change the target; the button background indicates whether translation is on.
+The floating translation button shows the target language: **简 / 繁 / 日 / 한 / FR / DE / ES / RU**. **Click** to cycle through the languages supported by the selected service; **double-click** to hide translation. Clicking while translation is off selects the next language and shows it again. The background indicates whether translation is on. Option / Alt + T still toggles it directly.
 
 Translation languages include Simplified Chinese, Traditional Chinese, Japanese, Korean, French, German, Spanish and Russian. Set the interface independently to **English, 简体中文 or System**.
 
