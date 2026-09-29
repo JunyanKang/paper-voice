@@ -23,6 +23,8 @@ The Mac installer uses a local signature rather than Apple Developer ID notariza
 
 Highlights and translations are temporary overlays. They do not rewrite PDFs or create permanent annotations.
 
+Publication footers are skipped when recognizable metadata forms a trailing small-print block near the bottom of the page. Unusual PDFs that interleave footer and body text may still need selection-based reading.
+
 ## Translation and connectivity
 
 Translation is off by default. When enabled, the current sentence and a prefetched next sentence are sent to the chosen service. Tencent is the default; Microsoft and Google are alternatives. Use Microsoft or Google for Traditional Chinese.
