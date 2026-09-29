@@ -1,0 +1,12 @@
+misaki==0.9.4
+cn2an==0.5.23
+jieba==0.42.1
+ordered-set==4.1.0
+pypinyin==0.55.0
+pypinyin-dict==0.9.0
+fugashi==1.5.2
+jaconv==0.4.0
+mojimoji==0.0.13
+unidic-lite==1.0.8
+addict==2.4.0
+proces==0.1.7

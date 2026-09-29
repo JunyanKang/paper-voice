@@ -45,7 +45,7 @@ final class InstallerDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate
         window.title = tr("Paper Voice 安装助手", "Paper Voice Installer")
         titleLabel.stringValue = tr("让论文，读给你听。", "Listen. Understand. Explore.")
         titleLabel.font = .systemFont(ofSize: language == "zh" ? 29 : 23, weight: .semibold)
-        descriptionLabel.stringValue = tr("自然声音，本地运行。\n为你的 Zotero 准备好六种英文声音。", "Natural voices. Right on your computer.\nSix English voices for your Zotero library.")
+        descriptionLabel.stringValue = tr("自然声音，本地运行。\n英语、中文、日语、法语，随时听读。", "Natural voices. Right on your computer.\nEnglish, Chinese, Japanese and French.")
         stepOne.stringValue = tr("01  安装离线声音", "01  Set up offline voices")
         stepTwo.stringValue = tr("02  在 Zotero 中添加同一下载包里的 .xpi 插件", "02  Add the included .xpi plugin to Zotero")
         readyLabel.stringValue = tr("✓ 声音已就绪", "✓ Voices ready")
@@ -80,7 +80,7 @@ final class InstallerDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate
         let teal = NSColor(calibratedRed: 0.07, green: 0.25, blue: 0.28, alpha: 1)
         _ = text("PAPER VOICE  /  FOR ZOTERO", 11, .semibold, NSRect(x: 40, y: 373, width: 380, height: 18), color: teal)
         titleLabel = text("让论文，读给你听。", 29, .semibold, NSRect(x: 40, y: 302, width: 390, height: 48), color: teal)
-        descriptionLabel = text("自然声音，本地运行。\n为你的 Zotero 准备好六种英文声音。", 15, .regular, NSRect(x: 40, y: 235, width: 380, height: 56), color: .secondaryLabelColor)
+        descriptionLabel = text("自然声音，本地运行。\n英语、中文、日语、法语，随时听读。", 15, .regular, NSRect(x: 40, y: 235, width: 380, height: 56), color: .secondaryLabelColor)
         stepOne = text("01  安装离线声音", 16, .semibold, NSRect(x: 40, y: 188, width: 510, height: 25))
         readyLabel = text("", 12, .medium, NSRect(x: 295, y: 190, width: 265, height: 22), color: NSColor(calibratedRed: 0.18, green: 0.43, blue: 0.32, alpha: 1))
         readyLabel.isHidden = true

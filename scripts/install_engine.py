@@ -24,7 +24,7 @@ stamp=datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f')
 staging=destination.with_name(destination.name+'.install-'+stamp)
 staging.parent.mkdir(parents=True,exist_ok=True)
 shutil.copytree(source,staging,symlinks=True)
-probe=subprocess.run([str(staging/relative_python),'-E','-s','-B','-X','utf8','-c','import kokoro_onnx, onnxruntime, soundfile, espeakng_loader'],capture_output=True,text=True,encoding='utf-8')
+probe=subprocess.run([str(staging/relative_python),'-E','-s','-B','-X','utf8','-c','import kokoro_onnx, onnxruntime, soundfile, espeakng_loader; from misaki.zh import ZHG2P; from misaki.cutlet import Cutlet; assert ZHG2P()("你好")[0]; assert Cutlet()("こんにちは")[0]'],capture_output=True,text=True,encoding='utf-8')
 if probe.returncode:
     hint=tr('请先运行 Resources/VC_redist.x64.exe 安装微软运行库，再重试。','Run Resources/VC_redist.x64.exe to install the Microsoft runtime, then try again.') if windows else ''
     shutil.rmtree(staging)

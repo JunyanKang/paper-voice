@@ -18,6 +18,8 @@ with zipfile.ZipFile(python_archive) as z:z.extractall(PYTHON)
 (PYTHON/'python312._pth').write_text('python312.zip\n.\nLib/site-packages\nimport site\n', encoding="utf-8")
 requirements=['kokoro-onnx==0.6.1','onnxruntime==1.22.1','numpy==2.5.3','soundfile==0.13.1','espeakng-loader==0.2.4','phonemizer==3.4.0']
 subprocess.run([sys.executable,'-m','pip','install','--disable-pip-version-check','--only-binary=:all:','--target',str(PYTHON/'Lib/site-packages'),*requirements],check=True)
+# Native extensions must have wheels. Dictionary-only packages can build pure Python wheels.
+subprocess.run([sys.executable,'-m','pip','install','--disable-pip-version-check','--only-binary=fugashi,mojimoji,regex','--target',str(PYTHON/'Lib/site-packages'),'-r',str(ROOT/'engine/requirements-multilingual.txt')],check=True)
 # Reuse the already published, hashed model and license archive; no Mac executable is copied.
 reference,_=download('https://github.com/JunyanKang/paper-voice/releases/download/v1.0.0/Paper-Voice-1.0.0-macOS-arm64.zip','reference-1.0.0.zip','f89222bf572450b2985585884553f10482b85a931a246d4e5ba6d3ce677a7b17')
 with zipfile.ZipFile(reference) as z:

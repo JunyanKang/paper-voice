@@ -6,13 +6,16 @@ import contextlib
 import io
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import sys
 import tempfile
 import time
 
-VOICES = {'af_heart', 'af_bella', 'am_michael', 'am_fenrir', 'bf_emma', 'bm_george'}
+VOICES = {'af_heart', 'af_bella', 'am_michael', 'am_fenrir', 'bf_emma', 'bm_george',
+          'zf_xiaobei', 'zf_xiaoxiao', 'zm_yunxi', 'zm_yunjian',
+          'jf_alpha', 'jf_tebukuro', 'jm_kumo', 'ff_siwis'}
 
 def reply(value):
     print(json.dumps(value, ensure_ascii=True), flush=True)
@@ -48,7 +51,8 @@ def main():
         os.environ['ESPEAK_DATA_PATH'] = str(data)
         with contextlib.redirect_stdout(sys.stderr):
             engine = Kokoro(str(root / 'models/kokoro-v1.0.onnx'), str(root / 'models/voices-v1.0.bin'), espeak_config=config)
-        reply({'ready': True, 'version': '1.0.0', 'voices': sorted(VOICES)})
+        frontends = {}
+        reply({'ready': True, 'version': '1.1.0', 'languages': ['en', 'zh', 'ja', 'fr'], 'voices': sorted(VOICES)})
         for line in sys.stdin:
             request = {}
             try:
@@ -58,8 +62,28 @@ def main():
                 text, voice, rate = validate(request)
                 start = time.monotonic()
                 with contextlib.redirect_stdout(sys.stderr):
-                    samples, sr = engine.create(text, voice=voice, speed=rate,
-                                                lang='en-gb' if voice.startswith('b') else 'en-us')
+                    prefix = voice[0]
+                    if prefix in ('z', 'j'):
+                        if prefix not in frontends:
+                            if prefix == 'z':
+                                from misaki.zh import ZHG2P
+                                frontends[prefix] = ZHG2P()
+                            else:
+                                from misaki.cutlet import Cutlet
+                                frontends[prefix] = Cutlet()
+                        if prefix == 'z':
+                            # Legacy Chinese G2P leaves Latin text untouched; phonemize embedded English explicitly.
+                            parts = re.split(r"([A-Za-z]+(?:[ '-][A-Za-z]+)*)", text)
+                            phonemes = ' '.join(engine.tokenizer.phonemize(part, 'en-us') if re.match('[A-Za-z]', part)
+                                                else frontends[prefix](part)[0] for part in parts if part.strip())
+                        else:
+                            phonemes, _ = frontends[prefix](text)
+                        if not phonemes.strip():
+                            raise ValueError('No pronounceable text')
+                        samples, sr = engine.create(phonemes, voice=voice, speed=rate, is_phonemes=True)
+                    else:
+                        lang = 'fr-fr' if prefix == 'f' else 'en-gb' if prefix == 'b' else 'en-us'
+                        samples, sr = engine.create(text, voice=voice, speed=rate, lang=lang)
                 buffer = io.BytesIO()
                 sf.write(buffer, samples, sr, format='WAV', subtype='PCM_16')
                 reply({'id': request.get('id'), 'ok': True, 'audio': base64.b64encode(buffer.getvalue()).decode(),

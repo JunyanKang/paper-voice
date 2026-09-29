@@ -21,7 +21,7 @@ class Installer : Form {
         Text=Tr("Paper Voice 安装助手","Paper Voice Installer");
         heading.Text=Tr("让论文，读给你听。","Listen. Understand. Explore.");
         heading.Font=new Font("Microsoft YaHei UI",english?18:23,FontStyle.Bold);
-        description.Text=Tr("自然声音，本地运行。\n为你的 Zotero 准备好六种英文声音。","Natural voices. Right on your computer.\nSix English voices for your Zotero library.");
+        description.Text=Tr("自然声音，本地运行。\n英语、中文、日语、法语，随时听读。","Natural voices. Right on your computer.\nEnglish, Chinese, Japanese and French.");
         stepOne.Text=Tr("01  安装离线声音","01  Set up offline voices");
         stepTwo.Text=Tr("02  在 Zotero 中添加下载包里的 .xpi 插件","02  Add the included .xpi plugin to Zotero");
         readyLabel.Text=Tr("✓ 声音已就绪","✓ Voices ready");readyLabel.Visible=complete;
@@ -61,7 +61,7 @@ class Installer : Form {
         Icon=System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
         TextAt("PAPER VOICE  /  FOR ZOTERO",9,FontStyle.Bold,40,38,380,24,teal);
         heading=TextAt("让论文，读给你听。",23,FontStyle.Bold,36,92,395,50,teal);
-        description=TextAt("自然声音，本地运行。\n为你的 Zotero 准备好六种英文声音。",11,FontStyle.Regular,40,158,370,58,Color.DimGray);
+        description=TextAt("自然声音，本地运行。\n英语、中文、日语、法语，随时听读。",11,FontStyle.Regular,40,158,370,58,Color.DimGray);
         stepOne=TextAt("01  安装离线声音",12,FontStyle.Bold,40,240,255,28,teal);
         readyLabel=TextAt("",9,FontStyle.Regular,300,244,260,24,Color.FromArgb(46,110,82));readyLabel.Visible=false;
         stepTwo=TextAt("02  在 Zotero 中添加下载包里的 .xpi 插件",10,FontStyle.Regular,40,275,520,25,Color.DimGray);
