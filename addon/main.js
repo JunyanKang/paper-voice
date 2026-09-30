@@ -15,12 +15,15 @@ var PaperVoice = {
   get host() { return Zotero.getMainWindow(); },
   async start() {
     this.dead = false;
+    this.loadReadingSession();
+    this.quitObserver=()=>{this.quitting=true;this.saveReadingSession();Services.prefs.savePrefFile(null);};
+    Services.obs.addObserver(this.quitObserver,'quit-application-granted');
     this.selectionHandler = e => this.onSelection(e);
     this.toolbarHandler = e => this.onToolbar(e);
     Zotero.Reader.registerEventListener('renderTextSelectionPopup', this.selectionHandler, this.id);
     Zotero.Reader.registerEventListener('renderToolbar', this.toolbarHandler, this.id);
     this.tabObserver = Zotero.Notifier.registerObserver({notify: (event, type) => {
-      if(type==='tab' && event==='select' && this.playbackMode!=='document')this.stop();
+      if(type==='tab' && event==='select' && this.currentReader && !this.restoredSession && this.playbackMode!=='document')this.stop();
       // Reader disposal is handled by detachReader; unrelated tabs cannot stop a book.
     }}, ['tab'], 'paper-voice-tabs');
     for (const win of Zotero.getMainWindows()) this.addWindow(win);
@@ -52,6 +55,7 @@ var PaperVoice = {
     let doc;try{doc=reader._iframeWindow?.document;}catch(_){return;}
     if (!doc?.body) return;
     this.ensurePanel(reader);
+    this.restoreReadingSession(reader);
     let hooks = this.readerHooks.get(reader);
     if (!hooks) { hooks = []; this.readerHooks.set(reader, hooks); }
     const hookDocument = d => {
@@ -176,11 +180,15 @@ var PaperVoice = {
     if(!PaperVoiceCore.modes.some(x=>x.id===mode)||mode===this.get('mode','selection'))return;
     this.set('mode',mode);
     if(['playing','paused','loading'].includes(this.state)){
+      if(this.restoredSession){
+        this.restoredSession.mode=mode;this.restoredSession.rescope=true;this.restoredSession.loops=mode==='document'?1:Number(this.get(mode==='selection'?'selectionRepeat':'repeat',1));
+        this.playbackMode=mode;this.saveReadingSession();this.syncSettings();return;
+      }
       this.session ||= {units:[]};
       this.session.pendingMode=mode;
       this.session.context ||= this.documentUnits(this.currentReader).catch(()=>[]);
       this.playbackMode=mode;
-      this.syncSettings();
+      this.saveReadingSession();this.syncSettings();
     }else{this.sentenceIndex=0;this.syncSettings();this.setStatus(this.modeHint(),'idle');}
   },
   cycleMode() {
@@ -521,7 +529,7 @@ var PaperVoice = {
     voiceChoices[this.speechLanguage()]=selectedVoice;
     let contextText='',documentLanguage=languageMode;
     const rate=PaperVoiceCore.rate(this.get('rate',1));
-    const session=this.session={units,pendingMode:this.session?.pendingMode||null,context:this.session?.context};
+    const session=this.session={units,sample,remainingLoops:loops,pendingMode:this.session?.pendingMode||null,context:this.session?.context};
     const cache=new Map();let lastPage=null;
     const prepare=unit=>{
       const sourceSpeech=unit.spokenText??PaperVoiceCore.speechText(unit.text);
@@ -579,6 +587,7 @@ var PaperVoice = {
           }
           const prefix=mode==='document'?`第 ${unit.pageIndex+1} 页 · `:mode==='sentence'?`第 ${(this.sentenceIndex||0)+1}/${PaperVoiceCore.sentences(this.lastText).length} 句 · `:'';
           const suffix=['sentence','paragraph'].includes(mode)?` · 第 ${cycle+1}${loops?'/'+loops:''} 遍`:'';
+          session.remainingLoops=loops===0?0:loops-cycle;
           this.pendingProgress=sample?null:{reader,unit,generation,mode};
           await this.playAudio(result.audio,reader,generation,`${prefix}正在朗读 ${i+1}/${units.length}${suffix}`);
           if(generation!==this.generation || this.dead)return;
@@ -593,7 +602,7 @@ var PaperVoice = {
           }
         }
       }
-      if(generation===this.generation){this.session=null;this.releaseAudio();this.clearSentenceHighlight?.();this.setStatus(mode==='document'&&this.documentEmptyPages?`朗读完成 · ${this.documentEmptyPages} 页无文字，已跳过`:'朗读完成 · 可以继续划选下一段','idle');}
+      if(generation===this.generation){if(!sample)this.clearReadingSession();this.session=null;this.releaseAudio();this.clearSentenceHighlight?.();this.setStatus(mode==='document'&&this.documentEmptyPages?`朗读完成 · ${this.documentEmptyPages} 页无文字，已跳过`:'朗读完成 · 可以继续划选下一段','idle');}
     }catch(error){if(generation===this.generation && !this.dead){this.releaseAudio();this.clearSentenceHighlight?.();this.setStatus(error.message || String(error),'error');Zotero.logError(error);}}
   },
   async locateSelectionUnits(reader,units,selection,generation) {
@@ -646,6 +655,84 @@ var PaperVoice = {
     const {unit,reader,mode}=progress;
     if(!Number.isInteger(unit.pageIndex))return;
     this.set('progress.'+reader.itemID,JSON.stringify({version:2,pageIndex:unit.pageIndex,unitInPage:unit.unitInPage,anchorOffset:unit.anchorOffset,text:unit.text,mode,updatedAt:Date.now()}));
+    this.saveReadingSession();
+  },
+  // Keep the checkpoint outside the extension package so upgrades can replace all
+  // code without losing the listening context. Never persist DOM, audio or readers.
+  loadReadingSession() {
+    this.pendingRestoration=null;
+    try {
+      const raw=this.get('readingSession',null);
+      if(raw!==null){
+        const saved=JSON.parse(raw);
+        if(saved?.version===1&&saved.itemID&&saved.anchor?.text&&PaperVoiceCore.modes.some(m=>m.id===saved.mode))this.pendingRestoration=saved;
+        return;
+      }
+      // One-time recovery from versions which only recorded the last heard unit.
+      const previous=Zotero.Reader._readers.map(reader=>{
+        try {return {...JSON.parse(this.get('progress.'+reader.itemID,'null')),itemID:reader.itemID};}catch(_){return null;}
+      }).filter(x=>x?.text&&Number.isInteger(x.pageIndex)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0))[0];
+      if(previous){
+        const mode=PaperVoiceCore.modes.some(m=>m.id===previous.mode)?previous.mode:'document';
+        this.pendingRestoration={version:1,itemID:previous.itemID,mode,anchor:previous,legacy:true,loops:mode==='document'?1:Number(this.get(mode==='selection'?'selectionRepeat':'repeat',1))};
+      }
+      this.set('readingSession',JSON.stringify(this.pendingRestoration));
+    }catch(_){this.set('readingSession','null');}
+  },
+  clearReadingSession() {
+    this.pendingRestoration=null;this.restoredSession=null;this.set('readingSession','null');
+  },
+  saveReadingSession() {
+    if(this.restoredSession){this.set('readingSession',JSON.stringify(this.restoredSession));return;}
+    const session=this.session,reader=this.currentReader;
+    if(!reader?.itemID||!this.currentUnit||!session||session.sample||!['playing','paused','loading'].includes(this.state))return;
+    const fields=['text','spokenText','speechSource','sentenceText','translationText','sentenceId','paragraphId','pageIndex','anchorOffset','sentenceOffset','highlightOffset','highlightText','unitInPage'];
+    const copy=unit=>Object.fromEntries(fields.filter(key=>['string','number'].includes(typeof unit[key])).map(key=>[key,unit[key]]));
+    const mode=session.pendingMode||this.playbackMode||this.get('mode','selection');
+    const saved={version:1,itemID:reader.itemID,mode,anchor:copy(this.currentUnit),loops:session.pendingMode?1:session.remainingLoops,updatedAt:Date.now()};
+    if(mode!=='document')saved.units=session.units.map(copy);
+    if(session.pendingMode)saved.rescope=true;
+    this.set('readingSession',JSON.stringify(saved));
+  },
+  restoreReadingSession(reader) {
+    const saved=this.pendingRestoration;
+    if(!saved||saved.itemID!==reader.itemID||this.dead)return;
+    this.pendingRestoration=null;this.restoredSession=saved;
+    this.currentReader=reader;this.lastReader=reader;this.currentUnit=saved.anchor;
+    this.currentSentence=saved.anchor.text;this.lastText=(saved.units||[saved.anchor]).map(u=>u.text).join(' ');
+    this.playbackMode=saved.mode;this.set('mode',saved.mode);
+    this.selectionContexts.set(reader,{text:this.lastText,pageIndex:saved.anchor.pageIndex,anchorOffset:saved.anchor.anchorOffset});
+    this.setStatus('已恢复上次朗读，点击继续','paused');this.syncSettings();
+  },
+  async resumeReadingSession() {
+    const saved=this.restoredSession,reader=this.currentReader,generation=this.generation;
+    if(!saved||!reader)return;
+    this.setStatus('正在恢复上次朗读…','loading');
+    if(this.restoringGeneration===generation)return;
+    this.restoringGeneration=generation;
+    try {
+      let units=saved.units,mode=saved.mode;
+      if(!units?.length||mode==='document'||saved.rescope){
+        const all=await this.documentUnits(reader);
+        if(generation!==this.generation||this.dead)return;
+        const at=PaperVoiceCore.unitIndex(all,saved.anchor);
+        if(at<0)throw new Error('未能恢复朗读位置，请等待 PDF 加载完成后重试');
+        const current=all[at];mode=saved.mode;
+        units=mode==='document'?all:PaperVoiceCore.scopeUnits(all,current,mode==='selection'?'sentence':mode);
+      }
+      if(generation!==this.generation||this.dead)return;
+      let index=PaperVoiceCore.unitIndex(units,saved.anchor);
+      if(index<0)throw new Error('未能恢复朗读位置，请等待 PDF 加载完成后重试');
+      const sentenceId=units[index].sentenceId;
+      const sentenceText=units[index].sentenceText;
+      while(index>0&&(sentenceId!==undefined?units[index-1].sentenceId===sentenceId:sentenceText&&units[index-1].sentenceText===sentenceText))index--;
+      this.restoredSession=null;this.playbackMode=mode;
+      this.lastText=units.map(u=>u.text).join(' ');this.lastReader=reader;
+      this.session=null;
+      return this.runUnits(units,reader,generation,{mode,loops:mode==='document'?1:(Number.isInteger(saved.loops)&&saved.loops>=0?saved.loops:1),startIndex:index});
+    }catch(error){
+      if(generation===this.generation&&!this.dead)this.setStatus(error.message,'paused');
+    }finally{if(this.restoringGeneration===generation)this.restoringGeneration=null;}
   },
   playAudio(encoded, reader, generation, message) {
     const win = this.host;
@@ -673,10 +760,11 @@ var PaperVoice = {
   },
   togglePause() {
     if (this.state === 'paused') {
+      if(this.restoredSession)return this.resumeReadingSession();
       if (this.audio) { const audio=this.audio,generation=this.generation;audio.play().catch(e => {if(this.audio===audio&&this.generation===generation&&this.state!=='paused')this.setStatus(e.message,'error');}); this.setStatus(this.resumeStatus || '正在朗读','playing'); }
       else this.setStatus('正在准备自然语音…','loading');
     } else if (this.state === 'playing' || this.state === 'loading') {
-      this.audio?.pause(); this.setStatus('已暂停，点击继续','paused');
+      this.audio?.pause(); this.setStatus('已暂停，点击继续','paused');this.saveReadingSession();
     }
   },
   releaseAudio() {
@@ -685,7 +773,8 @@ var PaperVoice = {
     if (this.audioURL) { try { this.audioWindow.URL.revokeObjectURL(this.audioURL); } catch (_) {} this.audioURL=null; }
     this.audioDone?.(); this.audioDone=null;
   },
-  stop(show = true) {
+  stop(show = true, preserveSession = false) {
+    if(!preserveSession&&!this.quitting)this.clearReadingSession();
     this.cancelTranslationClick();
     this.session=null;this.generation++; this.translationTicket++; this.currentUnit=null;this.pendingProgress=null;this.playbackMode=null; this.clearSelectionTimers(); this.releaseAudio();
     this.hideTranslation?.();this.clearSentenceHighlight?.();
@@ -693,8 +782,12 @@ var PaperVoice = {
     if (show) this.setStatus('已停止 · 拖选下一段即可朗读','idle');
   },
   async shutdown() {
-    this.dead=true; this.stop(false);
+    this.saveReadingSession();
+    // Flush the preference checkpoint before Zotero terminates or swaps versions.
+    Services.prefs.savePrefFile(null);
+    this.dead=true; this.stop(false,true);this.currentReader=null;
     this.host.clearInterval(this.scanTimer);
+    Services.obs.removeObserver(this.quitObserver,'quit-application-granted');
     Zotero.Reader.unregisterEventListener('renderTextSelectionPopup', this.selectionHandler);
     Zotero.Reader.unregisterEventListener('renderToolbar', this.toolbarHandler);
     if (this.tabObserver) Zotero.Notifier.unregisterObserver(this.tabObserver);

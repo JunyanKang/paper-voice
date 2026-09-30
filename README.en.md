@@ -14,13 +14,13 @@ New to Paper Voice? Choose the complete package for your computer. It includes t
 
 **Windows · Intel / AMD 64-bit computers**
 
-[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.9/Paper-Voice-1.2.9-Windows-x64.zip)
+[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.10/Paper-Voice-1.2.10-Windows-x64.zip)
 
 **Mac · Apple Silicon (M series), macOS 14 or later**
 
-[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.9/Paper-Voice-1.2.9-macOS-arm64.zip)
+[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.10/Paper-Voice-1.2.10-macOS-arm64.zip)
 
-Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.9/paper-voice-1.2.9.xpi).
+Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.10/paper-voice-1.2.10.xpi).
 
 For Zotero 10. [Release notes](CHANGELOG.md) · [Compatibility notes](docs/COMPATIBILITY.en.md)
 
@@ -36,7 +36,7 @@ On Windows, keep the installer and `Resources` folder together. On Mac, the voic
 
 ### 2. Add the plugin to Zotero
 
-In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.9.xpi` from the package.
+In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.10.xpi` from the package.
 
 Using Zotero in Chinese? The menu is **工具 → 插件 → 从文件安装插件**. [Need more installation help?](docs/INSTALL.en.md)
 
@@ -67,6 +67,8 @@ Sentence, Selection and Paragraph can read **once, 2, 3 or 5 times, or keep repe
 Switching modes keeps the current audio uninterrupted. Switching from Document to Sentence or Paragraph finishes the current sentence or paragraph, then stops. Switching to Document continues from your current position.
 
 ### Continue from the right place
+
+After updating the plugin or restarting Zotero, reopen the same PDF to restore an unfinished reading session, paused. Click **Resume** or press **Space** to continue from the beginning of the interrupted sentence. Your mode, selected passage and remaining repeats are preserved. Sessions you stop or finish do not restore automatically.
 
 Document mode offers four starting points: **First page, Current page, Last position and Selected sentence**.
 

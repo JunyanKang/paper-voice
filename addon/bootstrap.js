@@ -1,5 +1,5 @@
 var PaperVoiceScope;
-async function startup({ rootURI }, reason) {
+async function startup({ rootURI, version }, reason) {
   await Zotero.initializationPromise;
   PaperVoiceScope = { Zotero, ChromeUtils, Services, IOUtils, PathUtils, Components };
   Services.scriptloader.loadSubScript(rootURI + 'vendor/tinyld.js', PaperVoiceScope);
@@ -12,6 +12,7 @@ async function startup({ rootURI }, reason) {
   Services.scriptloader.loadSubScript(rootURI + 'main.js', PaperVoiceScope);
   const resources=Services.io.getProtocolHandler('resource').QueryInterface(Components.interfaces.nsIResProtocolHandler);
   resources.setSubstitutionWithFlags('paper-voice',Services.io.newURI(rootURI),resources.ALLOW_CONTENT_ACCESS);
+  PaperVoiceScope.PaperVoice.version = version;
   PaperVoiceScope.PaperVoice.assetURI = 'resource://paper-voice/assets/';
   PaperVoiceScope.PaperVoice.cssText = PaperVoiceScope.PaperVoiceStyle;
   PaperVoiceScope.PaperVoice.initTranslation();

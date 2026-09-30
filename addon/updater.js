@@ -5,6 +5,8 @@ var PaperVoiceUpdater = {
  setUpdateState(state,message){this.updateState=state;this.updateMessage=message;if(!this.dead)this.updateUpdateControls();},
  updateUpdateControls(){
   for(const {root,find,action} of this.livePanels()){
+   const version=this.version||this.installedVersion;
+   if(version)find('aboutVersion').textContent='v'+version+' · Junyan Kang';
    find('autoUpdate').checked=!!this.updateAuto;
    find('updateStatus').textContent=this.updateMessage;
    action('checkUpdate').textContent=this.updateState==='available'?'安装更新':this.updateState==='checking'?'正在检查':this.updateState==='installing'?'正在更新':'检查更新';

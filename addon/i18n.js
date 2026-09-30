@@ -62,6 +62,7 @@ var PaperVoiceI18n = (() => {
   '翻译暂时不可用，可切换服务或译文语言。':'Translation unavailable. Try another service or language.',
   '朗读完成 · 可以继续划选下一段':'Finished · Select another passage to continue',
   '无法播放音频，请检查音频输出后重试':'Unable to play audio. Check your audio output and try again.',
+  '已恢复上次朗读，点击继续':'Previous reading restored · Press Resume to continue','正在恢复上次朗读…':'Restoring your reading…','未能恢复朗读位置，请等待 PDF 加载完成后重试':'Could not restore the reading position. Wait for the PDF to load and try again.',
   '已暂停，点击继续':'Paused · Press Resume to continue','正在朗读':'Reading','已停止 · 拖选下一段即可朗读':'Stopped · Select another passage to listen',
   '腾讯通道暂不提供繁体中文，请选择微软或 Google':'For Traditional Chinese, choose Microsoft or Google.',
   '微软翻译':'Microsoft Translator','腾讯交互翻译':'Tencent Translator','Google 翻译':'Google Translate','翻译超时':'Translation timed out',

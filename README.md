@@ -14,13 +14,13 @@
 
 **Windows · Intel / AMD 64 位电脑**
 
-[下载 Windows 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.9/Paper-Voice-1.2.9-Windows-x64.zip)
+[下载 Windows 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.10/Paper-Voice-1.2.10-Windows-x64.zip)
 
 **Mac · Apple 芯片（M 系列），macOS 14 或更新版本**
 
-[下载 Mac 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.9/Paper-Voice-1.2.9-macOS-arm64.zip)
+[下载 Mac 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.10/Paper-Voice-1.2.10-macOS-arm64.zip)
 
-已安装 Paper Voice？在插件设置中点击 **检查更新**，或[下载插件文件 `.xpi`](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.9/paper-voice-1.2.9.xpi)。
+已安装 Paper Voice？在插件设置中点击 **检查更新**，或[下载插件文件 `.xpi`](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.10/paper-voice-1.2.10.xpi)。
 
 适用于 Zotero 10。[查看版本记录](CHANGELOG.md) · [查看兼容性说明](docs/COMPATIBILITY.md)
 
@@ -36,7 +36,7 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 
 ### 2. 将插件添加到 Zotero
 
-在 Zotero 中打开 **工具 → 插件 → 右上角齿轮 → 从文件安装插件**，选择完整包里的 `paper-voice-1.2.9.xpi`。
+在 Zotero 中打开 **工具 → 插件 → 右上角齿轮 → 从文件安装插件**，选择完整包里的 `paper-voice-1.2.10.xpi`。
 
 英文菜单对应 **Tools → Plugins → Install Plugin From File**。[需要更详细的安装帮助？](docs/INSTALL.md)
 
@@ -67,6 +67,8 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 播放中切换模式，当前音频会保持连贯：全文切到单句或段落，会读完当前句或段落再停；切到全文，会从当前位置继续往下读。
 
 ### 从想听的位置继续
+
+更新插件或重启 Zotero 后，重新打开同一篇 PDF 即可恢复未结束的朗读，保持暂停。点击 **继续** 或按 **空格**，从被打断句子的句首接着读；阅读模式、划选范围和剩余重复次数会一并保留。主动停止或读完后不会自动恢复。
 
 全文模式提供四种起点：**第 1 页、当前页、上次进度、选定位置（句首）**。
 
