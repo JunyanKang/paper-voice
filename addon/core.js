@@ -127,13 +127,17 @@ var PaperVoiceCore = (() => {
     for(const pattern of [/\(([^()]*)\)/g,/\[([^\[\]]*)\]|【([^【】]*)】/g])for(const m of text.matchAll(pattern)){
       const inside=m[1]??m[2],numeric=m[0][0]!=='('&&/^[\d\s,;–−-]+$/.test(inside);
       const citations=parentheticalCitationRanges(inside);
+      // A visual explanation needs its figure identifier to remain meaningful.
+      for(const part of inside.matchAll(/[^;]+/g)){
+        if(figureReferencePattern().test(part[0])&&!isFigureCitation(part[0].trim()))ranges.push({start:m.index+1+part.index,end:m.index+1+part.index+part[0].length,keepFigures:true});
+      }
       if(numeric||citations.length){
         ranges.push({start:m.index,end:m.index+m[0].length});
         if(citations.length===1&&citations[0].start===0&&citations[0].end===inside.length)ranges[ranges.length-1].silent=true;
         else for(const range of citations)ranges.push({start:m.index+1+range.start,end:m.index+1+range.end,silent:true});
       }
     }
-    for(const m of text.matchAll(figureReferencePattern()))ranges.push({start:m.index,end:m.index+m[0].length});
+    for(const m of text.matchAll(figureReferencePattern()))ranges.push({start:m.index,end:m.index+m[0].length,figure:true});
     for(const m of text.matchAll(abbreviationPattern()))ranges.push({start:m.index,end:m.index+m[0].length});
     return ranges;
   }
@@ -164,10 +168,18 @@ var PaperVoiceCore = (() => {
     const gap=(item.transform?.[4]||0)-((previous.transform?.[4]||0)+(previous.width||0));
     return h>0&&small>0&&small<=h*.84&&rise>=h*.12&&rise<=h*.85&&gap>=-h*.3&&gap<=h*1.5;
   }
+  function joinsPDFLigature(left,right) {
+    if(!right||left.hasEOL||!/\p{L}$/u.test(left.str)||!/^\p{L}/u.test(right.str))return false;
+    const ligature=item=>/^(?:ff[il]?|fi|fl)$/.test(cleanText(item.str));
+    if(!ligature(left)&&!ligature(right))return false;
+    const h=Math.abs(left.height||left.transform?.[3]||0),rh=Math.abs(right.height||right.transform?.[3]||0);
+    const gap=right.transform?.[4]-(left.transform?.[4]+left.width);
+    return h>0&&rh>0&&Math.abs(h-rh)<=h*.2&&Math.abs(left.transform?.[5]-right.transform?.[5])<=h*.15&&gap>=-h*.25&&gap<=h*.12;
+  }
   function pdfText(items) {
     return cleanText(items.map((item,i)=>{
       const value=citationSuperscript(items,i)?item.str.replace(/\d/g,d=>superDigits[Number(d)]):item.str;
-      return value+(item.hasEOL?'\n':' ');
+      return value+(item.hasEOL?'\n':joinsPDFLigature(item,items[i+1])?'':' ');
     }).join(''));
   }
   function markSelectedSuperscripts(text,items) {
@@ -185,7 +197,7 @@ var PaperVoiceCore = (() => {
     }
     return result;
   }
-  function speechText(value) {
+  function speechText(value, {keepFigures=false}={}) {
     let text=cleanText(value);
     text=text.replace(/[\[【]\s*(\d+(?:\s*[,;–−-]\s*\d+)*)\s*[\]】]/g,(whole,numbers,index)=>{
       const before=text.slice(Math.max(0,index-60),index);
@@ -202,7 +214,9 @@ var PaperVoiceCore = (() => {
     };
     text=text.replace(/\[([^\[\]]+)\]|【([^【】]+)】/g,(whole,a,b)=>stripCitation(whole,a??b));
     text=text.replace(/\(([^()]+)\)/g,stripCitation);
-    text=text.replace(figureReferencePattern(),'');
+    const explanations=keepFigures?[]:protectedTextRanges(text).filter(r=>r.keepFigures);
+    text=text.replace(figureReferencePattern(),(reference,at)=>keepFigures||explanations.some(r=>at>=r.start&&at+reference.length<=r.end)?reference:'');
+    text=text.replace(/\bfig(s)?\./gi,(_,plural)=>plural?'Figures':'Figure');
     text=text.replace(/([\p{L}]{3,}[.,;:!?)]*)\s*([⁰¹²³⁴⁵⁶⁷⁸⁹]+(?:\s*[,–−⁻-]\s*[⁰¹²³⁴⁵⁶⁷⁸⁹]+)*)/gu,(whole,word)=>(scientificUnits.test(word)||measurementNames[word])?whole:word);
     text=text.replace(/\band\s*\/\s*or\b/gi,'and or')
       .replace(/\bi\s*\.\s*e\s*\./gi,'that is')
@@ -258,7 +272,10 @@ var PaperVoiceCore = (() => {
     text=text.replace(new RegExp('('+quantity+')\\s*[×x]\\s*g'+boundary,'gu'),(_,n)=>numeral(n)+({en:' times gravity',zh:'倍重力加速度',ja:'倍の重力加速度',fr:' fois la gravité'}[lang]));
     const factor='(?:[/·]\\s*'+atom+'|'+unit+'\\s*[⁻−-][¹²³123])';
     const pattern=new RegExp('(?<![\\p{Script=Latin}\\p{Script=Greek}\\p{N}_])('+quantity+')\\s*('+atom+')'+boundary+'((?:\\s*'+factor+boundary+')*)','gu');
-    return text.replace(pattern,(whole,n,first,rest)=>{
+    const figureRanges=Array.from(text.matchAll(figureReferencePattern()),m=>({start:m.index,end:m.index+m[0].length}));
+    return text.replace(pattern,(whole,n,first,rest,at)=>{
+      // Panel letters are identifiers, not amperes, volts or other SI units.
+      if(figureRanges.some(r=>at>=r.start&&at+whole.length<=r.end))return whole;
       const single=Number(n.replace(/,/g,''))===1,token=first.replace(/\s/g,'');
       let spoken=name(first,!single),amount=numeral(n);
       if(lang==='zh'&&(token==='%'||token==='‰'))return spoken+amount;
@@ -479,7 +496,7 @@ var PaperVoiceCore = (() => {
       for(let i=0;i<cuts.length-1;i++)if(cuts[i+1]>cuts[i])segments.push({start:offset+cuts[i],end:offset+cuts[i+1],pageIndex:page.pageIndex,pageStart:offset,page,sourceDelta:sourceOffset(page,cuts[i])-cuts[i]});
       offset+=length;
     }
-    const text=selection===null?joined:cleanText(selection);
+    let text=selection===null?joined:cleanText(selection);
     let cursor=selection===null?0:normalized.indexOf(anchorText(text),from);
     if(cursor<0)return null;
     const units=[],counts=new Map();
@@ -493,6 +510,16 @@ var PaperVoiceCore = (() => {
       }
       return value.length;
     };
+    if(selection!==null){
+      // Selections may contain artificial spaces around font ligatures. Only remove
+      // spaces where the geometrically reconstructed PDF has a continuous word.
+      const source=joined.slice(rawOffset(joined,cursor),rawOffset(joined,cursor+anchorText(text).length)),joins=new Set();
+      for(let i=0,n=0;i<source.length;i++){
+        n+=anchorText(source[i]).length;
+        if(/\p{L}/u.test(source[i])&&/\p{L}/u.test(source[i+1]||''))joins.add(n);
+      }
+      text=text.replace(/(\p{L})\s+(?=\p{L})/gu,(whole,letter,at)=>joins.has(anchorText(text.slice(0,at+letter.length)).length)?letter:whole);
+    }
     // A heading without terminal punctuation must not become the start of the next body sentence.
     const protectedRanges=protectedTextRanges(text),cuts=[0,...sentenceStarts.filter(x=>x>cursor&&x<cursor+anchorText(text).length).map(x=>rawOffset(text,x-cursor)).filter(x=>!protectedRanges.some(r=>x>r.start&&x<r.end)),text.length];
     const sentenceList=cuts.slice(0,-1).flatMap((at,i)=>sentences(text.slice(at,cuts[i+1])));
@@ -501,7 +528,9 @@ var PaperVoiceCore = (() => {
       // Silence citations before layout splitting, even when a reference itself
       // crosses a column/page. Keep string offsets unchanged for PDF anchoring.
       let masked=sentence;
-      for(const range of protectedTextRanges(sentence)){
+      const ranges=protectedTextRanges(sentence);
+      for(const range of ranges){
+        if(range.keepFigures||range.figure&&ranges.some(r=>r.keepFigures&&range.start>=r.start&&range.end<=r.end))continue;
         const part=sentence.slice(range.start,range.end);
         if((range.silent||!speechText(part))&&!(/^[\[【]/.test(part)&&/[\p{L}]$/u.test(sentence.slice(0,range.start))))masked=masked.slice(0,range.start)+' '.repeat(range.end-range.start)+masked.slice(range.end);
       }
@@ -512,7 +541,7 @@ var PaperVoiceCore = (() => {
         for(const part of chunks(highlightText)){
           const at=sentence.indexOf(part,local);local=at+part.length;
           const unitInPage=counts.get(segment.pageIndex)||0;counts.set(segment.pageIndex,unitInPage+1);
-          units.push({text:part,speechSource:masked.slice(at,local),paragraphId:paragraphStarts.filter(x=>x<=a).at(-1)||0,spokenText:speechText(masked.slice(at,local)),translationText:sentence,sentenceText:sentence,sentenceId:start,highlightText,highlightOffset:a-segment.pageStart+segment.sourceDelta,pageIndex:segment.pageIndex,anchorOffset,sentenceOffset:sourceOffset(segment.page,Math.max(0,start-segment.pageStart)),unitInPage});
+          units.push({text:part,speechSource:masked.slice(at,local),paragraphId:paragraphStarts.filter(x=>x<=a).at(-1)||0,spokenText:speechText(masked.slice(at,local),{keepFigures:true}),translationText:sentence,sentenceText:sentence,sentenceId:start,highlightText,highlightOffset:a-segment.pageStart+segment.sourceDelta,pageIndex:segment.pageIndex,anchorOffset,sentenceOffset:sourceOffset(segment.page,Math.max(0,start-segment.pageStart)),unitInPage});
           anchorOffset+=anchorText(part).length;
         }
       }
@@ -545,7 +574,7 @@ var PaperVoiceCore = (() => {
       if(skip>=length)continue;if(skip<=0){result.push(unit);continue;}
       let cut=0,count=0;for(;cut<unit.text.length&&count<skip;cut++)count+=anchorText(unit.text[cut]).length;
       const raw=unit.text.slice(cut),text=raw.trimStart(),trim=raw.length-text.length;
-      result.push({...unit,text,anchorOffset:end,spokenText:speechText((unit.speechSource||unit.text).slice(cut+trim)),speechSource:(unit.speechSource||unit.text).slice(cut+trim)});
+      result.push({...unit,text,anchorOffset:end,spokenText:speechText((unit.speechSource||unit.text).slice(cut+trim),{keepFigures:unit.speechSource!==undefined}),speechSource:(unit.speechSource||unit.text).slice(cut+trim)});
     }
     return result;
   }

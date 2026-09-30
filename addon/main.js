@@ -711,7 +711,14 @@ var PaperVoice = {
     if(this.restoringGeneration===generation)return;
     this.restoringGeneration=generation;
     try {
-      let units=saved.units,mode=saved.mode;
+      let units=saved.units;
+      if(units?.length&&saved.mode!=='document'&&!saved.rescope){
+        // Reapply current PDF text repair and citation rules to older checkpoints.
+        units=units.map(unit=>({...unit}));
+        await this.locateSelectionUnits(reader,units,units.map(unit=>unit.text).join(' '),generation);
+        if(generation!==this.generation||this.dead)return;
+      }
+      let mode=saved.mode;
       if(!units?.length||mode==='document'||saved.rescope){
         const all=await this.documentUnits(reader);
         if(generation!==this.generation||this.dead)return;
