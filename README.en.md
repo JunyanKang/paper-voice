@@ -14,13 +14,13 @@ New to Paper Voice? Choose the complete package for your computer. It includes t
 
 **Windows · Intel / AMD 64-bit computers**
 
-[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.8/Paper-Voice-1.2.8-Windows-x64.zip)
+[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.9/Paper-Voice-1.2.9-Windows-x64.zip)
 
 **Mac · Apple Silicon (M series), macOS 14 or later**
 
-[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.8/Paper-Voice-1.2.8-macOS-arm64.zip)
+[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.9/Paper-Voice-1.2.9-macOS-arm64.zip)
 
-Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.8/paper-voice-1.2.8.xpi).
+Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.9/paper-voice-1.2.9.xpi).
 
 For Zotero 10. [Release notes](CHANGELOG.md) · [Compatibility notes](docs/COMPATIBILITY.en.md)
 
@@ -36,7 +36,7 @@ On Windows, keep the installer and `Resources` folder together. On Mac, the voic
 
 ### 2. Add the plugin to Zotero
 
-In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.8.xpi` from the package.
+In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.9.xpi` from the package.
 
 Using Zotero in Chinese? The menu is **工具 → 插件 → 从文件安装插件**. [Need more installation help?](docs/INSTALL.en.md)
 
@@ -77,18 +77,23 @@ To start at a specific sentence, choose **Selected sentence**, select a letter, 
 
 Scrolling, column changes and page turns follow the reading. Ordinary clicks and manual scrolling do not interrupt Document mode. Use the navigation buttons when you want to jump to another passage.
 
-### Scientific measurements, spoken clearly
-
-Common units are expanded in the narration language: for example, `10 μm`, `2 mg`, `37 °C`, `45°`, and `5 mg/kg`. Ranges, plus/minus signs, squares, cubes, and scientific notation retain their meaning. The PDF, highlights, and translation keep the original notation.
-
 ### Control playback with your keyboard
 
-- **Space**: Pause; press again to resume.
-- **Esc**: Stop reading and clear the highlight and translation.
-- **Option / Alt + P**: Pause or resume.
-- **Option / Alt + T**: Show or hide translation.
+Use these keys in the PDF reading area while playing or paused:
 
-Use shortcuts in the PDF reading area. Space remains normal text input in search fields and notes.
+| Action | Mac | Windows |
+|---|---|---|
+| Pause / resume | Space | Space |
+| Stop reading | Esc | Esc |
+| Previous / next sentence | ↑ / ↓ | ↑ / ↓ |
+| Previous / next paragraph | Option + ↑ / ↓ | Alt + ↑ / ↓ |
+| Replay current sentence | ← | ← |
+| Replay current paragraph | → | → |
+| Show / hide translation | Option + T | Alt + T |
+
+After a jump, Document mode continues reading. Paragraph shortcuts read the complete target paragraph; in Selection mode, navigation expands the passage to a full sentence or paragraph. Option + P (Windows: Alt + P) also pauses or resumes.
+
+Keys keep their normal behavior in search, notes, and settings controls. When the navigation menu has focus, ↑ / ↓ selects a button and Enter activates it.
 
 ### Choose a voice and turn on translation
 

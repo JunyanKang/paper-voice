@@ -66,8 +66,21 @@ var PaperVoice = {
       };
       const key = e => {
         const editable=e.target.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"]');
-        if(editable||e.isComposing||e.repeat||e.ctrlKey||e.metaKey)return;
+        if(editable||e.isComposing||e.ctrlKey||e.metaKey)return;
         const active=this.currentReader===reader&&['playing','paused','loading'].includes(this.state);
+        // Preserve native controls and the popover's own arrow-key navigation.
+        const control=e.target.closest?.('button,[role="button"],[role="menu"],[role="listbox"],[role="combobox"],[role="tree"],[role="slider"],[data-field="modeTools"]');
+        const navigation=!e.shiftKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')
+          ?{scope:e.altKey?'paragraph':'sentence',delta:e.key==='ArrowUp'?-1:1}
+          :!e.shiftKey&&!e.altKey&&(e.key==='ArrowLeft'||e.key==='ArrowRight')
+            ?{scope:e.key==='ArrowLeft'?'sentence':'paragraph',delta:0}:null;
+        if(active&&this.currentUnit&&navigation&&!control){
+          e.preventDefault();e.stopPropagation();
+          // Holding an arrow neither skips multiple passages nor scrolls the PDF.
+          if(!e.repeat)this.navigateScope(navigation.delta,reader,navigation.scope);
+          return;
+        }
+        if(e.repeat)return;
         if(active&&(e.code==='Space'||e.key===' ')&&!e.altKey){e.preventDefault();e.stopPropagation();this.togglePause();return;}
         if(active&&e.key==='Escape'){e.preventDefault();e.stopPropagation();this.stop();return;}
         if(e.altKey && e.code==='KeyT'){e.preventDefault();this.toggleTranslation();}
@@ -257,12 +270,19 @@ var PaperVoice = {
       action('quickMode').setAttribute('aria-label',current.label+'；点击切换为'+next.label);action('quickMode').title=current.label+' → '+next.label;
       action('orb').title='Paper Voice · '+this.status;
       const canNavigate=active&&mode!=='selection'&&!!this.currentUnit;
+      const modifier=Zotero.isMac?'Option':'Alt';
       find('paragraphNavigation').hidden=mode==='sentence';
       find('modeTools').dataset.available=String(canNavigate);
       if(!canNavigate)closeNavigation?.();
       for(const name of ['Previous','Replay','Next']){
         action('quick'+name).disabled=!canNavigate;
         action('quickSentence'+name).disabled=!canNavigate;
+        const label=(name==='Previous'?'上一':name==='Next'?'下一':'重读当前');
+        const arrow=name==='Previous'?'↑':name==='Next'?'↓':null;
+        for(const [button,unit,shortcut] of [[action('quick'+name),'段',arrow?modifier+' + '+arrow:'→'],[action('quickSentence'+name),'句',arrow||'←']]){
+          button.title=label+unit+' · '+shortcut;
+          button.setAttribute('aria-keyshortcuts',arrow?(unit==='段'?'Alt+':'')+(name==='Previous'?'ArrowUp':'ArrowDown'):unit==='段'?'ArrowRight':'ArrowLeft');
+        }
       }
       action('quickMode').title=current.label+' → '+next.label+(canNavigate?' · 悬停展开句段导航':'');
       for(const [name,delta] of [['previous',-1],['next',1]]){
@@ -300,18 +320,19 @@ var PaperVoice = {
   },
   async navigateScope(delta,reader,scope=null) {
     const current=this.currentUnit,mode=this.get('mode','selection'),generation=this.generation;
-    if(!current||mode==='selection')return;
+    if(!current||(mode==='selection'&&!scope))return;
     try{
       const all=await this.documentUnits(reader);
       if(generation!==this.generation)return;
       const source=all.length?all:(this.session?.units||[]);
       const target=PaperVoiceCore.scopeUnits(source,current,scope||mode,delta)[0];
       if(!target)return;
-      const units=mode==='document'?source.slice(PaperVoiceCore.unitIndex(source,target)):PaperVoiceCore.scopeUnits(source,target,mode);
+      const readScope=mode==='selection'?scope:mode==='sentence'&&scope==='paragraph'?'paragraph':mode;
+      const units=mode==='document'?source.slice(PaperVoiceCore.unitIndex(source,target)):PaperVoiceCore.scopeUnits(source,target,readScope);
       if(!units.length)return;
       const startIndex=scope==='sentence'&&mode==='paragraph'?Math.max(0,PaperVoiceCore.unitIndex(units,target)):0;
       this.stop(false);this.currentReader=reader;this.playbackMode=mode;
-      return this.runUnits(units,reader,this.generation,{mode,startIndex,loops:mode==='document'?1:Number(this.get('repeat',0))});
+      return this.runUnits(units,reader,this.generation,{mode,startIndex,loops:mode==='document'?1:Number(this.get(mode==='selection'?'selectionRepeat':'repeat',mode==='selection'?1:0))});
     }catch(error){if(generation===this.generation)this.setStatus(error.message);}
   },
   async publicationMargins(pdf) {
