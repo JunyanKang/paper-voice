@@ -28,13 +28,14 @@ In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and 
 
 Open a PDF, let the plugin detect its language, and select some text. Click the floating book mascot to choose a voice or reading mode.
 
-Explore the [user guide](../README.en.md#user-guide) for reading modes, voice choices and translation.
+Explore the [user guide](GUIDE.en.md) for reading modes, voice choices and translation.
 
 ## Updates
 
-**Version 1.2.6 adds Chinese, Japanese and French voices.** To use them when upgrading, download the latest complete package, run Install voices again, then update the plugin. The earlier voice pack still supports English.
+- **Upgrading from 1.2.5 or earlier:** download the latest complete package and run the installer to reinstall offline voices once.
+- **Already installed a complete package from 1.2.6 or later:** update only the `.xpi` plugin. No voice download is needed.
 
-Use **Check for updates** in the plugin settings, or install the latest `.xpi` through Zotero. Existing users do not need to download the full voice package again unless the release notes say otherwise.
+Use **Check → Install update** in Settings, or download the `.xpi` from [Releases](https://github.com/JunyanKang/paper-voice/releases/latest) and install it through Zotero's plugin manager. The `updates.json` file is for automatic updates; you do not need to download it.
 
 ## Installation help
 
@@ -47,3 +48,14 @@ Use **Check for updates** in the plugin settings, or install the latest `.xpi` t
 Downloads and plugin updates require access to GitHub. Voice synthesis works offline after installation; translation is optional and requires a network connection.
 
 For help, open an [issue](https://github.com/JunyanKang/paper-voice/issues) with your OS version, Zotero version and the error message. Do not attach private papers or your personal Zotero database.
+
+## Uninstall
+
+Disable or remove Paper Voice in Zotero's plugin manager. Your papers and annotations are unaffected.
+
+If you no longer need the offline voices, delete the following folder and its backups with the same name prefix:
+
+- Mac: `~/Library/Application Support/Zotero/paper-voice-engine`
+- Windows: `%APPDATA%\Zotero\Zotero\paper-voice-engine`
+
+Personal settings and reading progress are stored in Zotero preferences under `extensions.paperVoice.*`.
