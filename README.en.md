@@ -14,13 +14,13 @@ New to Paper Voice? Choose the complete package for your computer. It includes t
 
 **Windows · Intel / AMD 64-bit computers**
 
-[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.11/Paper-Voice-1.2.11-Windows-x64.zip)
+[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/Paper-Voice-1.2.12-Windows-x64.zip)
 
 **Mac · Apple Silicon (M series), macOS 14 or later**
 
-[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.11/Paper-Voice-1.2.11-macOS-arm64.zip)
+[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/Paper-Voice-1.2.12-macOS-arm64.zip)
 
-Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.11/paper-voice-1.2.11.xpi).
+Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/paper-voice-1.2.12.xpi).
 
 For Zotero 10. [Release notes](CHANGELOG.md) · [Compatibility notes](docs/COMPATIBILITY.en.md)
 
@@ -36,7 +36,7 @@ On Windows, keep the installer and `Resources` folder together. On Mac, the voic
 
 ### 2. Add the plugin to Zotero
 
-In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.11.xpi` from the package.
+In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.12.xpi` from the package.
 
 Using Zotero in Chinese? The menu is **工具 → 插件 → 从文件安装插件**. [Need more installation help?](docs/INSTALL.en.md)
 
@@ -97,12 +97,16 @@ After a jump, Document mode continues reading. Paragraph shortcuts read the comp
 
 Keys keep their normal behavior in search, notes, and settings controls. When the navigation menu has focus, ↑ / ↓ selects a button and Enter activates it.
 
+The panels use lightly translucent frosted glass and soft fades. Adjust **Transparency** in Settings for all floating surfaces; 0% is fully opaque. Text and controls stay clear. The book companion has five reading gestures and five idle gestures, appearing about once every five minutes. System Reduce Motion disables these interactions. Under **Appearance → Companion gestures**, turn automatic gestures off or select **Preview** to see one immediately. Hovering over the companion immediately plays the next gesture and restarts the timer. Each set shuffles five gestures without repeats within a round; the companion keeps its latest pose after each gesture. Set **Gesture interval** to 1, 3, 5, 10, 15 or 30 minutes; changes restart the timer and are saved.
+
 ### Choose a voice and turn on translation
 
-Click **Settings** in the panel’s upper-right corner. **Reading language** defaults to Detect PDF language; you can also choose a language manually. Pick a voice and select **Preview voice** to hear it. Adjust speed from **0.60–1.60×**; voice and speed changes take effect the next time you start reading.
+Click **Settings** in the panel’s upper-right corner and choose **Voice**, **Translation** or **Appearance**. Playback and settings share one fixed-size frame in both interface languages. **Text language** defaults to Auto-detect; you can also choose a language manually. Pick a voice and select **Preview voice** to hear it. Adjust speed from **0.60–1.60×**; voice and speed changes take effect the next time you start reading.
 
-<p align="center"><img src="docs/assets/preferences-en.png" width="960" alt="English settings showing interface language, voice, speed, translation service, target language and update controls"></p>
-<p align="center"><sub>Reading, interface and translation languages are independent. Choose the combination that works for you.</sub></p>
+Under **Appearance**, choose Porcelain, Botanical, Tidal, Amber or Midnight. Panels, controls and translation captions change together. Import a PNG, JPG or WebP for a personal background; Paper Voice crops and compresses it, then adds a contrast-protecting tint. Images stay on your device. Switch back to a preset or remove your image at any time.
+
+<p align="center"><img src="docs/assets/settings-voice-en.png" width="280" alt="Voice settings"> <img src="docs/assets/settings-translation-en.png" width="280" alt="Translation settings"> <img src="docs/assets/settings-appearance-en.png" width="280" alt="Appearance settings"> </p>
+<p align="center"><sub>Voice, Translation and Appearance share the same compact frame. Click a screenshot to see it at full size.</sub></p>
 
 **American English**: Heart and Bella (female); Michael and Fenrir (male).<br>
 **British English**: Emma (female); George (male).<br>
@@ -112,13 +116,17 @@ Click **Settings** in the panel’s upper-right corner. **Reading language** def
 
 Language detection runs locally. Short selections use the surrounding PDF text; mixed-language passages can switch voices automatically. Uncertain or unsupported languages prompt you to choose manually. Each language remembers your last voice. Preview voice plays a sample in the selected reading language.
 
-**Show translation** displays a translation near the passage being read. It does not read the translation aloud. Tencent is the default; Microsoft and Google are also available. Google requires access to its service. Use Microsoft or Google for Traditional Chinese.
+**Show translation** displays a translation near the passage being read. **Read translation** plays only the translation while the original PDF stays highlighted and in view. It supports Chinese (Simplified and Traditional), Japanese, French and English, with a voice matching the target language. Other languages remain available for displayed translation. Tencent is the default; Microsoft and Google are also available. Google requires access to its service. Use Microsoft or Google for Traditional Chinese.
 
-The floating translation button shows the target language: **简 / 繁 / 日 / 한 / FR / DE / ES / RU**. **Click** to cycle through the languages supported by the selected service; **double-click** to hide translation. Clicking while translation is off selects the next language and shows it again. The background indicates whether translation is on. Option / Alt + T still toggles it directly.
+The floating translation button shows the target language: **简 / 繁 / 日 / 한 / FR / EN / DE / ES / RU**. **Click** to cycle through the languages supported by the selected service; **double-click** to hide translation. Clicking while translation is off selects the next language and shows it again. The background indicates whether translation is on. Option / Alt + T still toggles it directly.
 
-Translation languages include Simplified Chinese, Traditional Chinese, Japanese, Korean, French, German, Spanish and Russian. Set the interface independently to **English, 简体中文 or System**.
+Hover over the floating **translation button** to reveal **Read translation**. Click to hear the translation; click again to hear the original. During playback, changes take effect at the next sentence. Displayed translation and translated audio have independent switches.
 
-<sub>Screenshots show Paper Voice 1.2.6 on macOS with a purpose-made demonstration document. Windows has the same plugin controls; system menus may look different. Click an image to see it at full size.</sub>
+Captions use a compact 12 px size by default. Choose a font and a size from 10–20 px in **Caption font**; changes apply immediately and are saved.
+
+Translation languages include Simplified Chinese, Traditional Chinese, Japanese, Korean, French, English, German, Spanish and Russian. Set the interface independently to **English, 简体中文 or System**.
+
+<sub>Settings screenshots show Paper Voice 1.2.12; other screenshots show Paper Voice 1.2.6 on macOS with a purpose-made demonstration document. Windows has the same plugin controls; system menus may look different. Click an image to see it at full size.</sub>
 
 ## Common questions
 

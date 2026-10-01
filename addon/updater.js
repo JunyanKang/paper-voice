@@ -8,7 +8,9 @@ var PaperVoiceUpdater = {
    const version=this.version||this.installedVersion;
    if(version)find('aboutVersion').textContent='v'+version+' · Junyan Kang';
    find('autoUpdate').checked=!!this.updateAuto;
-   find('updateStatus').textContent=this.updateMessage;
+   const status=find('updateStatus'),percent=this.updateMessage.match(/\d+%/);
+   status.textContent=({idle:this.updateAuto&&!this.updatesDisabled?'由 Zotero 管理':'手动检查',checking:'连接中…',available:'有新版本',current:'已是最新',error:'更新失败',installing:percent?percent[0]:'正在下载…'})[this.updateState]||this.updateMessage;
+   status.title=this.updateMessage;
    action('checkUpdate').textContent=this.updateState==='available'?'安装更新':this.updateState==='checking'?'正在检查':this.updateState==='installing'?'正在更新':'检查更新';
    action('checkUpdate').disabled=['checking','installing'].includes(this.updateState);this.localize?.(root);
   }
@@ -19,6 +21,7 @@ var PaperVoiceUpdater = {
    this.installedVersion=addon.version;
    const policy=Number(addon.applyBackgroundUpdates);
    this.updateAuto=policy===manager.AUTOUPDATE_DEFAULT?manager.shouldAutoUpdate(addon):policy===manager.AUTOUPDATE_ENABLE;
+   this.updatesDisabled=manager.updateEnabled===false;
    if(this.updateState==='idle')this.updateMessage=manager.updateEnabled===false?'Zotero 的插件更新已关闭，可手动检查':this.updateAuto?'自动更新已开启 · 由 Zotero 定期检查':'自动更新已关闭 · 可随时手动检查';
    this.updateUpdateControls();
   }catch(_){this.setUpdateState('error','暂时无法读取更新设置');}

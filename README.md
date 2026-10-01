@@ -14,13 +14,13 @@
 
 **Windows · Intel / AMD 64 位电脑**
 
-[下载 Windows 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.11/Paper-Voice-1.2.11-Windows-x64.zip)
+[下载 Windows 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/Paper-Voice-1.2.12-Windows-x64.zip)
 
 **Mac · Apple 芯片（M 系列），macOS 14 或更新版本**
 
-[下载 Mac 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.11/Paper-Voice-1.2.11-macOS-arm64.zip)
+[下载 Mac 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/Paper-Voice-1.2.12-macOS-arm64.zip)
 
-已安装 Paper Voice？在插件设置中点击 **检查更新**，或[下载插件文件 `.xpi`](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.11/paper-voice-1.2.11.xpi)。
+已安装 Paper Voice？在插件设置中点击 **检查更新**，或[下载插件文件 `.xpi`](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/paper-voice-1.2.12.xpi)。
 
 适用于 Zotero 10。[查看版本记录](CHANGELOG.md) · [查看兼容性说明](docs/COMPATIBILITY.md)
 
@@ -36,7 +36,7 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 
 ### 2. 将插件添加到 Zotero
 
-在 Zotero 中打开 **工具 → 插件 → 右上角齿轮 → 从文件安装插件**，选择完整包里的 `paper-voice-1.2.11.xpi`。
+在 Zotero 中打开 **工具 → 插件 → 右上角齿轮 → 从文件安装插件**，选择完整包里的 `paper-voice-1.2.12.xpi`。
 
 英文菜单对应 **Tools → Plugins → Install Plugin From File**。[需要更详细的安装帮助？](docs/INSTALL.md)
 
@@ -77,6 +77,8 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 <p align="center"><img src="docs/assets/continuous-zh.png" width="960" alt="全文连读示例：原句高亮、附近译文、起点选项，以及浮动工具栏中的段落导航和播放控制"></p>
 <p align="center"><sub>高亮指向当前朗读片段，译文显示在原句附近。收起面板后，浮动工具栏仍可控制播放。</sub></p>
 
+窗口采用轻透明毛玻璃，展开和收起时柔和渐变。设置中的 **透明度** 可即时调整所有浮层，设为 0% 即完全不透明，文字和按钮始终保持清晰。书页精灵在朗读和就绪时各有五个小动作，每隔约 5 分钟出现一次；系统开启“减少动态效果”时自动关闭互动动画。在 **外观 → 角色互动** 中可关闭自动互动，或点击 **预览** 立即查看。每次悬停书页精灵也会立即播放一个动作，并重新计时；每套五个动作随机轮换，一轮内不重复；互动结束后保留当前姿态。**互动间隔** 可设为 1、3、5、10、15、30 分钟，修改后重新计时并记住选择。
+
 页面会随朗读滚动、换栏和翻页。全文播放时，普通点击或手动滚动不会打断朗读；需要跳转时，使用导航按钮即可。
 
 ### 用键盘控制播放
@@ -99,10 +101,12 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 
 ### 选择声音，开启译文
 
-点击面板右上角的 **设置** 图标。**朗读语言** 默认选择「自动识别 PDF 语言」，也可手动指定。选择声音后点击 **试听当前声音**，找到适合自己的音色。语速可在 **0.60–1.60×** 之间调整，声音和语速的修改会在下次开始朗读时生效。
+点击面板右上角的 **设置** 图标，在 **声音／译文／外观** 三个分页中调整。播放页与设置页保持相同尺寸，中英文切换也不会改变窗口大小。**朗读语言** 默认选择「自动识别 PDF 语言」，也可手动指定。选择声音后点击 **试听当前声音**，找到适合自己的音色。语速可在 **0.60–1.60×** 之间调整，声音和语速的修改会在下次开始朗读时生效。
 
-<p align="center"><img src="docs/assets/preferences-zh.png" width="960" alt="中文设置界面：界面语言、朗读声音、语速、翻译服务、译文语言和更新入口"></p>
-<p align="center"><sub>朗读语言、界面语言和译文语言分别设置，听读与翻译可以自由搭配。</sub></p>
+在 **外观** 中选择玉瓷、森雾、潮汐、暮砂或深空，主窗口、控制按钮和译文卡片会一起换肤。也可导入 PNG、JPG 或 WebP 图片；插件会自动居中裁切、压缩并添加文字保护蒙版。图片只保存在本机，可以随时切回内置主题或移除。
+
+<p align="center"><img src="docs/assets/settings-voice-zh.png" width="280" alt="声音设置"> <img src="docs/assets/settings-translation-zh.png" width="280" alt="译文设置"> <img src="docs/assets/settings-appearance-zh.png" width="280" alt="外观设置"> </p>
+<p align="center"><sub>声音、译文、外观分开设置；标题居中，页面等宽等高。点击截图可查看大图。</sub></p>
 
 **美式英语**：女声 Heart、Bella；男声 Michael、Fenrir。<br>
 **英式英语**：女声 Emma；男声 George。<br>
@@ -112,13 +116,17 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 
 自动识别在本机完成，无需联网。短词会参考所在 PDF 的正文；混合语言段落可自动切换音色。无法确定或遇到尚不支持的语言时，会提示手动选择。每种语言会记住上次使用的声音。切换语言后，点击试听可听到对应语言的示例。
 
-开启 **跟读译文**，翻译就会显示在正在朗读的原句附近。它只显示译文，不会额外朗读译文。默认使用腾讯，也可选择微软或 Google；Google 需要网络可达，繁体中文请使用微软或 Google。
+开启 **跟读译文**，翻译就会显示在正在朗读的原句附近。需要听翻译时，开启 **朗读译文**：只播放译文，PDF 原文继续高亮并随读定位。支持简／繁中文、日语、法语和英语，声音随目标语种切换；其他语种仍可显示译文。默认使用腾讯，也可选择微软或 Google；Google 需要网络可达，繁体中文请使用微软或 Google。
 
-悬浮工具栏的译文按钮会显示目标语言标记：**简／繁／日／한／FR／DE／ES／RU**。**单击**按钮，依次切换当前翻译服务支持的语种；**双击**关闭译文。关闭后单击会切到下一种语言并重新显示。底色表示是否开启，Option / Alt + T 仍可直接开关译文。
+悬浮工具栏的译文按钮会显示目标语言标记：**简／繁／日／한／FR／EN／DE／ES／RU**。**单击**按钮，依次切换当前翻译服务支持的语种；**双击**关闭译文。关闭后单击会切到下一种语言并重新显示。底色表示是否开启，Option / Alt + T 仍可直接开关译文。
 
-译文支持简体中文、繁体中文、日语、韩语、法语、德语、西班牙语和俄语。界面可独立选择 **简体中文、English 或跟随系统**。
+将鼠标移到悬浮栏的**译文按钮**，上方会出现 **朗读译文** 开关。点击开启听译文，再点一次听原文；播放中的切换从下一句生效。显示译文与朗读译文可以独立开关。
 
-<sub>截图使用 macOS 上的 Paper Voice 1.2.6 和专门制作的演示文档。Windows 使用相同的插件控件；系统菜单外观可能不同。点击图片可查看大图。</sub>
+译文默认使用紧凑的 12 px 字号。在设置的 **译文字体** 一行可选择字体和 10–20 px 字号，调整会即时显示并保存。
+
+译文支持简体中文、繁体中文、日语、韩语、法语、英语、德语、西班牙语和俄语。界面可独立选择 **简体中文、English 或跟随系统**。
+
+<sub>设置截图使用 Paper Voice 1.2.12，其余截图使用 macOS 上的 Paper Voice 1.2.6 和专门制作的演示文档。Windows 使用相同的插件控件；系统菜单外观可能不同。点击图片可查看大图。</sub>
 
 ## 常见问题
 
