@@ -154,7 +154,9 @@ First, check that the PDF has selectable text; scanned pages need OCR. Then prev
 <details>
 <summary><b>Do I need the complete package for every update?</b></summary>
 
-**The multilingual voices in 1.2.6 need a one-time download and installation of the new complete package.** The earlier voice pack still supports English. For routine plugin updates afterward, choose Check for updates in Settings, or install the latest `.xpi`. Your existing voice pack continues to work unless the release notes say otherwise. The plugin uses `updates.json` automatically; you do not need to download it.
+**Usually, no.** Choose Check for updates in Settings, or install the latest `.xpi`. Your existing voice pack continues to work.
+
+If you have an early English-only voice pack and want to listen in Chinese, Japanese or French, download the current complete package and update the offline voices once. If you already have multilingual voices, you do not need to reinstall them. Any future voice-pack updates will be noted separately in the release notes. The plugin uses `updates.json` automatically; you do not need to download it.
 
 </details>
 
