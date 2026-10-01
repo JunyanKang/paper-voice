@@ -85,16 +85,19 @@ Once reading starts, use the floating controls in the lower-right corner without
 
 | Control | How to use it |
 |---|---|
-| **Mode button** | Click to cycle modes; hover to reveal sentence and paragraph navigation |
-| **Pause / resume** | Pause at your current position; click again to continue |
+| **Mode button** | Click to cycle reading modes |
+| **Pause / resume** | Click to pause or resume; hover for sentence and paragraph navigation |
 | **Stop** | End the current playback |
 | **Translation button** | Click to change language; double-click to hide translations; hover to switch original or translated audio |
 | **Book mascot** | Open or close the main panel |
 
-Hover over the **mode button**, then move into the expanded navigation area:
+Hover over the **pause / resume button**, then move into the expanded navigation area:
 
 - **Sentence row:** previous sentence, replay sentence, next sentence.
 - **Paragraph row:** previous paragraph, replay paragraph, next paragraph; available in Document and Paragraph modes.
+
+<p align="center"><img src="assets/pause-navigation-en.png" width="420" alt="Hovering over Pause reveals sentence and paragraph controls; the mode button switches reading modes"></p>
+<p align="center"><sub>Hover over Pause / resume for navigation; clicking still pauses or resumes playback.</sub></p>
 
 For example, if you miss a sentence during continuous reading, choose Replay sentence to hear it again without switching to Sentence mode. You can also use the [keyboard shortcuts](#keyboard-shortcuts).
 
@@ -105,7 +108,7 @@ Open **Settings → Voice**.
 <p align="center"><img src="assets/settings-voice-en.png" width="420" alt="Voice settings with automatic language detection, voice selection, speed, automatic reading and a preview button"></p>
 <p align="center"><sub>Figure 4 · Preview a voice, then adjust the pace to suit your listening.</sub></p>
 
-1. **Text language:** Auto-detect is the default. You can also choose English, Mandarin Chinese, Japanese or French. Manual selection helps with short passages or mixed-language text.
+1. **Text language:** **Auto** detects the language from the PDF. You can also choose English, Mandarin Chinese, Japanese or French. Manual selection helps with short passages or mixed-language text.
 2. **Voice:** Choose from the voices for that language. English offers US and UK accents, with male and female voices. Mandarin defaults to Yunxi; Japanese defaults to Tebukuro.
 3. **Speed:** Adjust the slider. Start reading again to use a newly selected voice or speed.
 4. **Preview voice:** Hear a short sample before making your choice.
@@ -160,8 +163,10 @@ Open **Settings → Appearance**.
 | **Colors** | Porcelain, Botanical, Tidal, Amber or Midnight; Tidal is the default |
 | **Your background** | Import image accepts PNG, JPG and WebP files stored only on your computer. Use My image to return to it, or Remove to delete it |
 | **Transparency** | Move the slider; higher values make the background more transparent while text and controls remain clear |
-| **Interface language** | Choose Chinese, English or System; this does not change the reading or translation language |
+| **Interface language** | Choose 简体中文, English, 日本語, Français, Deutsch or System; this does not change the reading or translation language |
 | **Companion gestures** | Turn gestures on or off, choose an interval, or select Preview. Hovering over the mascot also triggers a gesture |
+
+**System** follows Zotero’s language, with English as the fallback for unsupported languages. Switching languages keeps the panel size unchanged.
 
 Translation font and size are under **Settings → Translation**.
 

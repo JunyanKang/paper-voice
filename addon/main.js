@@ -8,9 +8,9 @@ var PaperVoice = {
   lastSelections: new Map(), selectionContexts: new Map(), timers: new Map(), dead: false, translationTicket: 0,
   get(name, fallback) { return Zotero.Prefs.get(this.prefix + name, true) ?? fallback; },
   set(name, value) { Zotero.Prefs.set(this.prefix + name, name==='rate'?String(value):value, true); },
-  language() { const chosen=this.get('interfaceLanguage','auto');return chosen==='auto'?((Zotero.locale||Services.locale?.appLocaleAsBCP47||'en').startsWith('zh')?'zh':'en'):chosen; },
+  language() { return PaperVoiceI18n.resolveLanguage(this.get('interfaceLanguage','auto'),Zotero.locale||Services.locale?.appLocaleAsBCP47||'en'); },
   t(text) { return typeof PaperVoiceI18n==='undefined'?text:PaperVoiceI18n.translate(text,this.language()); },
-  localize(root) { if(typeof PaperVoiceI18n!=='undefined')PaperVoiceI18n.apply(root,this.language()); },
+  localize(root) { if(typeof PaperVoiceI18n!=='undefined')PaperVoiceI18n.apply(root,this.language());if(typeof PaperVoiceUI!=='undefined')PaperVoiceUI.syncSelects(root); },
   setLanguage(value) { this.set('interfaceLanguage',value);this.syncSettings();for(const [reader] of this.panels){for(const el of reader._iframeWindow.document.querySelectorAll('[data-paper-voice="toolbar"]')){el.title=this.t('Paper Voice · 免费离线自然朗读');el.setAttribute('aria-label',this.t('Paper Voice 论文听读'));}for(const el of reader._iframeWindow.document.querySelectorAll('[data-paper-voice="selection"]'))el.textContent=this.t(this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection'?'▶ 从此句开始连读':'▶ 自然朗读');}for(const item of this.windows.values())item.setAttribute('label',this.t('Paper Voice · 论文听读')); },
   get host() { return Zotero.getMainWindow(); },
   async start() {
@@ -70,11 +70,11 @@ var PaperVoice = {
         }
       };
       const key = e => {
-        const editable=e.target.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"]');
+        const editable=e.target.closest?.('input,textarea,select,[role="combobox"],[contenteditable]:not([contenteditable="false"]),[role="textbox"]');
         if(editable||e.isComposing||e.ctrlKey||e.metaKey)return;
         const active=this.currentReader===reader&&['playing','paused','loading'].includes(this.state);
         // Preserve native controls and the popover's own arrow-key navigation.
-        const control=e.target.closest?.('button,[role="button"],[role="menu"],[role="listbox"],[role="combobox"],[role="tree"],[role="slider"],[data-field="modeTools"]');
+        const control=e.target.closest?.('button,[role="button"],[role="menu"],[role="listbox"],[role="combobox"],[role="tree"],[role="slider"],[data-field="playbackTools"]');
         const navigation=!e.shiftKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')
           ?{scope:e.altKey?'paragraph':'sentence',delta:e.key==='ArrowUp'?-1:1}
           :!e.shiftKey&&!e.altKey&&(e.key==='ArrowLeft'||e.key==='ArrowRight')
@@ -306,6 +306,7 @@ var PaperVoice = {
       find('quick').hidden=false;
       action('quickStop').hidden=!active;action('quickTranslate').hidden=!active;
       action('quickPause').hidden=!active&&!this.lastText&&mode!=='document';
+      find('playbackTools').hidden=action('quickPause').hidden;
       find('primaryLabel').textContent=this.state==='paused'?'继续':active?'暂停':mode==='document'?(this.get('documentStart','begin')==='resume'?'继续上次':'开始连读'):'开始朗读';
       action('primary').querySelector('img').src=this.assetURI+'icons/'+(active && this.state!=='paused'?'pause':'play')+'.svg';
       action('quickPause').querySelector('img').src=this.assetURI+'icons/'+(!active||this.state==='paused'?'play':'pause')+'.svg';
@@ -317,7 +318,7 @@ var PaperVoice = {
       const canNavigate=active&&mode!=='selection'&&!!this.currentUnit;
       const modifier=Zotero.isMac?'Option':'Alt';
       find('paragraphNavigation').hidden=mode==='sentence';
-      find('modeTools').dataset.available=String(canNavigate);
+      find('playbackTools').dataset.available=String(canNavigate);
       if(!canNavigate)closeNavigation?.();
       for(const name of ['Previous','Replay','Next']){
         action('quick'+name).disabled=!canNavigate;
@@ -329,7 +330,8 @@ var PaperVoice = {
           button.setAttribute('aria-keyshortcuts',arrow?(unit==='段'?'Alt+':'')+(name==='Previous'?'ArrowUp':'ArrowDown'):unit==='段'?'ArrowRight':'ArrowLeft');
         }
       }
-      action('quickMode').title=current.label+' → '+next.label+(canNavigate?' · 悬停展开句段导航':'');
+      action('quickPause').title='暂停或继续'+(canNavigate?' · 悬停展开句段导航':'');
+      action('quickPause').setAttribute('aria-label',action('quickPause').title);
       for(const [name,delta] of [['previous',-1],['next',1]]){
         action(name).disabled=mode==='selection'||!this.currentUnit;
         action(name).setAttribute('aria-label',(delta<0?'上一':'下一')+(mode==='sentence'?'句':'段'));
