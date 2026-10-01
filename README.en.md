@@ -14,13 +14,13 @@ New to Paper Voice? Choose the complete package for your computer. It includes t
 
 **Windows · Intel / AMD 64-bit computers**
 
-[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/Paper-Voice-1.2.12-Windows-x64.zip)
+[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.13/Paper-Voice-1.2.13-Windows-x64.zip)
 
 **Mac · Apple Silicon (M series), macOS 14 or later**
 
-[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/Paper-Voice-1.2.12-macOS-arm64.zip)
+[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.13/Paper-Voice-1.2.13-macOS-arm64.zip)
 
-Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/paper-voice-1.2.12.xpi).
+Already installed? Choose **Check for updates** in the plugin settings, or [download the `.xpi` plugin file](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.13/paper-voice-1.2.13.xpi).
 
 For Zotero 10. [Release notes](CHANGELOG.md) · [Compatibility notes](docs/COMPATIBILITY.en.md)
 
@@ -36,7 +36,7 @@ On Windows, keep the installer and `Resources` folder together. On Mac, the voic
 
 ### 2. Add the plugin to Zotero
 
-In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.12.xpi` from the package.
+In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and select `paper-voice-1.2.13.xpi` from the package.
 
 Using Zotero in Chinese? The menu is **工具 → 插件 → 从文件安装插件**. [Need more installation help?](docs/INSTALL.en.md)
 
@@ -103,7 +103,7 @@ The panels use lightly translucent frosted glass and soft fades. Adjust **Transp
 
 Click **Settings** in the panel’s upper-right corner and choose **Voice**, **Translation** or **Appearance**. Playback and settings share one fixed-size frame in both interface languages. **Text language** defaults to Auto-detect; you can also choose a language manually. Pick a voice and select **Preview voice** to hear it. Adjust speed from **0.60–1.60×**; voice and speed changes take effect the next time you start reading.
 
-Under **Appearance**, choose Porcelain, Botanical, Tidal, Amber or Midnight. Panels, controls and translation captions change together. Import a PNG, JPG or WebP for a personal background; Paper Voice crops and compresses it, then adds a contrast-protecting tint. Images stay on your device. Switch back to a preset or remove your image at any time.
+Tidal is the default theme. Under **Appearance**, choose Porcelain, Botanical, Tidal, Amber or Midnight. Panels, controls and translation captions change together. Import a PNG, JPG or WebP for a personal background; Paper Voice crops and compresses it, then adds a contrast-protecting tint. Images stay on your device. Switch back to a preset or remove your image at any time.
 
 <p align="center"><img src="docs/assets/settings-voice-en.png" width="280" alt="Voice settings"> <img src="docs/assets/settings-translation-en.png" width="280" alt="Translation settings"> <img src="docs/assets/settings-appearance-en.png" width="280" alt="Appearance settings"> </p>
 <p align="center"><sub>Voice, Translation and Appearance share the same compact frame. Click a screenshot to see it at full size.</sub></p>
@@ -126,7 +126,7 @@ Captions use a compact 12 px size by default. Choose a font and a size from 10�
 
 Translation languages include Simplified Chinese, Traditional Chinese, Japanese, Korean, French, English, German, Spanish and Russian. Set the interface independently to **English, 简体中文 or System**.
 
-<sub>Settings screenshots show Paper Voice 1.2.12; other screenshots show Paper Voice 1.2.6 on macOS with a purpose-made demonstration document. Windows has the same plugin controls; system menus may look different. Click an image to see it at full size.</sub>
+<sub>Settings screenshots show Paper Voice 1.2.13; other screenshots show Paper Voice 1.2.6 on macOS with a purpose-made demonstration document. Windows has the same plugin controls; system menus may look different. Click an image to see it at full size.</sub>
 
 ## Common questions
 
@@ -154,9 +154,10 @@ First, check that the PDF has selectable text; scanned pages need OCR. Then prev
 <details>
 <summary><b>Do I need the complete package for every update?</b></summary>
 
-**Usually, no.** Choose Check for updates in Settings, or install the latest `.xpi`. Your existing voice pack continues to work.
+- **Upgrading from 1.2.5 or earlier:** download the latest complete package and run the installer to reinstall offline voices once. This enables multilingual reading.
+- **Already installed a complete package from 1.2.6 or later:** no voice download is needed. Choose Check for updates in Settings, or install the latest `.xpi` to update the plugin.
 
-If you have an early English-only voice pack and want to listen in Chinese, Japanese or French, download the current complete package and update the offline voices once. If you already have multilingual voices, you do not need to reinstall them. Any future voice-pack updates will be noted separately in the release notes. The plugin uses `updates.json` automatically; you do not need to download it.
+Any future voice-pack updates will be noted separately in the release notes. The plugin uses `updates.json` automatically; you do not need to download it.
 
 </details>
 

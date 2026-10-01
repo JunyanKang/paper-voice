@@ -14,13 +14,13 @@
 
 **Windows · Intel / AMD 64 位电脑**
 
-[下载 Windows 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/Paper-Voice-1.2.12-Windows-x64.zip)
+[下载 Windows 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.13/Paper-Voice-1.2.13-Windows-x64.zip)
 
 **Mac · Apple 芯片（M 系列），macOS 14 或更新版本**
 
-[下载 Mac 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/Paper-Voice-1.2.12-macOS-arm64.zip)
+[下载 Mac 完整包 →](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.13/Paper-Voice-1.2.13-macOS-arm64.zip)
 
-已安装 Paper Voice？在插件设置中点击 **检查更新**，或[下载插件文件 `.xpi`](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.12/paper-voice-1.2.12.xpi)。
+已安装 Paper Voice？在插件设置中点击 **检查更新**，或[下载插件文件 `.xpi`](https://github.com/JunyanKang/paper-voice/releases/download/v1.2.13/paper-voice-1.2.13.xpi)。
 
 适用于 Zotero 10。[查看版本记录](CHANGELOG.md) · [查看兼容性说明](docs/COMPATIBILITY.md)
 
@@ -36,7 +36,7 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 
 ### 2. 将插件添加到 Zotero
 
-在 Zotero 中打开 **工具 → 插件 → 右上角齿轮 → 从文件安装插件**，选择完整包里的 `paper-voice-1.2.12.xpi`。
+在 Zotero 中打开 **工具 → 插件 → 右上角齿轮 → 从文件安装插件**，选择完整包里的 `paper-voice-1.2.13.xpi`。
 
 英文菜单对应 **Tools → Plugins → Install Plugin From File**。[需要更详细的安装帮助？](docs/INSTALL.md)
 
@@ -103,7 +103,7 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 
 点击面板右上角的 **设置** 图标，在 **声音／译文／外观** 三个分页中调整。播放页与设置页保持相同尺寸，中英文切换也不会改变窗口大小。**朗读语言** 默认选择「自动识别 PDF 语言」，也可手动指定。选择声音后点击 **试听当前声音**，找到适合自己的音色。语速可在 **0.60–1.60×** 之间调整，声音和语速的修改会在下次开始朗读时生效。
 
-在 **外观** 中选择玉瓷、森雾、潮汐、暮砂或深空，主窗口、控制按钮和译文卡片会一起换肤。也可导入 PNG、JPG 或 WebP 图片；插件会自动居中裁切、压缩并添加文字保护蒙版。图片只保存在本机，可以随时切回内置主题或移除。
+默认使用「潮汐」主题。在 **外观** 中选择玉瓷、森雾、潮汐、暮砂或深空，主窗口、控制按钮和译文卡片会一起换肤。也可导入 PNG、JPG 或 WebP 图片；插件会自动居中裁切、压缩并添加文字保护蒙版。图片只保存在本机，可以随时切回内置主题或移除。
 
 <p align="center"><img src="docs/assets/settings-voice-zh.png" width="280" alt="声音设置"> <img src="docs/assets/settings-translation-zh.png" width="280" alt="译文设置"> <img src="docs/assets/settings-appearance-zh.png" width="280" alt="外观设置"> </p>
 <p align="center"><sub>声音、译文、外观分开设置；标题居中，页面等宽等高。点击截图可查看大图。</sub></p>
@@ -126,7 +126,7 @@ Windows 请将安装助手与 `Resources` 文件夹放在一起。Mac 的声音�
 
 译文支持简体中文、繁体中文、日语、韩语、法语、英语、德语、西班牙语和俄语。界面可独立选择 **简体中文、English 或跟随系统**。
 
-<sub>设置截图使用 Paper Voice 1.2.12，其余截图使用 macOS 上的 Paper Voice 1.2.6 和专门制作的演示文档。Windows 使用相同的插件控件；系统菜单外观可能不同。点击图片可查看大图。</sub>
+<sub>设置截图使用 Paper Voice 1.2.13，其余截图使用 macOS 上的 Paper Voice 1.2.6 和专门制作的演示文档。Windows 使用相同的插件控件；系统菜单外观可能不同。点击图片可查看大图。</sub>
 
 ## 常见问题
 
@@ -154,9 +154,10 @@ Paper Voice 会略过可识别的数字引文、作者年份、图表引用、�
 <details>
 <summary><b>更新时需要重新下载完整包吗？</b></summary>
 
-**通常不需要。** 在设置中点击「检查更新」，或安装最新的 `.xpi`，即可更新插件，原有声音包可以继续使用。
+- **1.2.5 及更早版本的用户**：请下载最新完整包，并运行安装助手，重新安装一次离线声音，以启用多语言朗读。
+- **已安装 1.2.6 及以后完整包的用户**：无需重新下载声音包。在设置中点击「检查更新」，或安装最新的 `.xpi`，即可更新插件。
 
-如果你使用的是早期仅支持英文的声音包，且希望朗读中文、日语或法语，请下载当前完整包并更新一次离线声音；已经安装多语言声音包的用户无需重复安装。后续若有声音包更新，发布说明会单独提示。`updates.json` 由插件自动使用，无需手动下载。
+后续若有声音包更新，发布说明会单独提示。`updates.json` 由插件自动使用，无需手动下载。
 
 </details>
 

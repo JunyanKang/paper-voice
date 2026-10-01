@@ -7,26 +7,28 @@ var PaperVoiceThemes = {
     {id:'amber',name:'暮砂',paper:'#f6eee7',ink:'#49372e',muted:'#675246',accent:'#8b4b32',soft:'#edd9ca',focus:'#6c5845',highlight:'#d4996242',art:'amber'},
     {id:'midnight',name:'深空',paper:'#202937',ink:'#f0f2f6',muted:'#c0cad8',accent:'#afc9ef',soft:'#384c65',focus:'#e8c48c',highlight:'#9082cc45',art:'midnight',dark:true}
   ],
-  theme() {return this.themes.find(t=>t.id===this.get('theme','porcelain'))||this.themes[0];},
+  theme() {return this.themes.find(t=>t.id===this.get('theme','tidal'))||this.themes.find(t=>t.id==='tidal');},
   themeImage() {return this.get('themeImageEnabled',false)&&this.customThemeImage?this.customThemeImage:(this.theme().art?this.assetURI+'themes/'+this.theme().art+'.png':'');},
   setTheme(id) {if(!this.themes.some(t=>t.id===id))return;this.set('theme',id);this.set('themeImageEnabled',false);this.syncSettings();},
   applyTheme(root,caption=false) {
     const t=this.theme(),image=this.themeImage(),rgb=t.paper.match(/\w\w/g).map(x=>parseInt(x,16)).join(','),reduced=root.ownerDocument.defaultView.matchMedia('(prefers-reduced-transparency: reduce)').matches;
     root.dataset.theme=t.id;root.dataset.themeTone=t.dark?'dark':'light';
     for(const key of ['paper','ink','muted','accent','soft','focus','highlight'])root.style.setProperty('--pv-'+key,t[key]);
-    // A second tint layer protects reading contrast even over a black/white photo.
+    // Apply user transparency to the entire decorative layer, never to text or controls.
     const custom=this.get('themeImageEnabled',false)&&!!this.customThemeImage;
-    const alpha=reduced?1:1-(1-this.surfaceOpacity())*(custom ? .05 : caption ? .075 : .15);
+    const alpha=reduced?1:this.surfaceOpacity();
     root.style.setProperty('--pv-glass',`rgba(${rgb},${alpha})`);
     root.style.setProperty('--pv-glass-line',t.dark?'#ffffff20':'#ffffff80');
     root.style.setProperty('--pv-glass-shadow',t.dark?'0 8px 28px #0005':'0 8px 28px #23393022,0 1px 3px #23393010');
     root.style.setProperty('--pv-art',image&&!reduced?`url("${image}")`:'none');
-    root.style.setProperty('--pv-art-opacity',String(reduced?0:caption ? .04 : custom ? .08 : .42));
+    root.style.setProperty('--pv-art-opacity',String(alpha));
+    root.style.setProperty('--pv-image-mask',`rgba(${rgb},${caption ? .96 : custom ? .92 : .58})`);
+    root.style.setProperty('--pv-text-halo',alpha<1?'0 1px 2px var(--pv-paper),0 0 4px var(--pv-paper)':'none');
     root.style.setProperty('--pv-icon-filter',t.dark?'brightness(0) invert(.92)':'brightness(0) opacity(.78)');
     root.style.setProperty('--pv-primary-ink',t.dark?'#202937':'#ffffff');
     root.style.setProperty('--pv-primary-filter',t.dark?'brightness(0) opacity(.85)':'brightness(0) invert(1)');
     root.style.colorScheme=t.dark?'dark':'light';
-    if(caption){root.style.color=t.ink;root.style.backgroundColor=`rgba(${rgb},${alpha})`;root.style.backgroundImage='none';root.style.isolation='isolate';root.style.boxShadow='var(--pv-glass-shadow), inset 0 0 0 1px var(--pv-glass-line)';}
+    if(caption){root.style.color=t.ink;root.style.backgroundColor='transparent';root.style.textShadow='var(--pv-text-halo)';root.style.backgroundImage='none';root.style.isolation='isolate';root.style.boxShadow='var(--pv-glass-shadow), inset 0 0 0 1px var(--pv-glass-line)';}
   },
   syncTheme(root) {
     this.applyTheme(root);
