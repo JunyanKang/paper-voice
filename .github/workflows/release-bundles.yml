@@ -1,0 +1,35 @@
+name: Restore release bundles
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Draft release tag with an uploaded release-delta.zip
+        required: true
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: release-bundles-${{ inputs.tag }}
+  cancel-in-progress: false
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch the validated delta
+        run: gh release download "$RELEASE_TAG" --pattern release-delta.zip --dir .build
+      - name: Restore and verify exact ZIP bytes
+        run: python3 scripts/restore_release_bundles.py .build/release-delta.zip .build/bundles "$RELEASE_TAG"
+      - name: Upload complete packages
+        run: |
+          version="${RELEASE_TAG#v}"
+          gh release upload "$RELEASE_TAG" ".build/bundles/Paper-Voice-$version-macOS-arm64.zip" ".build/bundles/Paper-Voice-$version-Windows-x64.zip" --clobber
+      - name: Remove the temporary delta
+        run: gh release delete-asset "$RELEASE_TAG" release-delta.zip --yes
