@@ -157,7 +157,7 @@ Text translation targets include Simplified Chinese, Traditional Chinese, Japane
 
 ### Listen only to the translation
 
-Turn on **Read translation** to hear translated sentences while the PDF's original text remains highlighted and in view. Turn it off to return to the original audio. Changes during playback apply from the next sentence.
+Turn on **Read translation** to hear translated sentences while the PDF's original text remains highlighted and in view. Turn it off to return to the original audio. Changes during playback apply from the next sentence. A small headphone mark below the translation language shows that translated audio is enabled; both switches update it together.
 
 Translated audio supports Chinese, Japanese, French and English. Other target languages are available as text but do not have an offline voice.
 

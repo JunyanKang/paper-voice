@@ -416,7 +416,8 @@ var PaperVoice = {
       action('quickTranslate').setAttribute('aria-pressed',String(this.get('translation',false)));
       const language=this.translationLanguage();
       find('quickTranslateLabel').textContent=language.badge;
-      action('quickTranslate').title='单击切换译文语言 · 双击关闭译文 · '+language.label+(this.shortcutBindings().translation?' · '+this.shortcutLabel('translation'):'');
+      if(find('quickTranslationAudio'))find('quickTranslationAudio').hidden=!this.get('readTranslation',false);
+      action('quickTranslate').title='单击切换译文语言 · 双击关闭译文 · '+language.label+(this.get('readTranslation',false)?' · '+this.t('朗读译文'):'')+(this.shortcutBindings().translation?' · '+this.shortcutLabel('translation'):'');
       action('quickTranslate').setAttribute('aria-keyshortcuts',PaperVoiceShortcuts.aria(this.shortcutBindings().translation));
       action('quickTranslate').setAttribute('aria-label',action('quickTranslate').title);
       find('quick').hidden=false;

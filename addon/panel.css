@@ -164,3 +164,8 @@
 .pv-panel .pv-shortcut-footer button{font-size:10px;color:var(--pv-muted);padding:1px 8px;border-radius:6px}
 .pv-shortcut-status{height:15px;margin-top:3px;text-align:center;color:var(--pv-muted);font-size:10px;line-height:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-height:640px){.pv-shortcut-row{height:20px}.pv-panel .pv-shortcut-key{height:16px}.pv-shortcut-group{margin-top:3px}.pv-shortcut-footer{margin-top:2px;height:18px}.pv-shortcut-status{height:14px;line-height:14px;margin-top:1px}}
+
+/* A listening badge below the target language distinguishes translated audio. */
+.pv-quick [data-action=quickTranslate]{flex-direction:column;gap:2px}
+.pv-translation-audio-indicator{display:flex;align-items:center;justify-content:center;height:9px;line-height:0;color:var(--pv-accent)}
+.pv-quick [data-field=quickTranslationAudio] .pv-icon{width:10px;height:9px;opacity:1}
