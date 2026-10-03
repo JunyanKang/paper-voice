@@ -142,6 +142,10 @@ var PaperVoice = {
     const selected={text,pageIndex:position?.pageIndex??null,position:position?JSON.parse(JSON.stringify(position)):null,anchorOffset:this.selectionAnchor?.(reader,position)??null};
     button.addEventListener('click', async e => {
       e.preventDefault();e.stopPropagation();if(button.disabled)return;
+      const internal=reader._internalReader;
+      const popupKeys=internal?._lastViewPrimary===false?['secondaryViewSelectionPopup','primaryViewSelectionPopup']:['primaryViewSelectionPopup','secondaryViewSelectionPopup'];
+      const popupKey=popupKeys.find(key=>{const popup=internal?._state?.[key];return popup&&PaperVoiceCore.cleanText(popup.annotation?.text)===PaperVoiceCore.cleanText(params.annotation?.text)&&JSON.stringify(popup.annotation?.position)===JSON.stringify(selected.position);});
+      const popup=popupKey?internal._state[popupKey]:null;
       this.clearSelectionTimers();this.selectionContexts.set(reader,selected);this.lastText=text;this.lastReader=reader;
       this.currentSentence='';this.readProgress=null;
       this.showPanel(reader);const panel=this.panels.get(reader);if(panel&&!panel.find('settingsPage').hidden)panel.action('settings').click();
@@ -149,13 +153,17 @@ var PaperVoice = {
       try{
         if(this.get('mode','selection')==='document'&&!fromSelection()){this.stop();this.set('mode','selection');this.syncSettings();}
         const task=fromSelection()?this.startDocument(reader,'selection'):this.speak(text,reader);
-        this.selectionAction={button,reader,generation:this.generation};this.updateSelectionAction();await task;
+        this.selectionAction={button,reader,generation:this.generation,popupKey,popup};this.updateSelectionAction();await task;
       }catch(error){this.setStatus(error.message||String(error),'error');}
       finally{this.updateSelectionAction();}
     });
-    this.localize(button);append(button);
+    this.localize(button);
     this.selectedPage=params.annotation?.position?.pageIndex ?? null;
     this.selectionContexts.set(reader,selected);
+    if(typeof PaperVoiceSelectionUI!=='undefined'){
+      const ui=PaperVoiceSelectionUI.create(this,doc,button);button.textContent=button.textContent.replace(/^▶\s*/,'');append(ui.card);
+      this.translateSelection(reader,selected,ui);
+    }else append(button);
     if (!this.get('auto', true) || this.get('mode','selection')==='document') return;
     const key = text + JSON.stringify(params.annotation?.position || {});
     if (this.lastSelections.get(reader) === key) return;
@@ -168,6 +176,30 @@ var PaperVoice = {
     this.timers.set(reader, timer);
   },
   clearSelectionTimers() { for (const t of this.timers.values()) this.host.clearTimeout(t); this.timers.clear(); },
+  translateSelection(reader,selection,ui) {
+    if(!this.get('selectionTranslation',true)){ui.heading.hidden=true;ui.translation.hidden=true;return;}
+    const refresh=()=>{
+      const ticket=selection.translationTicket=(selection.translationTicket||0)+1;
+      ui.card.dataset.translationState='loading';ui.translation.textContent=this.t('正在翻译…');ui.retry.hidden=true;
+      const target=this.get('translationTarget','zh-Hans'),provider=this.get('translationProvider','tencenttransmart');
+      ui.language.textContent=this.t(this.translationLanguage().label);
+      this.host.setTimeout(async()=>{
+        const current=()=>!this.dead&&ui.card.isConnected&&this.selectionContexts.get(reader)===selection&&selection.translationTicket===ticket;
+        if(!current())return;
+        try{
+          const chars=reader._internalReader?._primaryView?._pdfPages?.[selection.pageIndex]?.chars||[];
+          const source=PaperVoiceCore.detectSpeechLanguage(selection.text,chars.slice(0,5000).map(x=>x.u||x.c||'').join(''))||this.speechLanguage();
+          const result=await this.translate(selection.text,source,{provider,target});
+          if(!current())return;
+          ui.translation.textContent=result.text;ui.card.dataset.translationState='ready';
+        }catch(error){
+          if(!current())return;
+          ui.translation.textContent=this.t('翻译暂不可用');ui.translation.title=this.t(error.message||String(error));ui.card.dataset.translationState='error';ui.retry.hidden=false;
+        }
+      },220);
+    };
+    ui.retry.onclick=refresh;refresh();
+  },
   ensurePanel(reader) {
     const old=this.panels.get(reader);
     if(old){try{if(old.root.isConnected&&old.root.ownerDocument===reader._iframeWindow.document)return old;}catch(_){}this.panels.delete(reader);}
@@ -266,6 +298,7 @@ var PaperVoice = {
       find('autoRow').hidden=mode==='document';find('modeNote').textContent=this.modeHint();
       for (const b of root.querySelectorAll('[data-mode]'))b.setAttribute('aria-pressed',String(b.dataset.mode===mode));
       const currentMode=PaperVoiceCore.modes.find(x=>x.id===mode)||PaperVoiceCore.modes[0];
+      if(find('selectionTranslation'))find('selectionTranslation').checked=this.get('selectionTranslation',true);
       if(find('translation'))find('translation').checked=this.get('translation',false);
       if(find('readTranslation')){
         find('readTranslation').checked=this.get('readTranslation',false);
@@ -308,9 +341,21 @@ var PaperVoice = {
     const {button,reader,generation}=action;
     const current=generation===this.generation&&reader===this.currentReader,active=current&&['loading','playing','paused'].includes(this.state);
     button.disabled=!!active;button.setAttribute('aria-busy',String(current&&this.state==='loading'));
+    button.dataset.state=current?this.state:'idle';
     const label=active?(this.state==='loading'?'准备中…':this.state==='playing'?'正在朗读':'已暂停'):current&&this.state==='error'?'重试朗读':this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection'?'▶ 从此句开始连读':'▶ 自然朗读';
-    button.textContent=this.t(label);button.title=current?this.t(this.status):'';
-    if(!current||!button.isConnected)this.selectionAction=null;
+    button.textContent=this.t(button.classList?.contains('pv-selection-read')?label.replace(/^▶\s*/,''):label);button.title=current?this.t(this.status):'';
+    const popup=reader._internalReader?._state?.[action.popupKey];
+    if(!current||!button.isConnected&&(!action.popup||popup?.annotation!==action.popup.annotation))this.selectionAction=null;
+  },
+  dismissReadingSelectionPopup(reader,generation) {
+    const action=this.selectionAction;
+    if(!action||action.reader!==reader||action.generation!==generation||generation!==this.generation)return;
+    const internal=reader._internalReader;
+    // Close only the popup that started this audio. A newer selection, another
+    // PDF or an audio request cancelled during preparation must remain untouched.
+    if(!action.popupKey||!action.popup||internal?._state?.[action.popupKey]?.annotation!==action.popup.annotation)return;
+    const view=action.popupKey==='secondaryViewSelectionPopup'?internal._secondaryView:internal._primaryView;
+    try{view?._onSetSelectionPopup?.(null);this.selectionAction=null;}catch(error){Zotero.logError(error);}
   },
   setStatus(message, state = this.state) { this.status = message; this.state = state; this.updatePanels();this.updateSelectionAction(); },
   updatePanels() {
@@ -886,7 +931,11 @@ var PaperVoice = {
     return new Promise((resolve,reject) => {
       this.audioDone = resolve;
       audio.onended = resolve;
-      audio.onplaying = () => this.rememberPlayback(this.pendingProgress||progress);
+      audio.onplaying = () => {
+        if(generation!==this.generation||this.audio!==audio||audio.paused)return;
+        this.rememberPlayback(this.pendingProgress||progress);
+        this.dismissReadingSelectionPopup(reader,generation);
+      };
       audio.ontimeupdate = () => {if(generation===this.generation&&this.audio===audio&&!audio.paused)onProgress?.(audio.currentTime);};
       audio.onerror = () => reject(new Error('无法播放音频，请检查音频输出后重试'));
       this.resumeStatus = message;

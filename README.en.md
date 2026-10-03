@@ -42,7 +42,7 @@ Choose Chinese, English, Japanese, French or German for the interface in Setting
 
 [Modes and repeats](docs/GUIDE.en.md#choose-a-reading-mode) · [Resume your place](docs/GUIDE.en.md#read-continuously-and-resume) · [Translation and translated audio](docs/GUIDE.en.md#see-or-hear-a-translation) · [Keyboard shortcuts](docs/GUIDE.en.md#keyboard-shortcuts)
 
-The package includes offline voices and their runtime: no subscription, API key or separate Python installation is needed. Translation needs internet access and defaults to Tencent for mainland China. When enabled, relevant text is sent to your selected service. [Privacy details](PRIVACY.md)
+The package includes offline voices and their runtime: no subscription, API key or separate Python installation is needed. Translation needs internet access and defaults to Tencent for mainland China. Selection translation is on by default and sends selected text to that service; you can turn it off in Settings. [Privacy details](PRIVACY.md)
 
 ## Updating
 

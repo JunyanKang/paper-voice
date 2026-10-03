@@ -66,7 +66,7 @@ In **Document** mode, use **Start at**:
 | **Last position** | Returns to the most recent position in this PDF, including reading in Sentence, Select or Paragraph mode |
 | **Selected sentence** | Starts at the beginning of the sentence containing your selection |
 
-To listen from a specific sentence onward: choose **Selected sentence** → select a word in that sentence → click **Read from this sentence**. The panel opens to show preparation progress. If reading cannot start, the panel explains why and the selection button lets you retry.
+To listen from a specific sentence onward: choose **Selected sentence** → select a word in that sentence → click **Read from this sentence**. The panel opens to show preparation progress, and the selection popup closes when audio starts. If reading cannot start, the panel explains why and the selection button lets you retry.
 
 <p align="center"><img src="assets/continuous-en.png" width="960" alt="Document mode starting from a selected sentence, with source highlighting and translation nearby"></p>
 <p align="center"><sub>Figure 3 · Source highlighting and nearby translation help you keep your place during continuous reading.</sub></p>
@@ -117,6 +117,10 @@ The complete package includes offline voices that generate speech on your comput
 
 ## See or hear a translation
 
+Selecting text automatically shows its translation above the reading button in the selection popup. It uses your chosen service and target language, then closes when audio starts. Turn off **Selection** in Translation settings to disable this feature; it is independent of translations shown during playback.
+
+<p align="center"><img src="assets/selection-translation-en.png" width="318" alt="A compact selection popup shows the translation above a separate reading action"></p>
+
 Open **Settings → Translation** to choose a service and target language.
 
 <p align="center"><img src="assets/settings-translation-en.png" width="420" alt="Translation settings with separate display and audio switches, service, target language and caption font and size"></p>
@@ -124,7 +128,7 @@ Open **Settings → Translation** to choose a service and target language.
 
 ### Listen to the original and read the translation
 
-Turn on **Show translation**. Translated text appears near the current source passage and follows the reading position. This setting alone does not play translated audio.
+Turn on **Captions**. Translated text appears near the current source passage and follows the reading position. This setting alone does not play translated audio.
 
 Text translation targets include Simplified Chinese, Traditional Chinese, Japanese, Korean, French, English, German, Spanish and Russian. Adjust **Caption font** and **Caption size** on the same page.
 

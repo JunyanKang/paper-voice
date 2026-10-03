@@ -81,7 +81,7 @@ var PaperVoiceUI = {
     <button class="pv-sample" data-action="sample">${icon('headphones')}试听当前声音</button>
      </div>
      <div id="pv-settings-translation" data-settings-pane="translation" role="tabpanel" aria-labelledby="pv-tab-translation" hidden>
-    <label class="pv-setting-row pv-translation-row"><span>跟读译文</span><input type="checkbox" data-field="translation"/></label>
+    <div class="pv-setting-row pv-translation-row pv-translation-switches"><label><span>划词翻译</span><input type="checkbox" data-field="selectionTranslation"/></label><label><span>跟读译文</span><input type="checkbox" data-field="translation"/></label></div>
     <label class="pv-setting-row" data-field="readTranslationRow"><span>朗读译文</span><input type="checkbox" data-field="readTranslation"/></label>
     <div class="pv-setting-row"><label for="pv-provider">翻译服务</label><select id="pv-provider" data-field="provider" aria-label="免费翻译服务"><option value="tencenttransmart">腾讯 · 大陆优先</option><option value="bing">微软 · 免费</option><option value="google">Google · 海外</option></select></div>
     <div class="pv-setting-row"><label for="pv-target">译文语言</label><select id="pv-target" data-field="target" aria-label="译文语言"><option value="zh-Hans">简体中文</option><option value="zh-Hant">繁體中文</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="fr">Français</option><option value="en">English</option><option value="de">Deutsch</option><option value="es">Español</option><option value="ru">Русский</option></select></div>
@@ -125,6 +125,7 @@ var PaperVoiceUI = {
   find('captionFont').onchange=e=>controller.setCaptionStyle('captionFont',e.target.value);find('captionSize').onchange=e=>controller.setCaptionStyle('captionSize',e.target.value);
   find('transparency').oninput=e=>controller.setSurfaceTransparency(e.target.value);
   find('readTranslation').onchange=e=>controller.setReadTranslation(e.target.checked);
+  find('selectionTranslation').onchange=e=>{controller.set('selectionTranslation',e.target.checked);controller.syncSettings();};
   find('translation').onchange=e=>controller.toggleTranslation(e.target.checked);
   action('quickTranslate').onclick=e=>controller.quickTranslationClick(e);
   action('quickTranslate').ondblclick=e=>{e.preventDefault();controller.quickTranslationDoubleClick();};

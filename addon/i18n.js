@@ -2,6 +2,9 @@
 var PaperVoiceI18n = (() => {
  const catalogs = {
   "en": {
+    "划词翻译": "Selection",
+    "重试翻译": "Retry translation",
+    "翻译暂不可用": "Translation unavailable",
     "定位中…": "Locating…",
     "准备中…": "Preparing…",
     "重试朗读": "Retry reading",
@@ -129,7 +132,7 @@ var PaperVoiceI18n = (() => {
     "朗读语速": "Reading speed",
     "语速": "Speed",
     "划选后自动朗读": "Auto-read selection",
-    "跟读译文": "Show translation",
+    "跟读译文": "Captions",
     "免费翻译服务": "Translation service",
     "翻译服务": "Service",
     "译文语言": "Translate into",
@@ -231,6 +234,9 @@ var PaperVoiceI18n = (() => {
     "英音 · 男声": "UK · Male"
   },
   "ja": {
+    "划词翻译": "選択翻訳",
+    "重试翻译": "翻訳を再試行",
+    "翻译暂不可用": "翻訳できません",
     "定位中…": "位置を確認中…",
     "准备中…": "準備中…",
     "重试朗读": "再試行",
@@ -460,6 +466,9 @@ var PaperVoiceI18n = (() => {
     "英音 · 男声": "英国英語・男性"
   },
   "fr": {
+    "划词翻译": "Sélection",
+    "重试翻译": "Réessayer",
+    "翻译暂不可用": "Traduction indisponible",
     "定位中…": "Repérage…",
     "准备中…": "Préparation…",
     "重试朗读": "Réessayer",
@@ -587,7 +596,7 @@ var PaperVoiceI18n = (() => {
     "朗读语速": "Vitesse de lecture",
     "语速": "Vitesse",
     "划选后自动朗读": "Lecture auto à la sélection",
-    "跟读译文": "Afficher la traduction",
+    "跟读译文": "Sous-titres",
     "免费翻译服务": "Service de traduction",
     "翻译服务": "Service",
     "译文语言": "Langue cible",
@@ -689,6 +698,9 @@ var PaperVoiceI18n = (() => {
     "英音 · 男声": "UK · Homme"
   },
   "de": {
+    "划词翻译": "Auswahl",
+    "重试翻译": "Erneut übersetzen",
+    "翻译暂不可用": "Übersetzung nicht verfügbar",
     "定位中…": "Position suchen…",
     "准备中…": "Vorbereitung…",
     "重试朗读": "Erneut versuchen",
@@ -816,7 +828,7 @@ var PaperVoiceI18n = (() => {
     "朗读语速": "Lesegeschwindigkeit",
     "语速": "Tempo",
     "划选后自动朗读": "Auswahl automatisch lesen",
-    "跟读译文": "Übersetzung anzeigen",
+    "跟读译文": "Untertitel",
     "免费翻译服务": "Übersetzungsdienst",
     "翻译服务": "Dienst",
     "译文语言": "Zielsprache",

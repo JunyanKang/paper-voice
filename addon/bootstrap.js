@@ -7,6 +7,7 @@ async function startup({ rootURI, version }, reason) {
   Services.scriptloader.loadSubScript(rootURI + 'i18n.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'panel-style.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'panel.js', PaperVoiceScope);
+  Services.scriptloader.loadSubScript(rootURI + 'selection-popup.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'translation.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'updater.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'themes.js', PaperVoiceScope);
