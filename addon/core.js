@@ -307,7 +307,7 @@ var PaperVoiceCore = (() => {
     });
 
     text=text.replace(new RegExp('('+quantity+')\\s*[×x]\\s*g'+boundary,'gu'),(_,n)=>numeral(n)+({en:' times gravity',zh:'倍重力加速度',ja:'倍の重力加速度',fr:' fois la gravité'}[lang]));
-    const inversePower='(?:⁻[⁰¹²³⁴⁵⁶⁷⁸⁹]+|[−-][123]|\\^\\s*(?:\\{-[1-9]\\d*\\}|-[1-9]\\d*))';
+    const inversePower='(?:⁻[⁰¹²³⁴⁵⁶⁷⁸⁹]+|[−-][123]|\\^\\s*(?:\\{[−-][1-9]\\d*\\}|[−-][1-9]\\d*))';
     const factor='(?:[/·⋅]\\s*'+atom+'|'+unit+'\\s*'+inversePower+')';
     const pattern=new RegExp('(?<![\\p{Script=Latin}\\p{Script=Greek}\\p{N}_])('+quantity+')\\s*('+atom+')'+boundary+'((?:\\s*'+factor+boundary+')*)','gu');
     const figureRanges=Array.from(text.matchAll(figureReferencePattern()),m=>({start:m.index,end:m.index+m[0].length}));
@@ -319,7 +319,7 @@ var PaperVoiceCore = (() => {
       if(lang==='zh'&&(token==='%'||token==='‰'))return spoken+amount;
       if(lang==='ja'&&(token==='°C'||token==='°F'))return (token==='°C'?'摂氏':'華氏')+amount+'度';
       for(const part of rest.matchAll(new RegExp('([/·⋅])?\\s*('+atom+')','gu'))){
-        const inverse=/(?:⁻[⁰¹²³⁴⁵⁶⁷⁸⁹]+|[−-][123]|\^(?:\{-[1-9]\d*\}|-[1-9]\d*))$/.test(part[2]);
+        const inverse=/(?:⁻[⁰¹²³⁴⁵⁶⁷⁸⁹]+|[−-][123]|\^(?:\{[−-][1-9]\d*\}|[−-][1-9]\d*))$/.test(part[2]);
         spoken+=inverse&&part[1]!=='/'?' '+name(part[2],false):(part[1]==='/'?per:({en:' times ',zh:'乘',ja:'掛ける',fr:' fois '}[lang]))+name(part[2],false);
       }
       return amount+(['zh','ja'].includes(lang)?'':' ')+spoken;
@@ -347,7 +347,8 @@ var PaperVoiceCore = (() => {
     const formulas='H\\s*[₂2]\\s*O\\s*[₂2]|C\\s*O\\s*[₂2]|H\\s*[₂2]\\s*O|O\\s*[₂2]|N\\s*O\\s*[₂2]';
     value=value.replace(new RegExp('(?<![\\p{L}\\p{N}_])(?:'+formulas+')(?![\\p{L}\\p{N}_₂])','gu'),raw=>chemicals[raw.replace(/\s/g,'').replace(/₂/g,'2')]?.[col]||raw);
     const ions={Ca:['calcium','钙','カルシウム','calcium'],Mg:['magnesium','镁','マグネシウム','magnésium'],Na:['sodium','钠','ナトリウム','sodium'],K:['potassium','钾','カリウム','potassium'],Cl:['chloride','氯','塩化物','chlorure'],H:['hydrogen','氢','水素','hydrogène']};
-    value=value.replace(/(?<![\p{L}\p{N}_])(Ca|Mg|Na|K|Cl|H)\s*([²2])?\s*([⁺⁻+−-])(?![\p{L}\p{N}_])/gu,(raw,atom,two,sign)=>{
+    value=value.replace(/(?<![\p{L}\p{N}_])(Ca|Mg|Na|K|Cl|H)\s*([²2])?\s*([⁺⁻+−-])(?![\p{L}\p{N}_])/gu,(raw,atom,two,sign,at)=>{
+      if(/\s[+−-]$/.test(raw)&&/^\s*\d/.test(value.slice(at+raw.length)))return raw;
       const positive=/[⁺+]/.test(sign),charge=(two?({en:' two',zh:'二',ja:'二',fr:' deux'}[language]):'')+(positive?{en:' plus',zh:'正',ja:'プラス',fr:' plus'}:{en:' minus',zh:'负',ja:'マイナス',fr:' moins'})[language];
       return ions[atom][col]+charge;
     });
