@@ -161,7 +161,9 @@ The font list uses families installed on your computer. In the Chinese interface
 
 ### Listen only to the translation
 
-Turn on **Read translation** to hear translated sentences while the PDF's original text remains highlighted and in view. Turn it off to return to the original audio. Changes during playback apply from the next sentence. A small headphone mark below the translation language shows that translated audio is enabled; both switches update it together.
+Turn on **Read translation** to hear translated sentences while the PDF's original text remains highlighted and in view. Turn it off to return to the original audio. Changes during playback apply from the next sentence. A small headphone mark below the translation language shows that translated audio is enabled; the settings switch and compact hover button update it together.
+
+Chinese audio reads quantities by value: `78,000–89,000` becomes “七万八千至八万九千,” while the displayed numbers stay unchanged. Common retinal terms use consistent Chinese names, such as “米勒细胞” for `Müller cells`. Numeric ranges are protected from translation into multiplication.
 
 Translated audio supports Chinese, Japanese, French and English. Other target languages are available as text but do not have an offline voice.
 
@@ -169,8 +171,10 @@ Translated audio supports Chinese, Japanese, French and English. Other target la
 
 - **Click the translation button:** cycle through target languages; its language label changes to match.
 - **Double-click:** hide translations.
-- **Hover:** reveal the Read translation switch above the button, then click to choose translated or original audio.
+- **Hover:** reveal the compact headphone button, then click to choose translated or original audio. Gray means original audio; the theme accent means translated audio.
 - **Option + T on Mac / Alt + T on Windows:** show or hide translations without changing the target language.
+
+<p align="center"><img src="assets/translation-audio-en.png" width="340" alt="Compact headphone button: theme accent indicates translated audio"></p>
 
 ### Choose a translation service
 

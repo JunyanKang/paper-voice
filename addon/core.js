@@ -112,11 +112,15 @@ var PaperVoiceCore = (() => {
   function isAuthorCitation(inside) {
     // PDF fonts use several visually identical hyphens in compound surnames.
     // Normalize only the recognition copy; source offsets and scientific text stay intact.
-    inside=inside.replace(/[\p{Pd}−]/gu,'-').replace(/([\p{L}])\s*\u0000\s*(?=[\p{L}])/gu,'$1-').replace(/\s*-\s*/g,'-');
+    inside=inside.normalize('NFC').replace(/[\p{Pd}−]/gu,'-').replace(/([\p{L}])\s*\u0000\s*(?=[\p{L}])/gu,'$1-').replace(/\s*-\s*/g,'-');
     // PDF.js may emit a ligature as its own text item (Rosen / fi / eld).
     // Repair only the citation recognition copy, preserving PDF highlight offsets.
     inside=inside.replace(/([\p{L}])\s+(ff[il]?|fi|fl)\s+(?=\p{Ll})/gu,'$1$2');
-    const author="[\\p{Lu}][\\p{L}'’.-]+(?:\\s+(?:[\\p{Lu}][\\p{L}'’.-]+|(?:and|&)\\s+[\\p{Lu}][\\p{L}'’.-]+|et\\s+al\\.?))*";
+    // Bounded surname particles cover Ramón y Cajal, de la Cruz and van der
+    // Waals without accepting arbitrary lower-case scientific explanations.
+    const capital="[\\p{Lu}][\\p{L}\\p{M}'’.-]*",particle="(?:y|e|de|del|da|dos|di|du|la|le|van|von|der|den|ten|ter)";
+    const surname="(?:"+particle+"\\s+)*"+capital;
+    const author=surname+"(?:\\s+(?:"+surname+"|(?:and|&)\\s+"+surname+"|et\\s+al\\.?))*";
     const citation=new RegExp('^'+author+',?\\s*(?:18|19|20)\\d{2}[a-z]?(?:\\s*,\\s*(?:18|19|20)\\d{2}[a-z]?)*$','u');
     return inside.split(/\s*;\s*/).every(part=>citation.test(part.trim())&&!/^(?:January|February|March|April|May|June|July|August|September|October|November|December|Figure|Table|Version|Group|Cohort|Trial)\b/.test(part.trim()));
   }
@@ -299,7 +303,8 @@ var PaperVoiceCore = (() => {
       if(exponent&&exponent!=='1'&&exponent!=='2'&&exponent!=='3')word+=({en:' to the power of ',zh:'的',ja:'の',fr:' puissance '}[lang])+exponent+({en:'',zh:'次方',ja:'乗',fr:''}[lang]);
       return negative?per.trim()+' '+word:word;
     };
-    let text=scientificScriptSpeech(cleanText(value),lang).replace(/µ/g,'μ').replace(/℃/g,'°C').replace(/℉/g,'°F').replace(/º(?=\s*[CF])/g,'°');
+    let text=scientificScriptSpeech(cleanText(value).replace(/[０-９]/g,x=>String(x.charCodeAt(0)-0xff10)).replace(/(?<=\d)．(?=\d)/g,'.').replace(/％/g,'%'),lang).replace(/µ/g,'μ').replace(/℃/g,'°C').replace(/℉/g,'°F').replace(/º(?=\s*[CF])/g,'°');
+    if(lang==='en'||lang==='zh')text=englishWordSpeech(text);
     text=ratioSpeech(text,lang);
     text=text.replace(/(?<![\p{L}\p{N}_])((?:\d+(?:\.\d+)?)\s*[×⋅]\s*)?10\s*(?:\^\s*\{?([+−-]?\d+)\}?|([⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+))(?![\p{L}\p{N}_])/gu,(_,factor,plain,raised)=>{
       const exponent=(plain||raised).replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g,x=>String(superDigits.indexOf(x))).replace(/[⁻−]/g,'-').replace(/⁺/g,'+');
@@ -330,16 +335,67 @@ var PaperVoiceCore = (() => {
       if(/https?:\/\/\S*$|\b10\.\d{4,9}\/\S*$/.test(text.slice(0,at)))return whole;
       const denominator=raw.replace(/\s+([23])$/,'$1');return (whole.startsWith('/')?' ':'')+per.trim()+' '+name(denominator,false);
     });
+    if(lang==='zh')text=text.replace(new RegExp('每\\s*('+atom+')(?![\\p{Script=Latin}\\p{Script=Greek}_])','gu'),(_,raw)=>'每'+name(raw,false));
     // Spell decimal fractional digits explicitly; front-end phonemizers can
     // drop the point in coordinated measurements. Protect IDs, URLs and figures.
     const protectedRanges=Array.from(text.matchAll(/https?:\/\/\S+|\b10\.\d{4,9}\/\S+|\b\d+(?:\.\d+){2,}\b/gu),m=>({start:m.index,end:m.index+m[0].length}));
     protectedRanges.push(...Array.from(text.matchAll(figureReferencePattern()),m=>({start:m.index,end:m.index+m[0].length})));
     const digits={en:['zero','one','two','three','four','five','six','seven','eight','nine'],zh:['零','一','二','三','四','五','六','七','八','九'],ja:['ゼロ','一','二','三','四','五','六','七','八','九'],fr:['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf']}[lang];
-    return cleanText(text.replace(/(?<![\p{Script=Latin}\p{Script=Greek}\p{N}_.])(?:\d+)?\.\d+(?![\p{Script=Latin}\p{Script=Greek}\p{N}_]|\.\d)/gu,(decimal,at)=>{
-      if(protectedRanges.some(r=>at>=r.start&&at<r.end)||/\b(?:version|ver|v)\s*$/i.test(text.slice(Math.max(0,at-12),at)))return decimal;
+    text=cleanText(text.replace(/(?<![\p{Script=Latin}\p{Script=Greek}\p{N}_.])(?:\d{1,3}(?:[,，]\d{3})+|\d+)?\.\d+(?![\p{Script=Latin}\p{Script=Greek}\p{N}_]|\.\d)/gu,(decimal,at)=>{
+      if(protectedRanges.some(r=>at>=r.start&&at<r.end)||/(?:\b(?:version|ver|v)|版本|编号|序号|图|表|公式)\s*[:：]?\s*$/i.test(text.slice(Math.max(0,at-12),at)))return decimal;
       const [integer,fraction]=decimal.split('.'),head=!integer||/^0+$/.test(integer)?digits[0]:integer;
       return head+({en:' point ',zh:'点',ja:'点',fr:' virgule '}[lang])+Array.from(fraction,x=>digits[Number(x)]).join(['en','fr'].includes(lang)?' ':'');
     }));
+    return lang==='zh'?chineseNumberSpeech(text):text;
+  }
+  function englishWordSpeech(value) {
+    // Uppercase does not make an ordinary word an acronym. Use a bounded
+    // lexicon so DNA/RNA, layer abbreviations and gene names stay untouched.
+    const words=new Set(('ON OFF THE AND OR OF TO IN AT AS IS ARE WAS WERE BE BEEN BEING FOR FROM WITH WITHOUT BY NOT THIS THAT THESE THOSE IT ITS THEY THEIR THEM WE OUR YOU YOUR A AN IF THEN THAN INTO OUT OVER UNDER BETWEEN THROUGH DURING BEFORE AFTER EACH BOTH ALL ANY SOME MANY MOST MORE LESS ALSO ONLY CAN COULD MAY MIGHT WILL WOULD SHOULD MUST HAS HAVE HAD DO DOES DID SUCH WHICH WHO WHEN WHERE WHILE WHETHER ABOUT AGAIN VERY HOW WHAT HERE THERE CELL CELLS LAYER LAYERS CENTER CENTRE RETINA RETINAL FOVEA FOVEAL LIGHT DARK SIGNAL SIGNALS FUNCTION FUNCTIONS STRUCTURE DEVELOPMENT').split(' '));
+    return value.replace(/\b[A-Z]{2,}\b/g,word=>words.has(word)?word.toLowerCase():word);
+  }
+  function chineseNumberSpeech(value) {
+    const digits='零一二三四五六七八九';
+    const integer=raw=>{
+      raw=raw.replace(/[,，\s]/g,'').replace(/^0+(?=\d)/,'');
+      // Work on decimal strings, never floating-point values: all digits stay exact.
+      if(raw.length>16)return Array.from(raw,x=>digits[Number(x)]).join('');
+      const groups=[];for(let end=raw.length;end>0;end-=4)groups.unshift(raw.slice(Math.max(0,end-4),end));
+      let spoken='',gap=false;
+      for(let i=0;i<groups.length;i++){
+        const group=groups[i],n=Number(group);if(!n){if(spoken)gap=true;continue;}
+        if(spoken&&(gap||n<1000))spoken+='零';gap=false;
+        let part='',zero=false;
+        for(let j=0;j<group.length;j++){
+          const d=Number(group[j]),power=group.length-j-1;
+          if(!d){if(part)zero=true;continue;}
+          if(zero)part+='零';zero=false;part+=digits[d]+['','十','百','千'][power];
+        }
+        spoken+=part+['','万','亿','万亿'][groups.length-i-1];
+      }
+      return (spoken||'零').replace(/^一十/,'十');
+    };
+    value=value.replace(/(?<![\p{Script=Latin}\p{Script=Greek}\p{N}_])(\d+(?:\.\d+)?)[eE]([+−-]?\d+)(?![\p{L}\p{N}_])/gu,(raw,base,exponent,at)=>{const before=value.slice(0,at);if(/https?:\/\/\S*$|\b10\.\d{4,9}\/\S*$|(?:编号|版本|ID|version)\s*[:：]?\s*$/i.test(before))return raw;return base+'乘十的'+exponent.replace(/^[−-]/,'负').replace(/^\+/,'')+'次方';});
+    const token='(?:\\d{1,3}(?:[,，]\\d{3})+|\\d{1,3}(?:\\s+\\d{3})+|\\d+)(?:\\.\\d+)?';
+    const protectedRanges=Array.from(value.matchAll(/https?:\/\/\S+|\b10\.\d{4,9}\/\S+|\b\d+(?:\.\d+){2,}\b|\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b|\b\d{1,2}:\d{2}(?::\d{2})?\b/gu),m=>({start:m.index,end:m.index+m[0].length}));
+    protectedRanges.push(...Array.from(value.matchAll(figureReferencePattern()),m=>({start:m.index,end:m.index+m[0].length})));
+    const preserve=(raw,at)=>{
+      if(protectedRanges.some(r=>at>=r.start&&at<r.end))return true;
+      const before=value.slice(Math.max(0,at-35),at),after=value.slice(at+raw.length,at+raw.length+25),plain=raw.replace(/[,，\s]/g,'').replace(/^[+−-]/,'');
+      if(/(?:版本|编号|序号|编码|电话|手机|邮编|图|表|公式|ISBN|ISSN|PMID|ID|version|ver|v)\s*[:：#]?\s*$/i.test(before))return true;
+      if(!/[,，]/.test(raw)&&/^,\d/.test(after))return true;
+      if(/^0\d+/.test(plain)||/^\d{4}$/.test(plain)&&/^\s*年/.test(after))return true;
+      // Unlabelled long digit strings may be IDs; explicit quantities or grouping
+      // still read as amounts. Leading-zero codes always keep their identity.
+      if(/\s/.test(raw)&&!/^\s*(?:个|人|枚|次|例|颗|元|细胞|神经元|碱基|毫|微|纳|米|克|升)/.test(after)&&!/(?:数量|总数|密度|约|为|共|达到|超过|低于)\s*$/.test(before))return true;
+      return plain.length>=10&&!/[,，\s]/.test(raw)&&!/^\s*(?:个|人|枚|次|例|颗|元|细胞|神经元|碱基|毫|微|纳|米|克|升|平方|立方|倍|%|％)/.test(after)&&!/(?:数量|总数|密度|约|为|共|达到|超过|低于)\s*$/.test(before);
+    };
+    const pattern=new RegExp('(?<![\\p{Script=Latin}\\p{Script=Greek}\\p{N}_./])([+−-]?'+token+')(?:\\s*([~～‒–—−-]|至|到)\\s*([+−-]?'+token+'))?(?![\\p{Script=Latin}\\p{Script=Greek}\\p{N}_]|\\.\\d)','gu');
+    return value.replace(pattern,(whole,first,separator,last,at)=>{
+      if(preserve(first,at)||last&&preserve(last,at+whole.lastIndexOf(last)))return whole;
+      const speak=number=>{const sign=/^[−-]/.test(number)?'负':number.startsWith('+')?'正':'';const [head,fraction]=number.replace(/[,，\s]/g,'').replace(/^[+−-]/,'').split('.');return sign+integer(head)+(fraction?'点'+Array.from(fraction,x=>digits[Number(x)]).join(''):'');};
+      return speak(first)+(last?'至'+speak(last):'');
+    }).replace(/(?<![\p{L}\p{N}_])[−-](?=[零一二三四五六七八九十百千万亿]+点)/gu,'负');
   }
   function scientificScriptSpeech(value,language) {
     const col={en:0,zh:1,ja:2,fr:3}[language]??0;
@@ -363,7 +419,7 @@ var PaperVoiceCore = (() => {
       const before=value.slice(Math.max(0,at-35),at),after=value.slice(at+ratio.length,at+ratio.length+25),parts=ratio.split(/\s*[:：]\s*/);
       const clock=parts.length===2&&/^\d{1,2}$/.test(parts[0])&&/^\d{2}$/.test(parts[1])&&+parts[0]<24&&+parts[1]<60;
       const seconds=parts.length===3&&parts.every((x,i)=>i===0?+x<24:/^\d{2}$/.test(x)&&+x<60);
-      if((clock||seconds)&&(/(?:\bat|\btime|\bfrom|\buntil|\bbetween|\btimestamp|\bclock|时间|時刻|à)\s*$/iu.test(before)||/^\s*(?:[ap]\.?m\.?|o['’]clock|时|時)\b/iu.test(after)))return ratio;
+      if((clock||seconds)&&(/(?:\bat|\btime|\bfrom|\buntil|\bbetween|\btimestamp|\bclock|时间|時刻|上午|下午|早上|晚上|à)\s*$/iu.test(before)||/^\s*(?:[ap]\.?m\.?|o['’]clock|时|時)\b/iu.test(after)))return ratio;
       return parts.join(separator);
     });
   }

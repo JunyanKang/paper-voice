@@ -3,6 +3,38 @@
  * Reference: https://github.com/windingwind/zotero-pdf-translate (public api.translate contract).
  */
 var PaperVoiceTranslation = {
+ translationTerms(value,target) {
+  // Protect a small, explicit scientific glossary and quantitative ranges.
+  // Generic prose is still translated by the selected service.
+  if(!['zh-Hans','zh-Hant'].includes(target))return {text:value,restore:text=>text};
+  const definitions=[
+   [/\bM\s*[üu]\s*l\s*l\s*e\s*r[ -]*(?:(?:glial[ -]+)?cells?|glia)\b/giu,'米勒细胞',/(?:穆勒|缪勒|穆雷|米勒)[的 ]*(?:胶质)?细胞/g],
+   [/\bHenle(?:'s|’s)?[ -]+fib(?:er|re)[ -]+layer\b/gi,'亨勒纤维层'],
+   [/\bHenle(?:'s|’s)?[ -]+fib(?:er|re)s?\b/gi,'亨勒纤维'],
+   [/\bSchwann[ -]+cells?\b/gi,'施旺细胞'],
+   [/\bastrocytes?\b/gi,'星形胶质细胞'],[/\bmicroglia(?:l[ -]+cells?)?\b/gi,'小胶质细胞'],
+  ];
+  if(/retin|fove|photoreceptor|ganglion|bipolar|müller|muller/i.test(value))definitions.push(
+   [/\bretinal[ -]+pigment[ -]+epithelium\b/gi,'视网膜色素上皮'],
+   [/\bganglion[ -]+cell[ -]+layer\b/gi,'神经节细胞层'],
+   [/\binner[ -]+nuclear[ -]+layer\b/gi,'内核层'],[/\bouter[ -]+nuclear[ -]+layer\b/gi,'外核层'],
+   [/\binner[ -]+plexiform[ -]+layer\b/gi,'内丛状层'],[/\bouter[ -]+plexiform[ -]+layer\b/gi,'外丛状层'],
+   [/\bamacrine[ -]+cells?\b/gi,'无长突细胞'],[/\bbipolar[ -]+cells?\b/gi,'双极细胞'],[/\bhorizontal[ -]+cells?\b/gi,'水平细胞'],
+   [/\bfoveola\b/gi,'中央凹小窝'],[/\bfovea\b/gi,'中央凹'],
+  );
+  const entries=[],traditional=text=>text.replace(/[细胶纤维层视网节丛极长]/g,x=>({'细':'細','胶':'膠','纤':'纖','维':'維','层':'層','视':'視','网':'網','节':'節','丛':'叢','极':'極','长':'長'}[x]));
+  const mark=(source,term,alias)=>{const index=entries.length;entries.push({source,term:target==='zh-Hant'?traditional(term):term,alias});return '[PVG'+String(index).padStart(3,'0')+']';};
+  let text=value.normalize('NFC');for(const [pattern,term,alias] of definitions)text=text.replace(pattern,source=>mark(source,term,alias));
+  text=text.replace(/(?<![\p{L}\p{N}_.])((?:\d{1,3}(?:[,，]\d{3})+|\d+)(?:\.\d+)?)\s*[‒–—−~～-]\s*((?:\d{1,3}(?:[,，]\d{3})+|\d+)(?:\.\d+)?)(?![\p{L}\p{N}_]|\.\d)/gu,(source,a,b,at)=>{
+   if(/(?:fig(?:ure)?s?\.?|table|version)\s*$/i.test(text.slice(Math.max(0,at-20),at))||/[-/]\d/.test(text.slice(at+source.length,at+source.length+4)))return source;
+   return mark(source,a+'～'+b);
+  });
+  return {text,restore:translated=>{
+   let result=translated.replace(/[\[（⟦]?\s*PVG\s*_?\s*(\d{3})\s*[\]）⟧]?/gi,(marker,index)=>entries[Number(index)]?.term||marker);
+   for(const entry of entries){result=result.replaceAll(entry.source,entry.term);if(entry.alias)result=result.replace(entry.alias,entry.term);}
+   return result.replace(/\[\s*PVG[^\]]*$/i,'').trim();
+  }};
+ },
  initTranslation() {this.translationCache=new Map();this.translationJobs=new Map();this.translationTicket=0;},
  toggleTranslation(enabled) {
   enabled=enabled ?? !this.get('translation',false);this.set('translation',enabled);this.translationTicket++;this.hideTranslation();this.syncSettings();
@@ -16,7 +48,8 @@ var PaperVoiceTranslation = {
   text=PaperVoiceCore.speechText(text);
   sourceLanguage=sourceLanguage||this.activeSpeechLanguage||this.speechLanguage?.()||'en';
   const provider=options.provider||this.get('translationProvider','tencenttransmart'),target=options.target||this.get('translationTarget','zh-Hans'),key=provider+'\0'+sourceLanguage+'\0'+target+'\0'+text;
-  if(provider==='llm')return this.translateLLM(text,sourceLanguage,{...options,target});
+  const glossary=this.translationTerms(text,target),requestText=glossary.text;
+  if(provider==='llm'){const partial=options.onPartial;const result=await this.translateLLM(requestText,sourceLanguage,{...options,target,onPartial:partial?text=>partial(glossary.restore(text)):undefined});return {...result,text:glossary.restore(result.text)};}
   if(provider==='tencenttransmart'&&target==='zh-Hant')throw new Error('腾讯通道暂不提供繁体中文，请选择微软或 Google');
   const code=provider==='tencenttransmart'?(target==='zh-Hans'?'zh':target):provider==='google'?({'zh-Hans':'zh-CN','zh-Hant':'zh-TW'}[target]||target):target;
   if(this.translationCache.has(key))return this.translationCache.get(key);
@@ -27,8 +60,8 @@ var PaperVoiceTranslation = {
    if(Zotero.PDFTranslate?.api?.translate){
     let timeout;
     try{
-     const translated=await Promise.race([Zotero.PDFTranslate.api.translate(text,{pluginID:this.id,service:provider,langfrom:sourceLanguage,langto:code}),new Promise((_,reject)=>{timeout=this.host.setTimeout(()=>reject(new Error('翻译超时')),12000);})]);
-     if(translated?.result && translated.status!=='error')result={text:translated.result,source:serviceName+' · Translate for Zotero'};
+     const translated=await Promise.race([Zotero.PDFTranslate.api.translate(requestText,{pluginID:this.id,service:provider,langfrom:sourceLanguage,langto:code}),new Promise((_,reject)=>{timeout=this.host.setTimeout(()=>reject(new Error('翻译超时')),12000);})]);
+     if(typeof translated?.result==='string' && translated.result.trim() && translated.status!=='error' && !/^\s*\[Request Error\]/i.test(translated.result))result={text:translated.result,source:serviceName+' · Translate for Zotero'};
     }catch(_){}finally{if(timeout)this.host.clearTimeout(timeout);}
    }
    if(!result){
@@ -39,7 +72,7 @@ var PaperVoiceTranslation = {
       headers['Content-Type']='application/x-www-form-urlencoded';
       let response;
       for(let attempt=0;attempt<2;attempt++){
-       try{response=await Zotero.HTTP.request('POST',endpoint,{headers,body:'q='+encodeURIComponent(text),responseType:'json',timeout:12000,logBody:false});break;}
+       try{response=await Zotero.HTTP.request('POST',endpoint,{headers,body:'q='+encodeURIComponent(requestText),responseType:'json',timeout:12000,errorDelayMax:0,logBody:false});break;}
        catch(error){
         const transient=error.status===0||/timed? ?out|timeout|network/i.test(String(error));
         if(attempt||!transient)throw new Error('Google 暂时连接失败，请重试或切换腾讯 / 微软翻译');
@@ -48,14 +81,15 @@ var PaperVoiceTranslation = {
       translated=response.response?.[0]?.map(x=>x[0]).join('');
     }else{
       const endpoint=provider==='bing'?'https://edge.microsoft.com/translate/translatetext?from='+encodeURIComponent(sourceLanguage)+'&to='+encodeURIComponent(code)+'&isEnterpriseClient=false':'https://transmart.qq.com/api/imt';
-      const body=provider==='bing'?[text]:{header:{fn:'auto_translation',client_key:'browser-chrome-131.0.0-Mac OS-paper-voice'},type:'plain',model_category:'normal',source:{lang:sourceLanguage,text_list:[text]},target:{lang:code}};
+      const body=provider==='bing'?[requestText]:{header:{fn:'auto_translation',client_key:'browser-chrome-131.0.0-Mac OS-paper-voice'},type:'plain',model_category:'normal',source:{lang:sourceLanguage,text_list:[requestText]},target:{lang:code}};
       if(provider==='tencenttransmart')headers.Referer='https://transmart.qq.com/zh-CN/index';
-      const response=await Zotero.HTTP.request('POST',endpoint,{body:JSON.stringify(body),headers,responseType:'json',timeout:12000,logBody:false});
+      const response=await Zotero.HTTP.request('POST',endpoint,{body:JSON.stringify(body),headers,responseType:'json',timeout:12000,errorDelayMax:0,logBody:false});
       translated=provider==='bing'?response.response?.[0]?.translations?.[0]?.text:response.response?.auto_translation?.join('\n');
     }
     if(typeof translated!=='string' || !translated.trim())throw new Error('免费翻译服务暂不可用，请更换服务或译文语言');
     result={text:translated.trim(),source:serviceName+' · 免费通道'};
    }
+   result={...result,text:glossary.restore(result.text)};
    if(this.translationCache.size>=300)this.translationCache.delete(this.translationCache.keys().next().value);
    this.translationCache.set(key,result);return result;
   })();
