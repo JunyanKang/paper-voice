@@ -36,7 +36,7 @@ On Windows, keep the `Resources` folder beside the installer. See [Installation 
 <p align="center"><img src="assets/quick-start-en.png" width="960" alt="Paper Voice main panel over a PDF, with four reading modes, a repeat setting and playback controls"></p>
 <p align="center"><sub>Figure 2 · Choose what to read in the main panel. Floating controls remain available when you close the panel.</sub></p>
 
-To select text before starting playback, turn off **Auto-read selection** under **Settings → Voice**, then use **Read aloud** when ready.
+If you prefer to see the translation before listening, turn off **Auto-read selection** in **Settings → Voice**. Select text, then click **Read aloud** in its popup. In Document mode with a selected-sentence start, the action is **Read from this sentence**.
 
 ## Choose a reading mode
 
@@ -66,7 +66,7 @@ In **Document** mode, use **Start at**:
 | **Last position** | Returns to the most recent position in this PDF, including reading in Sentence, Select or Paragraph mode |
 | **Selected sentence** | Starts at the beginning of the sentence containing your selection |
 
-To listen from a specific sentence onward: choose **Selected sentence** → select a word in that sentence → click **Read from this sentence**. The panel opens to show preparation progress, and the selection popup closes when audio starts. If reading cannot start, the panel explains why and the selection button lets you retry.
+To listen from a specific sentence onward: choose **Selected sentence** → select a word in that sentence → click **Read from this sentence**. The panel opens to show preparation progress, and the popup and mouse selection clear when audio starts, leaving the current sentence highlighted. If reading cannot start, the panel explains why and the selection button lets you retry.
 
 <p align="center"><img src="assets/continuous-en.png" width="960" alt="Document mode starting from a selected sentence, with source highlighting and translation nearby"></p>
 <p align="center"><sub>Figure 3 · Source highlighting and nearby translation help you keep your place during continuous reading.</sub></p>
@@ -117,7 +117,19 @@ The complete package includes offline voices that generate speech on your comput
 
 ## See or hear a translation
 
-Selecting text automatically shows its translation above the reading button in the selection popup. It uses your chosen service and target language, then closes when audio starts. Turn off **Selection** in Translation settings to disable this feature; it is independent of translations shown during playback.
+### Translate a selection
+
+Select a word, phrase or passage to see its translation beside the selection, with a separate reading button below it. The popup does not repeat the original text. Its header shows the target language; preparation feedback and **Retry translation** indicate progress or a failed request. You can still listen to the original if translation fails. When audio starts, the popup and mouse selection clear, while the current sentence remains highlighted.
+
+Choose these independently in **Settings → Translation**:
+
+| Option | What it does | Default |
+|---|---|---|
+| **Selection** | Translate the text you select | On |
+| **Captions** | Show translations near the source during playback | Off |
+| **Read translation** | Play only translated audio while highlighting the original | Off |
+
+Selection translation uses exactly the selected text. Sentence and Paragraph modes expand the audio to the containing sentence or paragraph.
 
 <p align="center"><img src="assets/selection-translation-en.png" width="318" alt="A compact selection popup shows the translation above a separate reading action"></p>
 
@@ -153,7 +165,7 @@ Translated audio supports Chinese, Japanese, French and English. Other target la
 | **Microsoft** | For Traditional Chinese, or as an alternative when another service cannot connect |
 | **Google** | When your network can access Google Translate |
 
-Use Microsoft or Google for Traditional Chinese. Translation needs internet access and sends the current sentence and prefetched next sentence to your selected service. Original-text reading works offline when translation is off. If a free service is unavailable, switch services or try again later. [Privacy details](../PRIVACY.md)
+Use Microsoft or Google for Traditional Chinese. Selection translation sends selected text to your chosen service; captions and translated audio send the current sentence and a prefetched next sentence. Turn off all three translation options for fully offline reading. If a free service is unavailable, switch services or try again later. [Privacy details](../PRIVACY.md)
 
 ## Make the interface yours
 
@@ -207,7 +219,7 @@ Check that the PDF has selectable text; scanned pages need OCR first. Preview a 
 
 ### No translation appears
 
-Check that Show translation is on, then check your network and target language. Google needs network access, and Tencent does not currently provide Traditional Chinese. Try Microsoft or another supported combination.
+For the selection popup, enable **Selection**; for translations during playback, enable **Captions**. Check your connection and target language, or click **Retry translation** in the popup. Google must be reachable from your network; Tencent does not currently support Traditional Chinese, so choose Microsoft for that target.
 
 ### The reading language is wrong
 

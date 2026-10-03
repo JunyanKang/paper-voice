@@ -18,7 +18,7 @@ The Mac installer uses a local signature rather than Apple Developer ID notariza
 - Reading order and selection positions depend on the PDF text layer. Complex columns, headers, footnotes and equations can affect the result.
 - English, Chinese, Japanese and French punctuation guides sentence boundaries. Unusual abbreviations or broken PDF text may affect where a sentence begins.
 - Audio is split at column and page boundaries, which may introduce a short pause. There are no acoustic word-level timestamps.
-- Continuous reading includes extractable titles, captions and reference lists. Pages without text are skipped.
+- Continuous reading skips recognizable figure captions and pages without text. Titles, reference lists and unrecognized captions may still be read.
 - Citation filtering uses rules and cannot cover every format. Numeric brackets such as `[0, 1]` are skipped, including genuine numeric intervals with that format.
 
 Highlights and translations are temporary overlays. They do not rewrite PDFs or create permanent annotations.
@@ -27,12 +27,12 @@ Publication footers are recognized from page coordinates, font sizes and metadat
 
 ## Translation and connectivity
 
-Translation is off by default. When enabled, the current sentence and a prefetched next sentence are sent to the chosen service. Tencent is the default; Microsoft and Google are alternatives. Use Microsoft or Google for Traditional Chinese.
+Selection translation is on by default and sends selected text to your chosen service. Captions and translated audio are off by default; enabling them sends the current sentence and a prefetched next sentence. Turn off all three options under **Settings → Translation** for fully offline reading. Tencent is the default; Microsoft and Google are alternatives. Use Microsoft or Google for Traditional Chinese.
 
-These free public services may impose limits, change or become unavailable. Google requires a reachable network. Tencent and Microsoft do not depend on Google or OpenAI. If translation fails, narration continues; another service or target language may work.
+These free public services may impose limits, change or become unavailable. Google requires a reachable network. Tencent and Microsoft do not depend on Google or OpenAI. Failed captions do not interrupt original-text narration. Translated audio requires a successful translation first; another service or target language may work.
 
 Machine translation helps with reading but is not a professionally reviewed translation. Check technical terms and complex qualifications against the original. A compatible Translate for Zotero installation can provide its public translation API; Paper Voice also works independently.
 
 Downloads and updates are hosted on GitHub. Update requests do not include paper content, and failed updates keep the existing plugin. Speech synthesis works offline after installation.
 
-Version 1.2.6 bundles Misaki and offline Chinese/Japanese dictionaries, including UniDic-lite. New languages require the updated voice pack. Reading language is detected locally by default and can also be selected manually. Russian remains available for translation only. Technical terms, polyphonic characters and mixed-language text may need pronunciation checks.
+Complete packages include Misaki and offline Chinese/Japanese dictionaries, including UniDic-lite. See the [upgrade guide](GUIDE.en.md#how-do-i-update) to check whether your voice pack needs replacing. Reading language is detected locally by default and can also be selected manually. Russian remains available for translation only. Technical terms, polyphonic characters and mixed-language text may need pronunciation checks.

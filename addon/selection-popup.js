@@ -3,6 +3,8 @@ var PaperVoiceSelectionUI = {
  create(controller,doc,button) {
   const card=doc.createElement('section');card.className='pv-selection-card';card.dataset.paperVoice='selection-card';
   const style=doc.createElement('style');style.textContent=`
+   /* Zotero owns transform for anchoring; entry animation must never override it. */
+   .selection-popup:has(.pv-selection-card):not([class*="page-popup-"]){visibility:hidden}
    .selection-popup[data-pv-selection]{color:var(--pv-ink);background:var(--pv-glass);border:1px solid color-mix(in srgb,var(--pv-ink) 10%,transparent);border-radius:16px;box-shadow:0 12px 36px #172c3d24;backdrop-filter:blur(18px);animation:pv-selection-enter .16s ease-out}
    .selection-popup[data-pv-selection]>.tool-toggle{background:var(--pv-soft)}
    .selection-popup[data-pv-selection]>.tool-toggle>button{color:var(--pv-muted)}
@@ -28,7 +30,7 @@ var PaperVoiceSelectionUI = {
    .pv-selection-read[data-state=loading]::before{animation:pv-selection-spin 1.2s linear infinite}
    .pv-selection-read[data-state=playing]::before{mask-image:var(--pv-selection-audio-icon);animation:pv-selection-breathe .8s ease-in-out infinite}
    .pv-selection-read[data-state=paused]::before{mask-image:var(--pv-selection-pause-icon)}
-   @keyframes pv-selection-spin{to{transform:rotate(360deg)}}@keyframes pv-selection-breathe{50%{opacity:.4;transform:scale(.88)}}@keyframes pv-selection-enter{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+   @keyframes pv-selection-spin{to{transform:rotate(360deg)}}@keyframes pv-selection-breathe{50%{opacity:.4;transform:scale(.88)}}@keyframes pv-selection-enter{from{opacity:0}to{opacity:1}}
    @media(prefers-reduced-motion:reduce){.selection-popup[data-pv-selection],.pv-selection-card *,.pv-selection-card *::before{animation:none!important;transition:none!important}}
   `;
   const heading=doc.createElement('div');heading.className='pv-selection-heading';

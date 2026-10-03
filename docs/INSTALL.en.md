@@ -26,7 +26,9 @@ In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and 
 
 ## 3. Listen to your first passage
 
-Open a PDF, let the plugin detect its language, and select some text. Click the floating book mascot to choose a voice or reading mode.
+Open a PDF with selectable text and select a passage to listen and see its translation. Click the floating book mascot to choose a voice or reading mode. If auto-reading is off, use the reading button in the selection popup.
+
+Selection translation is on by default and needs internet access. For fully offline use, turn off **Selection**, **Captions** and **Read translation** under **Settings → Translation**.
 
 Explore the [user guide](GUIDE.en.md) for reading modes, voice choices and translation.
 
@@ -35,7 +37,7 @@ Explore the [user guide](GUIDE.en.md) for reading modes, voice choices and trans
 - **Upgrading from 1.2.5 or earlier:** download the latest complete package and run the installer to reinstall offline voices once.
 - **Already installed a complete package from 1.2.6 or later:** update only the `.xpi` plugin. No voice download is needed.
 
-Use **Check → Install update** in Settings, or download the `.xpi` from [Releases](https://github.com/JunyanKang/paper-voice/releases/latest) and install it through Zotero's plugin manager. The `updates.json` file is for automatic updates; you do not need to download it.
+Use **Check → Install update** in Settings, or download the `.xpi` from [Releases](https://github.com/JunyanKang/paper-voice/releases/latest) and install it through Zotero's plugin manager. The `updates.json` file is for automatic updates; you do not need to download it. After updating, reopen the same PDF and select **Resume** to continue an unfinished reading session.
 
 ## Installation help
 

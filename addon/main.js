@@ -355,7 +355,14 @@ var PaperVoice = {
     // PDF or an audio request cancelled during preparation must remain untouched.
     if(!action.popupKey||!action.popup||internal?._state?.[action.popupKey]?.annotation!==action.popup.annotation)return;
     const view=action.popupKey==='secondaryViewSelectionPopup'?internal._secondaryView:internal._primaryView;
-    try{view?._onSetSelectionPopup?.(null);this.selectionAction=null;}catch(error){Zotero.logError(error);}
+    try{
+      // Use the Reader API so both native DOM selection and PDF selection ranges
+      // disappear together. This does not touch Paper Voice's reading markers.
+      view?.clearSelection?.();
+      view?._onSetSelectionPopup?.(null);
+      view?._render?.();
+      this.selectionAction=null;
+    }catch(error){Zotero.logError(error);}
   },
   setStatus(message, state = this.state) { this.status = message; this.state = state; this.updatePanels();this.updateSelectionAction(); },
   updatePanels() {

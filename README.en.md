@@ -9,7 +9,8 @@
 <p align="center"><a href="#download">Download</a> · <a href="#quick-start">Quick start</a> · <a href="docs/GUIDE.en.md">User guide</a></p>
 
 - **Listen at your own pace.** Focus on a sentence, repeat a paragraph, or listen from your current position to the end.
-- **Keep your place.** Highlighting, scrolling, column changes and page turns follow the reading, with translation beside the original.
+- **Keep your place.** Highlighting, scrolling, column changes and page turns follow the reading.
+- **Read across languages.** Select text for a translation, follow translated captions, or listen to the translation itself.
 - **Stay with the paper’s argument.** Recognizable citations, figure captions and publication details are skipped for smoother listening. Your PDF and annotations stay unchanged.
 
 ## Download
@@ -30,7 +31,7 @@ Already installed? [Download the `.xpi` plugin](https://github.com/JunyanKang/pa
 
 1. **Install voices.** Extract the complete package, open the installer and select Install voices. Wait for Voices ready.
 2. **Add the plugin.** In Zotero, open Tools → Plugins → gear → Install Plugin From File and select the included `.xpi`.
-3. **Start listening.** Open a PDF with selectable text, select a passage and release the mouse. Click the book mascot in the lower-right corner for reading modes and settings.
+3. **Start listening.** Open a PDF with selectable text and select a passage to listen and see its translation. Click the book mascot in the lower-right corner to choose a mode; see [continuous reading](docs/GUIDE.en.md#read-continuously-and-resume) to listen from a sentence to the end.
 
 <p align="center"><img src="docs/assets/quick-start-en.png" width="960" alt="Select PDF text in Zotero to listen, with Sentence, Select, Paragraph and Document modes in the floating panel"></p>
 
