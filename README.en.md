@@ -41,7 +41,7 @@ Already installed? [Download the `.xpi` plugin](https://github.com/JunyanKang/pa
 
 Choose Chinese, English, Japanese, French or German for the interface in Settings.
 
-[Modes and repeats](docs/GUIDE.en.md#choose-a-reading-mode) · [Resume your place](docs/GUIDE.en.md#read-continuously-and-resume) · [Translation and translated audio](docs/GUIDE.en.md#see-or-hear-a-translation) · [LLM translation](docs/GUIDE.en.md#llm-translation) · [Keyboard shortcuts](docs/GUIDE.en.md#keyboard-shortcuts)
+[Modes and repeats](docs/GUIDE.en.md#choose-a-reading-mode) · [Resume your place](docs/GUIDE.en.md#read-continuously-and-resume) · [Translation and translated audio](docs/GUIDE.en.md#see-or-hear-a-translation) · [LLM translation](docs/GUIDE.en.md#llm-translation) · [Custom shortcuts](docs/GUIDE.en.md#keyboard-shortcuts)
 
 The package includes offline voices and their runtime: no subscription, API key or separate Python installation is needed. Translation needs internet access and defaults to Tencent’s free service for mainland China. Optional LLM translation uses your own API key; provider fees apply. Selection translation is on by default and sends text from the selected scope to that service; you can turn it off in Settings. [Privacy details](PRIVACY.md)
 

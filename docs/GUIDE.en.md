@@ -54,6 +54,8 @@ The four modes appear at the top of the main panel. The active mode is highlight
 
 **To change modes while listening:** Choose a mode in the panel, or click the floating mode button to cycle through them. The current audio is not cut off: switching from Document to Sentence or Paragraph finishes the current sentence or paragraph, then ends. Switching to Document continues onward from the current passage.
 
+You can switch modes while paused. Resume to finish the current sentence or paragraph in the new mode; switching to Full text continues through the document.
+
 ## Read continuously and resume
 
 ### Choose where to begin
@@ -120,14 +122,14 @@ The complete package includes offline voices that generate speech on your comput
 
 ### Translate a selection
 
-Select a word, phrase or passage to see its translation beside the selection, with a separate reading button below it. The popup does not repeat the original text. Its header shows the target language; preparation feedback and **Retry translation** indicate progress or a failed request. You can still listen to the original if translation fails. When audio starts, the popup and mouse selection clear, while the current sentence remains highlighted.
+Select a word, phrase or passage to see its translation beside the selection, with a separate reading button below it. The popup does not repeat the original text. Its header shows the target language; preparation feedback and **Retry translation** indicate progress or a failed request. You can still listen to the original if translation fails. Start reading directly from the popup without opening the main panel. When audio starts, the popup and mouse selection clear, while the current sentence remains highlighted.
 
-Choose these independently in **Settings → Translation**:
+Choose these independently in **Settings → Translate**:
 
 | Option | What it does | Default |
 |---|---|---|
 | **Selection** | Translate the text you select | On |
-| **Captions** | Show translations near the source during playback | Off |
+| **Show translation** | Show translations near the source during playback | Off |
 | **Read translation** | Play only translated audio while highlighting the original | Off |
 
 Use the **Selection / Sentence / Paragraph** buttons beside the target language to choose what to translate:
@@ -142,14 +144,14 @@ The scope is remembered for future selections. It is independent of the reading 
 
 <p align="center"><img src="assets/selection-translation-en.png" width="318" alt="A compact selection popup shows the translation above a separate reading action"></p>
 
-Open **Settings → Translation** to choose a service and target language.
+Open **Settings → Translate** to choose a service and target language.
 
 <p align="center"><img src="assets/settings-translation-en.png" width="420" alt="Translation settings with separate display and audio switches, service, target language and caption font and size"></p>
 <p align="center"><sub>Figure 5 · Showing a translation and reading it aloud are separate choices.</sub></p>
 
 ### Listen to the original and read the translation
 
-Turn on **Captions**. Translated text appears near the current source passage and follows the reading position. This setting alone does not play translated audio.
+Turn on **Show translation** to show its language button in the floating controls; turning it off also hides the button. Translated text appears near the current source passage and follows the reading position. This setting alone does not play translated audio.
 
 Text translation targets include Simplified Chinese, Traditional Chinese, Japanese, Korean, French, English, German, Spanish and Russian. Adjust **Caption font** and **Caption size** on the same page.
 
@@ -178,7 +180,7 @@ Use Microsoft, Google, or an LLM supporting Traditional Chinese for that target.
 
 ## LLM translation
 
-To translate with your own model, choose **Settings → Translation → Service → LLM · API**. The free Tencent, Microsoft and Google services remain available without an API key.
+To translate with your own model, choose **Settings → Translate → Service → LLM · API**. The free Tencent, Microsoft and Google services remain available without an API key.
 
 <p align="center"><img src="assets/settings-llm-en.png" width="420" alt="LLM settings with provider, model, API URL, masked key input and Save & test"></p>
 
@@ -203,7 +205,7 @@ The integration uses [OpenAI-compatible Chat Completions](https://platform.opena
 
 ## Make the interface yours
 
-Open **Settings → Appearance**.
+Open **Settings → Style**.
 
 <p align="center"><img src="assets/settings-appearance-en.png" width="420" alt="Appearance settings with five themes, image import, transparency, interface language and companion gestures"></p>
 <p align="center"><sub>Figure 6 · Themes and interface preferences are together on one page, with changes visible immediately.</sub></p>
@@ -214,11 +216,11 @@ Open **Settings → Appearance**.
 | **Your background** | Import image accepts PNG, JPG and WebP files stored only on your computer. Use My image to return to it, or Remove to delete it |
 | **Transparency** | Move the slider; higher values make the background more transparent while text and controls remain clear |
 | **Interface language** | Choose 简体中文, English, 日本語, Français, Deutsch or System; this does not change the reading or translation language |
-| **Companion gestures** | Turn gestures on or off, choose an interval, or select Preview. Hovering over the mascot also triggers a gesture |
+| **Companion** | Turn gestures on or off, choose an interval, or select Preview. Hovering over the mascot also triggers a gesture |
 
 **System** follows Zotero’s language, with English as the fallback for unsupported languages. Switching languages keeps the panel size unchanged.
 
-Translation font and size are under **Settings → Translation**.
+Translation font and size are under **Settings → Translate**.
 
 The mascot uses five gestures in each of its idle and reading sets: page turning, a somersault, sitting cross-legged, stretching, picking up a microphone and giving a thumbs-up. It keeps the final pose. After about 30 minutes of active reading, a brief remove-and-replace-headphones gesture takes priority without pausing audio. Interactions respect the system’s Reduce Motion setting.
 
@@ -238,6 +240,14 @@ Use these in the **PDF reading area while playing or paused**. Keys keep their n
 
 Start with three: **Space to pause, ↓ for the next sentence, ← to hear this sentence again**.
 
+### Customize keys
+
+Open **Settings → Keys**, click a key on the right, then press your preferred combination. Click elsewhere to cancel. While recording, × clears that action; **Reset defaults** restores every key.
+
+<p align="center"><img src="assets/settings-shortcuts-en.png" width="420" alt="Custom shortcut settings"></p>
+
+**Your latest change takes priority.** If another action already uses the key, it moves to the key you just freed. If no key was freed, that action becomes **Unassigned**. The message below shows the adjustment. Custom keys survive restarts and plugin updates. Common system combinations get a warning; other system or Zotero shortcuts may not be detected in advance.
+
 ## Updates and common questions
 
 ### How do I update?
@@ -255,7 +265,7 @@ Check that the PDF has selectable text; scanned pages need OCR first. Preview a 
 
 ### No translation appears
 
-For the selection popup, enable **Selection**; for translations during playback, enable **Captions**. Check your connection and target language, or click **Retry translation** in the popup. Google must be reachable from your network; Tencent does not currently support Traditional Chinese, so choose Microsoft for that target.
+For the selection popup, enable **Selection**; for translations during playback, enable **Show translation**. Check your connection and target language, or click **Retry translation** in the popup. Google must be reachable from your network; Tencent does not currently support Traditional Chinese, so choose Microsoft for that target.
 
 ### The reading language is wrong
 

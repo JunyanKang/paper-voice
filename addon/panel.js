@@ -92,7 +92,7 @@ var PaperVoiceUI = {
     <footer class="pv-footer"><button data-action="voiceSettings" data-field="voiceSummary">美音 · Heart</button><span>免费离线朗读</span></footer>
    </div>
    <div data-field="settingsPage" hidden>
-    <div class="pv-settings-tabs" role="tablist" aria-label="设置分类"><button id="pv-tab-voice" data-settings-tab="voice" role="tab" aria-controls="pv-settings-voice" aria-selected="true">声音</button><button id="pv-tab-translation" data-settings-tab="translation" role="tab" aria-controls="pv-settings-translation" aria-selected="false" tabindex="-1">译文</button><button id="pv-tab-appearance" data-settings-tab="appearance" role="tab" aria-controls="pv-settings-appearance" aria-selected="false" tabindex="-1">外观</button></div>
+    <div class="pv-settings-tabs" role="tablist" aria-label="设置分类"><button id="pv-tab-voice" data-settings-tab="voice" role="tab" aria-controls="pv-settings-voice" aria-selected="true">声音</button><button id="pv-tab-translation" data-settings-tab="translation" role="tab" aria-controls="pv-settings-translation" aria-selected="false" tabindex="-1">译文</button><button id="pv-tab-appearance" data-settings-tab="appearance" role="tab" aria-controls="pv-settings-appearance" aria-selected="false" tabindex="-1">外观</button><button id="pv-tab-shortcuts" data-settings-tab="shortcuts" role="tab" aria-controls="pv-settings-shortcuts" aria-selected="false" tabindex="-1">快捷键</button></div>
     <div class="pv-settings-content">
      <div id="pv-settings-voice" data-settings-pane="voice" role="tabpanel" aria-labelledby="pv-tab-voice">
     <div class="pv-setting-row"><label for="pv-speech-language">朗读语言</label><select id="pv-speech-language" data-field="speechLanguage" aria-label="朗读语言"><option value="auto">自动</option>${PaperVoiceCore.speechLanguages.map(x=>`<option value="${x.id}">${x.label}</option>`).join('')}</select></div>
@@ -102,7 +102,8 @@ var PaperVoiceUI = {
     <button class="pv-sample" data-action="sample">${icon('headphones')}试听当前声音</button>
      </div>
      <div id="pv-settings-translation" data-settings-pane="translation" role="tabpanel" aria-labelledby="pv-tab-translation" hidden>
-    <div class="pv-setting-row pv-translation-row pv-translation-switches"><label><span>划词翻译</span><input type="checkbox" data-field="selectionTranslation"/></label><label><span>跟读译文</span><input type="checkbox" data-field="translation"/></label></div>
+    <label class="pv-setting-row"><span>划词翻译</span><input type="checkbox" data-field="selectionTranslation"/></label>
+    <label class="pv-setting-row"><span>显示译文</span><input type="checkbox" data-field="translation"/></label>
     <label class="pv-setting-row" data-field="readTranslationRow"><span>朗读译文</span><input type="checkbox" data-field="readTranslation"/></label>
     <div class="pv-setting-row"><label for="pv-provider">翻译服务</label><select id="pv-provider" data-field="provider" aria-label="翻译服务"><option value="tencenttransmart">腾讯</option><option value="bing">微软</option><option value="google">Google</option><option value="llm">大模型 · API</option></select></div>
     <button class="pv-llm-summary" data-action="configureLLM" hidden>${icon('sparkles')}<span data-field="llmSummary">配置大模型</span>${icon('chevron-right')}</button>
@@ -125,19 +126,25 @@ var PaperVoiceUI = {
        <div class="pv-setting-row"><label for="pv-language">界面语言</label><select id="pv-language" data-field="language" aria-label="Interface language / 界面语言"><option value="auto">跟随系统</option><option value="zh">简体中文</option><option value="en">English</option><option value="ja">日本語</option><option value="fr">Français</option><option value="de">Deutsch</option></select></div>
        <div class="pv-setting-row pv-companion-row"><label for="pv-companion">角色互动</label><button data-action="previewCompanion">预览</button><select data-field="companionInterval" aria-label="互动间隔" title="互动间隔">${[1,3,5,10,15,30].map(n=>`<option value="${n}">${n} 分钟</option>`).join('')}</select><input id="pv-companion" type="checkbox" data-field="companion"/></div>
      </div>
+     <div id="pv-settings-shortcuts" data-settings-pane="shortcuts" role="tabpanel" aria-labelledby="pv-tab-shortcuts" hidden>
+      <div class="pv-shortcut-list">${PaperVoiceShortcuts.actions.map((a,i)=>`<div class="pv-shortcut-row${i===3||i===6?' pv-shortcut-group':''}" data-shortcut-row="${a.id}"><span>${a.label}</span><button class="pv-shortcut-key" data-shortcut="${a.id}" aria-label="${a.label}"></button><button class="pv-shortcut-clear" data-shortcut-clear="${a.id}" aria-label="清除快捷键" hidden>${icon('x')}</button></div>`).join('')}</div>
+      <div class="pv-shortcut-footer"><button data-action="resetShortcuts">恢复默认</button></div>
+      <div class="pv-shortcut-status" data-field="shortcutStatus" role="status" aria-live="polite"></div>
+     </div>
     </div>
 <div class="pv-updater"><div class="pv-update-row"><label><input type="checkbox" data-field="autoUpdate"/>自动更新</label><span data-field="updateStatus" class="pv-update-status" role="status">通过 GitHub 获取插件更新</span><button data-action="checkUpdate">检查更新</button></div></div><div class="pv-about"><span data-field="aboutVersion">Junyan Kang</span><button data-action="help">指南</button><button data-action="feedback">反馈</button><button data-action="privacy">隐私</button></div>
    </div>
-  </section><div class="pv-mini"><div class="pv-quick" data-field="quick" hidden><button class="pv-quick-mode" data-action="quickMode" aria-label="切换朗读模式">${icon("text-select")}<span data-field="quickModeLabel">划选</span></button><div class="pv-playback-tools" data-field="playbackTools"><button data-action="quickPause" aria-label="暂停或继续" aria-expanded="false">${icon('pause')}</button><div class="pv-nav-popover" data-field="navigation" hidden><div class="pv-nav-card" role="group" aria-label="阅读导航"><div class="pv-nav-row" data-field="sentenceNavigation"><span>句子</span><button data-action="quickSentencePrevious" aria-label="上一句" title="上一句">${icon('chevron-left')}</button><button data-action="quickSentenceReplay" aria-label="重读当前句" title="重读当前句">${icon('repeat')}</button><button data-action="quickSentenceNext" aria-label="下一句" title="下一句">${icon('chevron-right')}</button></div><div class="pv-nav-row" data-field="paragraphNavigation"><span>段落</span><button data-action="quickPrevious" aria-label="上一段" title="上一段">${icon('chevron-left')}</button><button data-action="quickReplay" aria-label="重读当前段" title="重读当前段">${icon('repeat')}</button><button data-action="quickNext" aria-label="下一段" title="下一段">${icon('chevron-right')}</button></div></div></div></div><button data-action="quickStop" aria-label="停止朗读">${icon('square')}</button><div class="pv-translation-tools" data-field="translationTools"><button data-action="quickTranslate" aria-label="切换跟读翻译" title="译文开关 · Option/Alt + T"><span class="pv-language-token" data-field="quickTranslateLabel" aria-hidden="true">简</span></button><div class="pv-audio-popover" data-field="audioPopover" hidden><button class="pv-audio-toggle" data-action="quickReadTranslation" role="switch" aria-checked="false">${icon("headphones")}<span>朗读译文</span><span class="pv-switch-track" aria-hidden="true"><i></i></span></button></div></div></div><button class="pv-orb" data-action="orb" aria-label="展开 Paper Voice 朗读面板" title="Paper Voice · 点击展开听读"><img class="pv-mascot" src="${controller.assetURI}mascot.png" alt="Paper Voice 书页精灵"/><img class="pv-mascot pv-mascot-reading" src="${controller.assetURI}mascot-reading.png" alt=""/><span class="pv-mascot-interaction" data-field="mascotInteraction" aria-hidden="true"></span><span class="pv-waves" aria-hidden="true"><i></i><i></i><i></i></span><span class="pv-dot"></span></button></div>`;
+  </section><div class="pv-mini"><div class="pv-quick" data-field="quick" hidden><button class="pv-quick-mode" data-action="quickMode" aria-label="切换朗读模式">${icon("text-select")}<span data-field="quickModeLabel">划选</span></button><div class="pv-playback-tools" data-field="playbackTools"><button data-action="quickPause" aria-label="暂停或继续" aria-expanded="false">${icon('pause')}</button><div class="pv-nav-popover" data-field="navigation" hidden><div class="pv-nav-card" role="group" aria-label="阅读导航"><div class="pv-nav-row" data-field="sentenceNavigation"><span>句子</span><button data-action="quickSentencePrevious" aria-label="上一句" title="上一句">${icon('chevron-left')}</button><button data-action="quickSentenceReplay" aria-label="重读当前句" title="重读当前句">${icon('repeat')}</button><button data-action="quickSentenceNext" aria-label="下一句" title="下一句">${icon('chevron-right')}</button></div><div class="pv-nav-row" data-field="paragraphNavigation"><span>段落</span><button data-action="quickPrevious" aria-label="上一段" title="上一段">${icon('chevron-left')}</button><button data-action="quickReplay" aria-label="重读当前段" title="重读当前段">${icon('repeat')}</button><button data-action="quickNext" aria-label="下一段" title="下一段">${icon('chevron-right')}</button></div></div></div></div><button data-action="quickStop" aria-label="停止朗读">${icon('square')}</button><div class="pv-translation-tools" data-field="translationTools"><button data-action="quickTranslate" aria-label="切换译文显示" title="译文开关 · Option/Alt + T"><span class="pv-language-token" data-field="quickTranslateLabel" aria-hidden="true">简</span></button><div class="pv-audio-popover" data-field="audioPopover" hidden><button class="pv-audio-toggle" data-action="quickReadTranslation" role="switch" aria-checked="false">${icon("headphones")}<span>朗读译文</span><span class="pv-switch-track" aria-hidden="true"><i></i></span></button></div></div></div><button class="pv-orb" data-action="orb" aria-label="展开 Paper Voice 朗读面板" title="Paper Voice · 点击展开听读"><img class="pv-mascot" src="${controller.assetURI}mascot.png" alt="Paper Voice 书页精灵"/><img class="pv-mascot pv-mascot-reading" src="${controller.assetURI}mascot-reading.png" alt=""/><span class="pv-mascot-interaction" data-field="mascotInteraction" aria-hidden="true"></span><span class="pv-waves" aria-hidden="true"><i></i><i></i><i></i></span><span class="pv-dot"></span></button></div>`;
   const visible=(el,show)=>PaperVoiceUI.visibility(el,show);
   const find=name=>root.querySelector(`[data-field="${name}"]`),action=name=>root.querySelector(`[data-action="${name}"]`),panel=root.querySelector('.pv-panel');
   if(controller.version)find('aboutVersion').textContent='v'+controller.version+' · Junyan Kang';
   for(const v of PaperVoiceCore.voices){const o=doc.createElement('option');o.value=v.id;o.textContent=v.label;find('voice').append(o);}
-  const settings=(open)=>{if(!open)find('llmKey').value='';find('home').hidden=open;find('settingsPage').hidden=!open;action('settings').querySelector('img').src=controller.assetURI+'icons/'+(open?'chevron-left':'settings')+'.svg';action('settings').setAttribute('aria-label',open?'返回播放控制':'声音与翻译设置');controller.localize?.(root);};
+  const settings=(open)=>{cancelShortcutRecording?.();if(!open)find('llmKey').value='';find('home').hidden=open;find('settingsPage').hidden=!open;action('settings').querySelector('img').src=controller.assetURI+'icons/'+(open?'chevron-left':'settings')+'.svg';action('settings').setAttribute('aria-label',open?'返回播放控制':'声音与翻译设置');controller.localize?.(root);};
   action('settings').onclick=()=>{settings(find('settingsPage').hidden);controller.loadUpdateSettings();fit();};action('voiceSettings').onclick=()=>{settings(true);fit();};
   const fit=()=>{const right=parseFloat(root.style.right)||18,bottom=parseFloat(root.style.bottom)||18;panel.style.transform=`translate(${Math.max(0,right+panel.offsetWidth+8-doc.defaultView.innerWidth)}px,${Math.max(0,bottom+root.offsetHeight+8-doc.defaultView.innerHeight)}px)`;};
-  action('orb').onclick=()=>{controller.showPanel(reader,true);fit();};action('close').onclick=()=>{find('llmKey').value='';visible(panel,false);};
+  action('orb').onclick=()=>{controller.showPanel(reader,true);fit();};action('close').onclick=()=>{cancelShortcutRecording();find('llmKey').value='';visible(panel,false);};
   const selectSettingsTab=name=>{
+   cancelShortcutRecording();
    find('llmPage').hidden=true;find('llmKey').value='';find('llmResult').textContent=controller.t('密钥仅存本机 · 费用由服务商收取');
    for(const button of root.querySelectorAll('[data-settings-tab]')){const active=button.dataset.settingsTab===name;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;}
    for(const pane of root.querySelectorAll('[data-settings-pane]'))pane.hidden=pane.dataset.settingsPane!==name;
@@ -146,6 +153,47 @@ var PaperVoiceUI = {
    button.onclick=()=>selectSettingsTab(button.dataset.settingsTab);
    button.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();e.stopPropagation();const tabs=Array.from(root.querySelectorAll('[data-settings-tab]')),i=tabs.indexOf(button),next=tabs[e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length];selectSettingsTab(next.dataset.settingsTab);next.focus();};
   }
+  let recordingShortcut=null;
+  const shortcutMessage=message=>{find('shortcutStatus').textContent=controller.t(message);};
+  const syncShortcutBindings=()=>{
+   const bindings=controller.shortcutBindings();
+   for(const a of PaperVoiceShortcuts.actions){
+    const button=root.querySelector(`[data-shortcut="${a.id}"]`),recording=recordingShortcut===a.id;
+    button.textContent=recording?controller.t('按下新按键…'):controller.shortcutLabel(a.id);
+    button.setAttribute('aria-pressed',String(recording));
+    button.setAttribute('aria-label',controller.t(a.label)+' · '+button.textContent);
+    button.closest('.pv-shortcut-row').dataset.recording=String(recording);
+    root.querySelector(`[data-shortcut-clear="${a.id}"]`).hidden=!recording;
+   }
+  };
+  const cancelShortcutRecording=()=>{
+   if(!recordingShortcut)return;recordingShortcut=null;syncShortcutBindings();shortcutMessage('');
+  };
+  const assignShortcut=(id,key)=>{
+   recordingShortcut=null;
+   const result=controller.setShortcut(id,key);syncShortcutBindings();
+   if(!result.ok){shortcutMessage('此按键无法使用');return;}
+   const conflict=result.conflict;
+   let message=controller.t(key?'快捷键已保存':'快捷键已清除');
+   if(conflict){const label=controller.t(PaperVoiceShortcuts.actions.find(a=>a.id===conflict.id).label);message=label+' → '+controller.shortcutLabel(conflict.id);}
+   if(key&&PaperVoiceShortcuts.systemKey(key,Zotero.isMac))message+=' · '+controller.t('系统可能占用此组合');
+   find('shortcutStatus').textContent=message;
+  };
+  for(const button of root.querySelectorAll('[data-shortcut]'))button.onclick=()=>{
+   if(recordingShortcut===button.dataset.shortcut){cancelShortcutRecording();return;}
+   recordingShortcut=button.dataset.shortcut;syncShortcutBindings();shortcutMessage('按下组合键 · 点击别处取消');
+  };
+  for(const button of root.querySelectorAll('[data-shortcut-clear]'))button.onclick=()=>assignShortcut(button.dataset.shortcutClear,null);
+  action('resetShortcuts').onclick=()=>{cancelShortcutRecording();controller.resetShortcuts();syncShortcutBindings();shortcutMessage('已恢复默认快捷键');};
+  const recordShortcut=e=>{
+   if(!recordingShortcut)return;
+   e.preventDefault();e.stopImmediatePropagation();
+   if(e.repeat||e.isComposing)return;
+   const key=PaperVoiceShortcuts.eventKey(e);if(key)assignShortcut(recordingShortcut,key);
+  };
+  const cancelOutside=e=>{if(recordingShortcut&&!e.target.closest?.('[data-shortcut],[data-shortcut-clear]'))cancelShortcutRecording();};
+  doc.defaultView.addEventListener('keydown',recordShortcut,true);doc.addEventListener('pointerdown',cancelOutside,true);
+  syncShortcutBindings();
   for(const b of root.querySelectorAll('[data-theme-choice]'))b.onclick=()=>controller.setTheme(b.dataset.themeChoice);
   action('importBackground').onclick=async()=>{action('importBackground').disabled=true;try{await controller.chooseThemeImage();find('themeHint').textContent=controller.t(controller.get('themeImageEnabled',false)?'背景已保存':'');}catch(e){find('themeHint').textContent=String(e.message||e);find('themeHint').title=String(e.message||e);}finally{action('importBackground').disabled=false;}};
   action('customBackground').onclick=()=>{controller.set('themeImageEnabled',true);controller.syncSettings();};
@@ -281,7 +329,7 @@ var PaperVoiceUI = {
    if(takeBreak)lastBreakAt=elapsed;
    nextInteraction=now+controller.companionIntervalMs();playCompanion(takeBreak?'rest':undefined);
   };
-  const dispose=()=>{root._pvSelects?.dispose();root._pvTooltips?.dispose();doc.defaultView.clearTimeout(closeTimer);doc.defaultView.clearTimeout(audioCloseTimer);player.dispose();for(const el of [panel,navigation,audioPopover])el._pvFade?.cancel();root.remove();};
-  doc.body.append(root);this.installSelects(root,controller);root._pvTooltips=this.installTooltips(root,controller);return {root,panel,find,action,closeNavigation,closeAudioPopover,tickCompanion,finishInteraction,syncCompanionPose,resetCompanionSchedule,dispose};
+  const dispose=()=>{doc.defaultView.removeEventListener('keydown',recordShortcut,true);doc.removeEventListener('pointerdown',cancelOutside,true);recordingShortcut=null;root._pvSelects?.dispose();root._pvTooltips?.dispose();doc.defaultView.clearTimeout(closeTimer);doc.defaultView.clearTimeout(audioCloseTimer);player.dispose();for(const el of [panel,navigation,audioPopover])el._pvFade?.cancel();root.remove();};
+  doc.body.append(root);this.installSelects(root,controller);root._pvTooltips=this.installTooltips(root,controller);return {root,panel,find,action,syncShortcutBindings,cancelShortcutRecording,closeNavigation,closeAudioPopover,tickCompanion,finishInteraction,syncCompanionPose,resetCompanionSchedule,dispose};
  }
 };

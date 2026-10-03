@@ -43,7 +43,7 @@ start=f'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="vi
 <h2>01　准备声音</h2><p>完整解压后打开 <b>{launcher.name}</b>，点击「安装声音」。{'请保留同目录的 Resources 文件夹。' if windows else '声音资源已包含在安装助手中。'}</p>
 <h2>02　添加插件</h2><p>打开 Zotero → 工具 → 插件 → 齿轮 → 从文件安装，选择 <b>{xpi.name}</b>。</p>
 <h2>开始你的第一段听读</h2><p>打开 PDF，插件会自动识别原文语言，划选文字即可朗读。点击右下角书页精灵，可切换声音、模式和译文。</p>
-<footer><a href="https://github.com/JunyanKang/paper-voice/blob/main/docs/INSTALL.md">安装帮助与系统安全提示</a> · <a href="https://github.com/JunyanKang/paper-voice">使用指南</a><p>从旧版升级到多语言朗读？请先重新安装本版声音包。声音离线运行，翻译和更新需要联网。</p></footer></main></html>'''
+<footer><a href="https://github.com/JunyanKang/paper-voice/blob/main/docs/INSTALL.md">安装帮助与系统安全提示</a> · <a href="https://github.com/JunyanKang/paper-voice">使用指南</a><p>1.2.5 及更早版本需安装新版声音包；已安装 1.2.6 及以后完整包，只更新插件即可。声音离线运行，翻译和更新需要联网。</p></footer></main></html>'''
 (stage/'开始使用.html').write_text(start,encoding='utf-8')
 with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
  for p in sorted(stage.rglob('*')):

@@ -132,7 +132,7 @@ var PaperVoiceI18n = (() => {
     "朗读语速": "Reading speed",
     "语速": "Speed",
     "划选后自动朗读": "Auto-read selection",
-    "跟读译文": "Captions",
+    "显示译文": "Show translation",
     "免费翻译服务": "Translation service",
     "翻译服务": "Service",
     "译文语言": "Translate into",
@@ -150,7 +150,7 @@ var PaperVoiceI18n = (() => {
     "隐私": "Privacy",
     "切换朗读模式": "Switch reading mode",
     "暂停或继续": "Pause or resume",
-    "切换跟读翻译": "Toggle translation",
+    "切换译文显示": "Toggle translation",
     "译文开关 · Option/Alt + T": "Translation · Option/Alt + T",
     "展开 Paper Voice 朗读面板": "Open Paper Voice",
     "Paper Voice · 点击展开听读": "Paper Voice · Open controls",
@@ -226,8 +226,8 @@ var PaperVoiceI18n = (() => {
     "正在下载更新 ": "Downloading update: ",
     "更新已安装": "Update installed",
     "；点击切换为": "; switch to ",
-    "关闭跟读翻译": "Hide translation",
-    "开启跟读翻译": "Show translation",
+    "关闭译文显示": "Hide translation",
+    "开启译文显示": "Show translation",
     "美音 · 女声": "US · Female",
     "美音 · 男声": "US · Male",
     "英音 · 女声": "UK · Female",
@@ -364,7 +364,7 @@ var PaperVoiceI18n = (() => {
     "朗读语速": "読み上げ速度",
     "语速": "速度",
     "划选后自动朗读": "選択後に自動再生",
-    "跟读译文": "翻訳を表示",
+    "显示译文": "訳文を表示",
     "免费翻译服务": "無料翻訳サービス",
     "翻译服务": "翻訳サービス",
     "译文语言": "翻訳先の言語",
@@ -382,7 +382,7 @@ var PaperVoiceI18n = (() => {
     "隐私": "プライバシー",
     "切换朗读模式": "読み上げモード切替",
     "暂停或继续": "一時停止・再開",
-    "切换跟读翻译": "翻訳表示を切替",
+    "切换译文显示": "翻訳表示を切替",
     "译文开关 · Option/Alt + T": "翻訳・Option/Alt + T",
     "展开 Paper Voice 朗读面板": "Paper Voice を開く",
     "Paper Voice · 点击展开听读": "Paper Voice・クリックで操作パネルを表示",
@@ -458,8 +458,8 @@ var PaperVoiceI18n = (() => {
     "正在下载更新 ": "更新をダウンロード中 ",
     "更新已安装": "更新をインストールしました",
     "；点击切换为": "；クリックで切替：",
-    "关闭跟读翻译": "翻訳を非表示",
-    "开启跟读翻译": "翻訳を表示",
+    "关闭译文显示": "翻訳を非表示",
+    "开启译文显示": "翻訳を表示",
     "美音 · 女声": "米国英語・女性",
     "美音 · 男声": "米国英語・男性",
     "英音 · 女声": "英国英語・女性",
@@ -596,7 +596,7 @@ var PaperVoiceI18n = (() => {
     "朗读语速": "Vitesse de lecture",
     "语速": "Vitesse",
     "划选后自动朗读": "Lecture auto à la sélection",
-    "跟读译文": "Sous-titres",
+    "显示译文": "Afficher traduction",
     "免费翻译服务": "Service de traduction",
     "翻译服务": "Service",
     "译文语言": "Langue cible",
@@ -614,7 +614,7 @@ var PaperVoiceI18n = (() => {
     "隐私": "Confidentialité",
     "切换朗读模式": "Changer de mode",
     "暂停或继续": "Pause ou reprise",
-    "切换跟读翻译": "Afficher ou masquer la traduction",
+    "切换译文显示": "Afficher ou masquer la traduction",
     "译文开关 · Option/Alt + T": "Traduction · Option/Alt + T",
     "展开 Paper Voice 朗读面板": "Ouvrir Paper Voice",
     "Paper Voice · 点击展开听读": "Paper Voice · Ouvrir les commandes",
@@ -690,8 +690,8 @@ var PaperVoiceI18n = (() => {
     "正在下载更新 ": "Téléchargement : ",
     "更新已安装": "Mise à jour installée",
     "；点击切换为": " ; passer à ",
-    "关闭跟读翻译": "Masquer la traduction",
-    "开启跟读翻译": "Afficher la traduction",
+    "关闭译文显示": "Masquer la traduction",
+    "开启译文显示": "Afficher la traduction",
     "美音 · 女声": "US · Femme",
     "美音 · 男声": "US · Homme",
     "英音 · 女声": "UK · Femme",
@@ -828,7 +828,7 @@ var PaperVoiceI18n = (() => {
     "朗读语速": "Lesegeschwindigkeit",
     "语速": "Tempo",
     "划选后自动朗读": "Auswahl automatisch lesen",
-    "跟读译文": "Untertitel",
+    "显示译文": "Übersetzung anzeigen",
     "免费翻译服务": "Übersetzungsdienst",
     "翻译服务": "Dienst",
     "译文语言": "Zielsprache",
@@ -846,7 +846,7 @@ var PaperVoiceI18n = (() => {
     "隐私": "Datenschutz",
     "切换朗读模式": "Lesemodus wechseln",
     "暂停或继续": "Pause oder fortsetzen",
-    "切换跟读翻译": "Übersetzung ein-/ausblenden",
+    "切换译文显示": "Übersetzung ein-/ausblenden",
     "译文开关 · Option/Alt + T": "Übersetzung · Option/Alt + T",
     "展开 Paper Voice 朗读面板": "Paper Voice öffnen",
     "Paper Voice · 点击展开听读": "Paper Voice · Steuerung öffnen",
@@ -922,8 +922,8 @@ var PaperVoiceI18n = (() => {
     "正在下载更新 ": "Update wird geladen: ",
     "更新已安装": "Update installiert",
     "；点击切换为": "; wechseln zu ",
-    "关闭跟读翻译": "Übersetzung ausblenden",
-    "开启跟读翻译": "Übersetzung anzeigen",
+    "关闭译文显示": "Übersetzung ausblenden",
+    "开启译文显示": "Übersetzung anzeigen",
     "美音 · 女声": "US · Weiblich",
     "美音 · 男声": "US · Männlich",
     "英音 · 女声": "UK · Weiblich",
@@ -951,6 +951,19 @@ var PaperVoiceI18n = (() => {
   '选中任意文字，从句首读到文末':['Read from the selected sentence','選択した文から最後まで再生','Lire dès la phrase sélectionnée','Ab dem gewählten Satz lesen']
  };
  for(const [key,values] of Object.entries(compactStrings))['en','ja','fr','de'].forEach((lang,i)=>catalogs[lang][key]=values[i]);
+
+ Object.assign(catalogs.en,{"快捷键": "Keys", "暂停／继续": "Pause / resume", "停止朗读": "Stop reading", "显示／隐藏译文": "Show / hide translation", "上一句": "Previous sentence", "重读当前句": "Replay sentence", "下一句": "Next sentence", "上一段": "Previous paragraph", "重读当前段": "Replay paragraph", "下一段": "Next paragraph", "未设置": "Unassigned", "空格": "Space", "清除快捷键": "Clear shortcut", "恢复默认": "Reset defaults", "点击按键修改": "Click a key to change it", "按下新按键…": "Press keys…", "按下组合键 · 点击别处取消": "Press keys · Click elsewhere to cancel", "此按键无法使用": "This key is not supported", "快捷键已保存": "Shortcut saved", "快捷键已清除": "Shortcut cleared", "系统可能占用此组合": "May be used by system", "已恢复默认快捷键": "Default shortcuts restored"});
+ Object.assign(catalogs.ja,{"快捷键": "キー", "暂停／继续": "一時停止／再開", "停止朗读": "読み上げを停止", "显示／隐藏译文": "訳文の表示／非表示", "上一句": "前の文", "重读当前句": "今の文を再読", "下一句": "次の文", "上一段": "前の段落", "重读当前段": "今の段落を再読", "下一段": "次の段落", "未设置": "未設定", "空格": "スペース", "清除快捷键": "キーを解除", "恢复默认": "初期設定に戻す", "点击按键修改": "キーをクリックして変更", "按下新按键…": "キーを押す…", "按下组合键 · 点击别处取消": "キーを押す・外側をクリックで取消", "此按键无法使用": "このキーは使えません", "快捷键已保存": "キーを保存しました", "快捷键已清除": "キーを解除しました", "系统可能占用此组合": "システム使用の可能性", "已恢复默认快捷键": "初期設定に戻しました"});
+ Object.assign(catalogs.fr,{"快捷键": "Touches", "暂停／继续": "Pause / reprise", "停止朗读": "Arrêter la lecture", "显示／隐藏译文": "Afficher / masquer traduction", "上一句": "Phrase précédente", "重读当前句": "Répéter la phrase", "下一句": "Phrase suivante", "上一段": "Paragraphe précédent", "重读当前段": "Répéter le paragraphe", "下一段": "Paragraphe suivant", "未设置": "Non défini", "空格": "Espace", "清除快捷键": "Effacer la touche", "恢复默认": "Réinitialiser", "点击按键修改": "Cliquez sur une touche", "按下新按键…": "Appuyez…", "按下组合键 · 点击别处取消": "Appuyez · Cliquez ailleurs pour annuler", "此按键无法使用": "Touche non prise en charge", "快捷键已保存": "Touche enregistrée", "快捷键已清除": "Touche effacée", "系统可能占用此组合": "Usage système possible", "已恢复默认快捷键": "Touches par défaut rétablies"});
+ Object.assign(catalogs.de,{"快捷键": "Tasten", "暂停／继续": "Pause / weiter", "停止朗读": "Vorlesen stoppen", "显示／隐藏译文": "Übersetzung ein/aus", "上一句": "Vorheriger Satz", "重读当前句": "Satz wiederholen", "下一句": "Nächster Satz", "上一段": "Vorheriger Absatz", "重读当前段": "Absatz wiederholen", "下一段": "Nächster Absatz", "未设置": "Nicht belegt", "空格": "Leertaste", "清除快捷键": "Taste löschen", "恢复默认": "Zurücksetzen", "点击按键修改": "Taste zum Ändern anklicken", "按下新按键…": "Taste drücken…", "按下组合键 · 点击别处取消": "Taste drücken · Zum Abbrechen außen klicken", "此按键无法使用": "Taste nicht unterstützt", "快捷键已保存": "Taste gespeichert", "快捷键已清除": "Taste gelöscht", "系统可能占用此组合": "Mögliche Systemtaste", "已恢复默认快捷键": "Standardtasten wiederhergestellt"});
+ Object.assign(catalogs.en,{"已切换，点击继续": "Selected · Resume to continue", "当前句读完后切换": "Switches after this sentence"});
+ Object.assign(catalogs.ja,{"已切换，点击继续": "切替済み・再開してください", "当前句读完后切换": "今の文の後に切替"});
+ Object.assign(catalogs.fr,{"已切换，点击继续": "Sélectionné · Reprenez la lecture", "当前句读完后切换": "Après cette phrase"});
+ Object.assign(catalogs.de,{"已切换，点击继续": "Gewählt · Zum Fortsetzen weiter", "当前句读完后切换": "Wechselt nach diesem Satz"});
+ Object.assign(catalogs.en,{"译文": "Translate", "外观": "Style", "角色互动": "Companion"});
+ Object.assign(catalogs.ja,{"角色互动": "しぐさ"});
+ Object.assign(catalogs.fr,{"译文": "Traduire", "外观": "Style", "角色互动": "Compagnon"});
+ Object.assign(catalogs.de,{"外观": "Stil", "角色互动": "Begleiter"});
  const keys=Object.keys(catalogs.en).sort((a,b)=>b.length-a.length);
  const pattern=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
  const sources=new WeakMap();

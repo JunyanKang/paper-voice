@@ -147,3 +147,20 @@
 .pv-shell button::-moz-focus-inner{border:0}
 .pv-shell .pv-panel .pv-brand span{letter-spacing:0}
 .pv-panel .pv-mode-options button[aria-pressed=true],.pv-panel .pv-settings-tabs button[aria-selected=true]{font-weight:600}
+
+/* Four equal tabs; shortcut recording uses the shared action/body/supporting roles. */
+.pv-panel .pv-settings-tabs button{font-size:11px;padding:0 3px;text-align:center}
+.pv-background-row[data-has-image=false]{justify-content:center;flex-wrap:wrap}
+.pv-background-row[data-has-image=false] .pv-theme-hint:empty{display:none}
+.pv-background-row[data-has-image=false] .pv-theme-hint:not(:empty){flex-basis:100%;text-align:center}
+.pv-shortcut-row{display:flex;align-items:center;gap:5px;height:22px;min-width:0;color:var(--pv-ink)}
+.pv-shortcut-row>span{flex:1;min-width:0;white-space:nowrap}
+.pv-shortcut-group{margin-top:4px}
+.pv-panel .pv-shortcut-key{flex:none;min-width:72px;max-width:140px;padding:0 6px;height:18px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:6px;background:color-mix(in srgb,var(--pv-soft) 56%,transparent);color:var(--pv-accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-shortcut-key:hover,.pv-shortcut-row[data-recording=true] .pv-shortcut-key{background:var(--pv-soft);box-shadow:inset 0 -1px 0 var(--pv-accent)}
+.pv-panel .pv-shortcut-clear{display:flex;align-items:center;justify-content:center;flex:none;width:19px;height:19px;padding:3px;color:var(--pv-muted);border-radius:6px}
+.pv-shortcut-clear .pv-icon{width:12px;height:12px}
+.pv-shortcut-footer{display:flex;justify-content:center;margin-top:7px;height:21px}
+.pv-panel .pv-shortcut-footer button{font-size:10px;color:var(--pv-muted);padding:1px 8px;border-radius:6px}
+.pv-shortcut-status{height:15px;margin-top:3px;text-align:center;color:var(--pv-muted);font-size:10px;line-height:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-height:640px){.pv-shortcut-row{height:20px}.pv-panel .pv-shortcut-key{height:16px}.pv-shortcut-group{margin-top:3px}.pv-shortcut-footer{margin-top:2px;height:18px}.pv-shortcut-status{height:14px;line-height:14px;margin-top:1px}}

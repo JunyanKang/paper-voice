@@ -36,6 +36,7 @@ var PaperVoiceThemes = {
     const find=name=>root.querySelector(`[data-field="${name}"]`),image=this.customThemeImage;
     if(find('customBackground')){find('customBackground').hidden=!image;find('customBackground').setAttribute('aria-pressed',String(!!image&&this.get('themeImageEnabled',false)));}
     if(find('removeBackground'))find('removeBackground').hidden=!image;
+    const row=root.querySelector('.pv-background-row');if(row)row.dataset.hasImage=String(!!image);
     if(this.caption)this.applyTheme(this.caption.box,true);
     for(const marker of this.sentenceHighlight?.markers||[])marker.style.background=this.theme().highlight;
   },

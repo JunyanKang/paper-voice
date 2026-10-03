@@ -137,7 +137,11 @@ var PaperVoiceCore = (() => {
         else for(const range of citations)ranges.push({start:m.index+1+range.start,end:m.index+1+range.end,silent:true});
       }
     }
-    for(const m of text.matchAll(figureReferencePattern()))ranges.push({start:m.index,end:m.index+m[0].length,figure:true});
+    for(const m of text.matchAll(figureReferencePattern())){
+      const bracketed=Array.from(text.matchAll(/\([^()]*\)|\[[^\[\]]*\]|【[^【】]*】/g)).some(b=>m.index>b.index&&m.index+m[0].length<b.index+b[0].length);
+      ranges.push({start:m.index,end:m.index+m[0].length,figure:true,keepFigures:!bracketed});
+    }
+    for(const m of text.matchAll(/\d+(?:\.\d+)?(?:\s*[:：]\s*\d+(?:\.\d+)?)+/g))ranges.push({start:m.index,end:m.index+m[0].length});
     for(const m of text.matchAll(abbreviationPattern()))ranges.push({start:m.index,end:m.index+m[0].length});
     return ranges;
   }
@@ -214,8 +218,8 @@ var PaperVoiceCore = (() => {
     };
     text=text.replace(/\[([^\[\]]+)\]|【([^【】]+)】/g,(whole,a,b)=>stripCitation(whole,a??b));
     text=text.replace(/\(([^()]+)\)/g,stripCitation);
-    const explanations=keepFigures?[]:protectedTextRanges(text).filter(r=>r.keepFigures);
-    text=text.replace(figureReferencePattern(),(reference,at)=>keepFigures||explanations.some(r=>at>=r.start&&at+reference.length<=r.end)?reference:'');
+    // Standalone bracketed figure citations were removed above. References in
+    // running prose carry meaning (e.g. 'shown in Fig. 7A') and must be spoken.
     text=text.replace(/\bfig(s)?\./gi,(_,plural)=>plural?'Figures':'Figure');
     text=text.replace(/([\p{L}]{3,}[.,;:!?)]*)\s*([⁰¹²³⁴⁵⁶⁷⁸⁹]+(?:\s*[,–−⁻-]\s*[⁰¹²³⁴⁵⁶⁷⁸⁹]+)*)/gu,(whole,word)=>(scientificUnits.test(word)||measurementNames[word])?whole:word);
     text=text.replace(/\band\s*\/\s*or\b/gi,'and or')
@@ -269,6 +273,7 @@ var PaperVoiceCore = (() => {
       return negative?per.trim()+' '+word:word;
     };
     let text=cleanText(value).replace(/µ/g,'μ').replace(/℃/g,'°C').replace(/℉/g,'°F').replace(/º(?=\s*[CF])/g,'°');
+    text=ratioSpeech(text,lang);
     text=text.replace(new RegExp('('+quantity+')\\s*[×x]\\s*g'+boundary,'gu'),(_,n)=>numeral(n)+({en:' times gravity',zh:'倍重力加速度',ja:'倍の重力加速度',fr:' fois la gravité'}[lang]));
     const factor='(?:[/·]\\s*'+atom+'|'+unit+'\\s*[⁻−-][¹²³123])';
     const pattern=new RegExp('(?<![\\p{Script=Latin}\\p{Script=Greek}\\p{N}_])('+quantity+')\\s*('+atom+')'+boundary+'((?:\\s*'+factor+boundary+')*)','gu');
@@ -285,6 +290,17 @@ var PaperVoiceCore = (() => {
         spoken+=inverse&&part[1]!=='/'?' '+name(part[2],false):(part[1]==='/'?per:({en:' times ',zh:'乘',ja:'掛ける',fr:' fois '}[lang]))+name(part[2],false);
       }
       return amount+(['zh','ja'].includes(lang)?'':' ')+spoken;
+    });
+  }
+  function ratioSpeech(value,language='en') {
+    const separator={en:' to ',zh:'比',ja:'対',fr:' pour '}[language]||' to ';
+    // Ratios are speech-only. Preserve clock times, URLs, identifiers and ranges.
+    return value.replace(/(?<![\p{L}\p{N}_/:])\d+(?:\.\d+)?(?:\s*[:：]\s*\d+(?:\.\d+)?)+(?![\p{L}\p{N}_/:])/gu,(ratio,at)=>{
+      const before=value.slice(Math.max(0,at-35),at),after=value.slice(at+ratio.length,at+ratio.length+25),parts=ratio.split(/\s*[:：]\s*/);
+      const clock=parts.length===2&&/^\d{1,2}$/.test(parts[0])&&/^\d{2}$/.test(parts[1])&&+parts[0]<24&&+parts[1]<60;
+      const seconds=parts.length===3&&parts.every((x,i)=>i===0?+x<24:/^\d{2}$/.test(x)&&+x<60);
+      if((clock||seconds)&&(/(?:\bat|\btime|\bfrom|\buntil|\bbetween|\btimestamp|\bclock|时间|時刻|à)\s*$/iu.test(before)||/^\s*(?:[ap]\.?m\.?|o['’]clock|时|時)\b/iu.test(after)))return ratio;
+      return parts.join(separator);
     });
   }
   function rate(value) { return Math.max(0.6, Math.min(1.6, Number(value) || 1)); }
@@ -667,6 +683,6 @@ var PaperVoiceCore = (() => {
     if(letter(source[b-1]))while(b<source.length&&wordAt(b))b++;
     return cleanText(source.slice(a,b));
   }
-  return { modes, voices, speechLanguages, detectSpeechLanguage, cleanText, chunks, sentences, rate, speechText, measurementSpeech, pdfText, pdfLayout, sourceOffset, selectionOffset, completeSelection, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
+  return { modes, voices, speechLanguages, detectSpeechLanguage, cleanText, chunks, sentences, rate, speechText, measurementSpeech, ratioSpeech, pdfText, pdfLayout, sourceOffset, selectionOffset, completeSelection, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;

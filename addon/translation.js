@@ -204,7 +204,7 @@ var PaperVoiceTranslation = {
   if(c?.reader!==reader){this.hideTranslation();c=null;}
   if(!c){
    const box=doc.createElement('div');box.dataset.paperVoice='translation';box.className='pv-caption';
-   box.setAttribute('role','status');box.setAttribute('aria-label','跟读译文');
+   box.setAttribute('role','status');box.setAttribute('aria-label','显示译文');
    box.style.cssText='position:absolute;z-index:20;box-sizing:border-box;padding:7px 10px;background:light-dark(rgba(248,250,245,var(--pv-caption-opacity,.88)),rgba(36,55,47,var(--pv-caption-opacity,.88)));backdrop-filter:blur(22px) saturate(135%);-webkit-backdrop-filter:blur(22px) saturate(135%);color:light-dark(#253c33,#edf2e9);border:0;border-radius:12px;font:12px/1.45 system-ui,sans-serif;box-shadow:0 4px 20px #15342922;overflow:auto;scrollbar-width:none;overflow-wrap:anywhere;transition:opacity 120ms ease;';
    this.applyCaptionTypography(box);
    box.style.setProperty('--pv-caption-opacity',String(this.surfaceOpacity?.()??.88));
@@ -229,8 +229,8 @@ var PaperVoiceTranslation = {
    c.layout();
   }
   if(c.unit&&c.unit!==unit)c.layout();
-  c.box.lang=this.get('translationTarget','zh-Hans');c.box.setAttribute('aria-label',(this.t?.('跟读译文')||'跟读译文')+' · '+(this.translationLanguage?.().label||c.box.lang));
-  c.unit=unit;c.box.textContent=source?text:(this.t?.(text)||text);c.box.title=this.t?.(source||'跟读译文')||(source||'跟读译文');c.box.dataset.provider=source;
+  c.box.lang=this.get('translationTarget','zh-Hans');c.box.setAttribute('aria-label',(this.t?.('显示译文')||'显示译文')+' · '+(this.translationLanguage?.().label||c.box.lang));
+  c.unit=unit;c.box.textContent=source?text:(this.t?.(text)||text);c.box.title=this.t?.(source||'显示译文')||(source||'显示译文');c.box.dataset.provider=source;
   this.positionTranslation(c);
  },
  positionTranslation(c) {
