@@ -643,6 +643,30 @@ var PaperVoiceCore = (() => {
     while(index>0&&id!==undefined&&units[index-1].sentenceId===id)index--;
     return index;
   }
-  return { modes, voices, speechLanguages, detectSpeechLanguage, cleanText, chunks, sentences, rate, speechText, measurementSpeech, pdfText, pdfLayout, sourceOffset, selectionOffset, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
+  function completeSelection(items,selection,offset) {
+    // Use the same unfiltered character offsets as PDF geometry and playback.
+    // Keep Asian scripts as selected: extending them as a Latin word would
+    // incorrectly select a whole Chinese/Japanese sentence.
+    const source=pdfText(items),positions=[];let normalized='';
+    for(let i=0;i<source.length;i++){
+      const part=anchorText(source[i]);normalized+=part;
+      for(let j=0;j<part.length;j++)positions.push(i);
+    }
+    const needle=anchorText(selection.text);if(!needle)return selection.text;
+    let start=offset;
+    if(!Number.isInteger(start)||start<0||normalized.slice(start,start+needle.length)!==needle){
+      const at=normalized.indexOf(needle);
+      if(at<0||normalized.indexOf(needle,at+1)>=0)return selection.text;
+      start=at;
+    }
+    let a=positions[start],b=positions[start+needle.length-1]+1;
+    if(a===undefined||!Number.isFinite(b))return selection.text;
+    const letter=c=>!!c&&/[\p{Script=Latin}\p{Script=Greek}\p{Script=Cyrillic}\p{M}\p{N}]/u.test(c);
+    const wordAt=i=>letter(source[i])||/['’‐‑-]/u.test(source[i]||'')&&letter(source[i-1])&&letter(source[i+1]);
+    if(letter(source[a]))while(a>0&&wordAt(a-1))a--;
+    if(letter(source[b-1]))while(b<source.length&&wordAt(b))b++;
+    return cleanText(source.slice(a,b));
+  }
+  return { modes, voices, speechLanguages, detectSpeechLanguage, cleanText, chunks, sentences, rate, speechText, measurementSpeech, pdfText, pdfLayout, sourceOffset, selectionOffset, completeSelection, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;

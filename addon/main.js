@@ -188,8 +188,10 @@ var PaperVoice = {
         if(!current())return;
         try{
           const chars=reader._internalReader?._primaryView?._pdfPages?.[selection.pageIndex]?.chars||[];
-          const source=PaperVoiceCore.detectSpeechLanguage(selection.text,chars.slice(0,5000).map(x=>x.u||x.c||'').join(''))||this.speechLanguage();
-          const result=await this.translate(selection.text,source,{provider,target});
+          const text=await this.selectionTranslationText(reader,selection,this.get('selectionTranslationScope','selection'));
+          if(!current())return;
+          const source=PaperVoiceCore.detectSpeechLanguage(text,chars.slice(0,5000).map(x=>x.u||x.c||'').join(''))||this.speechLanguage();
+          const result=await this.translate(text,source,{provider,target,onPartial:partial=>{if(current()){ui.translation.textContent=partial;ui.card.dataset.translationState='streaming';}}});
           if(!current())return;
           ui.translation.textContent=result.text;ui.card.dataset.translationState='ready';
         }catch(error){
@@ -198,7 +200,25 @@ var PaperVoice = {
         }
       },220);
     };
-    ui.retry.onclick=refresh;refresh();
+    ui.retry.onclick=refresh;
+    for(const button of ui.scopes||[]){
+      button.setAttribute('aria-pressed',String(button.dataset.scope===this.get('selectionTranslationScope','selection')));
+      button.onclick=()=>{this.set('selectionTranslationScope',button.dataset.scope);for(const b of ui.scopes)b.setAttribute('aria-pressed',String(b===button));refresh();};
+    }
+    refresh();
+  },
+  async selectionTranslationText(reader,selection,scope='selection') {
+    const resolved=await this.resolveSelection(reader,selection);
+    if(scope==='selection'){
+      const pdf=reader._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfDocument;
+      if(!pdf||!Number.isInteger(selection.pageIndex))return selection.text;
+      const page=Components.utils.waiveXrays(await pdf.getPage(selection.pageIndex+1));
+      return PaperVoiceCore.completeSelection((await page.getTextContent()).items,selection,resolved?.anchorOffset);
+    }
+    if(!resolved)throw new Error('无法定位划选位置，请重新划选');
+    const units=await this.documentUnits(reader),group=PaperVoiceCore.scopeUnits(units,resolved,scope);
+    if(!group.length)throw new Error('无法定位划选位置，请重新划选');
+    return PaperVoiceCore.cleanText(group.map(unit=>unit.text).join(' '));
   },
   ensurePanel(reader) {
     const old=this.panels.get(reader);
@@ -220,8 +240,8 @@ var PaperVoice = {
     PaperVoiceUI.visibility(panel,toggle?!(panel.dataset.pvVisible==='true'||(!panel.hidden&&panel.dataset.pvVisible!=='false')):true);
   },
   modeHint() {
-    if(this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection')return '划选字母或词，从所在句句首一直读到文末。';
-    return ({selection:'拖选文字，松开即读。悬浮按钮随时暂停。',document:'按页连续听读，可选择起点或继续上次进度。',paragraph:'划选段中任意文字，朗读所在完整段落。',sentence:'划选句中任意文字，朗读所在完整句子。'})[this.get('mode','selection')];
+    if(this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection')return '选中任意文字，从句首读到文末';
+    return ({selection:'选中文字，松开即读',document:'连读全文，随时续读',paragraph:'选中任意文字，读完整段',sentence:'选中任意文字，读完整句'})[this.get('mode','selection')];
   },
   setMode(mode) {
     if(!PaperVoiceCore.modes.some(x=>x.id===mode)||mode===this.get('mode','selection'))return;
@@ -261,11 +281,13 @@ var PaperVoice = {
   companionIntervalMs() {return Math.max(1,Math.min(60,Number(this.get('companionInterval',5))||5))*60000;},
   setCompanionInterval(value) {value=Number(value);if(![1,3,5,10,15,30].includes(value))return;this.set('companionInterval',value);for(const panel of this.livePanels())panel.resetCompanionSchedule?.();this.syncSettings();},
   captionFontFamily() {return ({system:'system-ui,sans-serif',serif:'Georgia,"Noto Serif CJK SC","Songti SC",SimSun,serif',sans:'Arial,"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif'})[this.get('captionFont','system')]||'system-ui,sans-serif';},
+  applyCaptionTypography(box) {box.style.fontFamily=this.captionFontFamily();box.style.fontSize=this.get('captionSize',12)+'px';box.style.fontWeight='400';box.style.lineHeight='1.45';},
   setCaptionStyle(name,value) {
     if(name==='captionFont'){if(!['system','serif','sans'].includes(value))return;this.set(name,value);}
     else if(name==='captionSize')this.set(name,Math.max(10,Math.min(20,Math.round(Number(value)||12))));
     this.syncSettings();
-    if(this.caption){this.caption.box.style.fontFamily=this.captionFontFamily();this.caption.box.style.fontSize=this.get('captionSize',12)+'px';this.positionTranslation(this.caption);}
+    if(this.caption){this.applyCaptionTypography(this.caption.box);this.positionTranslation(this.caption);}
+    for(const reader of Zotero.Reader._readers)for(const box of reader._iframeWindow?.document.querySelectorAll('.pv-selection-translation')||[])this.applyCaptionTypography(box);
   },
   surfaceOpacity() {return 1-Math.max(0,Math.min(40,Number(this.get('surfaceTransparency',12))||0))/100;},
   setSurfaceTransparency(value) {this.set('surfaceTransparency',Math.max(0,Math.min(40,Math.round(Number(value)||0))));this.syncSettings();if(this.caption)this.caption.box.style.setProperty('--pv-caption-opacity',String(this.surfaceOpacity()));},
@@ -278,7 +300,7 @@ var PaperVoice = {
   },
   syncSettings() {
     const mode=this.get('mode','selection');
-    for (const {root,find} of this.livePanels()) {
+    for (const {root,find,action} of this.livePanels()) {
       root.style.setProperty('--pv-opacity',String(this.surfaceOpacity()));
       this.syncTheme?.(root);
       if(find('companionInterval'))find('companionInterval').value=this.get('companionInterval',5);
@@ -307,6 +329,7 @@ var PaperVoice = {
         for(const option of find('target').options)option.disabled=(this.get('readTranslation',false)&&!this.translationVoiceLanguage(option.value))||(option.value==='zh-Hant'&&this.get('translationProvider','tencenttransmart')==='tencenttransmart');
       }
       if(find('provider'))find('provider').value=this.get('translationProvider','tencenttransmart');
+      if(action?.('configureLLM')){action('configureLLM').hidden=this.get('translationProvider','tencenttransmart')!=='llm';find('llmSummary').textContent=this.t('配置大模型')+' · '+this.llmConfig().name;}
       if(find('target'))find('target').value=this.get('translationTarget','zh-Hans');
       find('voiceSummary').textContent=PaperVoiceCore.voices.find(v=>v.id===this.settingsVoice())?.label||'声音设置';
     }
@@ -982,6 +1005,7 @@ var PaperVoice = {
     // Flush the preference checkpoint before Zotero terminates or swaps versions.
     Services.prefs.savePrefFile(null);
     this.dead=true; this.stop(false,true);this.currentReader=null;
+    for(const xhr of this.llmRequests||[])xhr.abort();
     this.host.clearInterval(this.scanTimer);
     Services.obs.removeObserver(this.quitObserver,'quit-application-granted');
     Zotero.Reader.unregisterEventListener('renderTextSelectionPopup', this.selectionHandler);
@@ -998,6 +1022,7 @@ var PaperVoice = {
   },
 };
 Object.assign(PaperVoice, PaperVoiceTranslation);
+if(typeof PaperVoiceLLM!=='undefined')Object.assign(PaperVoice,PaperVoiceLLM);
 
 if(typeof PaperVoiceUpdater!=='undefined')Object.assign(PaperVoice,PaperVoiceUpdater);
 

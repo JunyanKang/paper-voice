@@ -12,9 +12,10 @@ Start with a selected passage, then find your own pace for a whole paper. This g
 4. [Pause, navigate and replay](#pause-navigate-and-replay)
 5. [Choose a language and voice](#choose-a-language-and-voice)
 6. [See or hear a translation](#see-or-hear-a-translation)
-7. [Make the interface yours](#make-the-interface-yours)
-8. [Keyboard shortcuts](#keyboard-shortcuts)
-9. [Updates and common questions](#updates-and-common-questions)
+7. [LLM translation](#llm-translation)
+8. [Make the interface yours](#make-the-interface-yours)
+9. [Keyboard shortcuts](#keyboard-shortcuts)
+10. [Updates and common questions](#updates-and-common-questions)
 
 ## Your first reading
 
@@ -129,7 +130,15 @@ Choose these independently in **Settings → Translation**:
 | **Captions** | Show translations near the source during playback | Off |
 | **Read translation** | Play only translated audio while highlighting the original | Off |
 
-Selection translation uses exactly the selected text. Sentence and Paragraph modes expand the audio to the containing sentence or paragraph.
+Use the **Selection / Sentence / Paragraph** buttons beside the target language to choose what to translate:
+
+| Scope | Translated content |
+|---|---|
+| **Selection** | Your selected text, with incomplete edge words completed for alphabetic scripts |
+| **Sentence** | The complete sentence containing your selection |
+| **Paragraph** | The complete paragraph containing your selection |
+
+The scope is remembered for future selections. It is independent of the reading mode and does not interrupt playback.
 
 <p align="center"><img src="assets/selection-translation-en.png" width="318" alt="A compact selection popup shows the translation above a separate reading action"></p>
 
@@ -165,7 +174,32 @@ Translated audio supports Chinese, Japanese, French and English. Other target la
 | **Microsoft** | For Traditional Chinese, or as an alternative when another service cannot connect |
 | **Google** | When your network can access Google Translate |
 
-Use Microsoft or Google for Traditional Chinese. Selection translation sends selected text to your chosen service; captions and translated audio send the current sentence and a prefetched next sentence. Turn off all three translation options for fully offline reading. If a free service is unavailable, switch services or try again later. [Privacy details](../PRIVACY.md)
+Use Microsoft, Google, or an LLM supporting Traditional Chinese for that target. Selection translation sends the text expanded to your selected scope to your chosen service; captions and translated audio send the current sentence and a prefetched next sentence. Turn off all three translation options for fully offline reading. If a free service is unavailable, switch services or try again later. [Privacy details](../PRIVACY.md)
+
+## LLM translation
+
+To translate with your own model, choose **Settings → Translation → Service → LLM · API**. The free Tencent, Microsoft and Google services remain available without an API key.
+
+<p align="center"><img src="assets/settings-llm-en.png" width="420" alt="LLM settings with provider, model, API URL, masked key input and Save & test"></p>
+
+### Connect in three steps
+
+1. **Choose a provider.** Presets include MiniMax, DeepSeek, Qwen, Doubao, GLM, Kimi, Hunyuan, Qianfan, OpenAI, Claude and Gemini, plus a custom OpenAI-compatible endpoint.
+2. **Enter your API key.** Get the key from the provider’s console. Presets fill the API URL and a suggested model; edit either for your region or account. Some services, including Doubao, require the model or endpoint ID shown in their console.
+3. **Select Save & test.** The plugin translates a sample sentence and displays the connection status and completion time. Hover over a successful result to see the sample translation. Once saved, selection translation, captions and translated audio all use this service.
+
+Translations appear progressively and are cached. Results from an older scope cannot overwrite a newer selection. First calls, long text, reasoning and network conditions affect the wait; a Flash or fast model is often a better choice for reading.
+
+### Keys and costs
+
+- Keys stay in the encrypted login store of the current Zotero profile. A saved key is never restored into the input. Leave it blank to keep the saved key, or select the trash icon to remove it.
+- Only the chosen text, target language and translation instructions go to your API. The PDF file, annotations and library are not uploaded. Continuous translation may prefetch the next sentence.
+- This is optional. Billing, subscription quotas and model access belong to the provider; app subscriptions and API access may differ. Use a key supported by your chosen endpoint.
+- For access errors, check your key and plan. For quota errors, wait or switch to a free service. For an unknown model, check its exact ID in the console. Paper Voice never switches automatically to another paid provider.
+
+Domestic APIs can be configured for mainland China without routing through an overseas service. Availability of international APIs depends on your network and the provider’s regional requirements. Verify technical terms, numbers and important conclusions against the original text.
+
+The integration uses [OpenAI-compatible Chat Completions](https://platform.openai.com/docs/api-reference/chat/create), [Anthropic Messages](https://platform.claude.com/docs/en/api/messages) for Claude, and [Gemini’s official OpenAI compatibility](https://ai.google.dev/gemini-api/docs/openai). The configuration follows familiar patterns such as [Immersive Translate’s API settings](https://immersivetranslate.com/en/docs/services/openai/). Presets are configuration aids; available models are determined by each provider’s console.
 
 ## Make the interface yours
 
@@ -185,6 +219,8 @@ Open **Settings → Appearance**.
 **System** follows Zotero’s language, with English as the fallback for unsupported languages. Switching languages keeps the panel size unchanged.
 
 Translation font and size are under **Settings → Translation**.
+
+The mascot uses five gestures in each of its idle and reading sets: page turning, a somersault, sitting cross-legged, stretching, picking up a microphone and giving a thumbs-up. It keeps the final pose. After about 30 minutes of active reading, a brief remove-and-replace-headphones gesture takes priority without pausing audio. Interactions respect the system’s Reduce Motion setting.
 
 ## Keyboard shortcuts
 

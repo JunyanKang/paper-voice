@@ -16,6 +16,7 @@ var PaperVoiceTranslation = {
   text=PaperVoiceCore.speechText(text);
   sourceLanguage=sourceLanguage||this.activeSpeechLanguage||this.speechLanguage?.()||'en';
   const provider=options.provider||this.get('translationProvider','tencenttransmart'),target=options.target||this.get('translationTarget','zh-Hans'),key=provider+'\0'+sourceLanguage+'\0'+target+'\0'+text;
+  if(provider==='llm')return this.translateLLM(text,sourceLanguage,{...options,target});
   if(provider==='tencenttransmart'&&target==='zh-Hant')throw new Error('腾讯通道暂不提供繁体中文，请选择微软或 Google');
   const code=provider==='tencenttransmart'?(target==='zh-Hans'?'zh':target):provider==='google'?({'zh-Hans':'zh-CN','zh-Hant':'zh-TW'}[target]||target):target;
   if(this.translationCache.has(key))return this.translationCache.get(key);
@@ -205,7 +206,7 @@ var PaperVoiceTranslation = {
    const box=doc.createElement('div');box.dataset.paperVoice='translation';box.className='pv-caption';
    box.setAttribute('role','status');box.setAttribute('aria-label','跟读译文');
    box.style.cssText='position:absolute;z-index:20;box-sizing:border-box;padding:7px 10px;background:light-dark(rgba(248,250,245,var(--pv-caption-opacity,.88)),rgba(36,55,47,var(--pv-caption-opacity,.88)));backdrop-filter:blur(22px) saturate(135%);-webkit-backdrop-filter:blur(22px) saturate(135%);color:light-dark(#253c33,#edf2e9);border:0;border-radius:12px;font:12px/1.45 system-ui,sans-serif;box-shadow:0 4px 20px #15342922;overflow:auto;scrollbar-width:none;overflow-wrap:anywhere;transition:opacity 120ms ease;';
-   box.style.fontFamily=this.captionFontFamily?.()||'system-ui,sans-serif';box.style.fontSize=(this.get('captionSize',12))+'px';
+   this.applyCaptionTypography(box);
    box.style.setProperty('--pv-caption-opacity',String(this.surfaceOpacity?.()??.88));
    this.applyTheme?.(box,true);
    const original={height:frame.style.height,width:frame.style.width,display:frame.style.display};

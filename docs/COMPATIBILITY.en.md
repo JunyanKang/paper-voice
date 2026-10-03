@@ -27,7 +27,7 @@ Publication footers are recognized from page coordinates, font sizes and metadat
 
 ## Translation and connectivity
 
-Selection translation is on by default and sends selected text to your chosen service. Captions and translated audio are off by default; enabling them sends the current sentence and a prefetched next sentence. Turn off all three options under **Settings → Translation** for fully offline reading. Tencent is the default; Microsoft and Google are alternatives. Use Microsoft or Google for Traditional Chinese.
+Selection translation is on by default and sends the chosen scope to your service: Selection completes partial words; Sentence and Paragraph expand to the containing passage. Captions and translated audio are off by default; enabling them sends the current sentence and a prefetched next sentence. Turn off all three options under **Settings → Translation** for fully offline reading. Tencent is the default; Microsoft and Google are alternatives. Use Microsoft, Google or a supporting LLM for Traditional Chinese.
 
 These free public services may impose limits, change or become unavailable. Google requires a reachable network. Tencent and Microsoft do not depend on Google or OpenAI. Failed captions do not interrupt original-text narration. Translated audio requires a successful translation first; another service or target language may work.
 
@@ -36,3 +36,9 @@ Machine translation helps with reading but is not a professionally reviewed tran
 Downloads and updates are hosted on GitHub. Update requests do not include paper content, and failed updates keep the existing plugin. Speech synthesis works offline after installation.
 
 Complete packages include Misaki and offline Chinese/Japanese dictionaries, including UniDic-lite. See the [upgrade guide](GUIDE.en.md#how-do-i-update) to check whether your voice pack needs replacing. Reading language is detected locally by default and can also be selected manually. Russian remains available for translation only. Technical terms, polyphonic characters and mixed-language text may need pronunciation checks.
+
+## Optional LLM APIs
+
+LLM translation uses your own API key and is separate from the free public translation channels. Domestic and international provider presets are included, with custom OpenAI-compatible endpoints and Anthropic Messages for Claude. Available models, regions and key types depend on the provider. MiniMax has been tested with real requests and streaming inside Zotero. Other presets have protocol and adapter parsing checks, but have not all been tested with paid credentials.
+
+Model translations can contain mistakes or awkward wording; check important terms, numbers and conclusions against the original. Rate limits, reasoning and network conditions affect latency. See the [LLM translation guide](GUIDE.en.md#llm-translation).

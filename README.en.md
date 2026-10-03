@@ -10,7 +10,7 @@
 
 - **Listen at your own pace.** Focus on a sentence, repeat a paragraph, or listen from your current position to the end.
 - **Keep your place.** Highlighting, scrolling, column changes and page turns follow the reading.
-- **Read across languages.** Select text for a translation, follow translated captions, or listen to the translation itself.
+- **Read across languages.** Select text for a translation, follow translated captions, or listen to the translation itself. You can also connect your own LLM API.
 - **Stay with the paper’s argument.** Recognizable citations, figure captions and publication details are skipped for smoother listening. Your PDF and annotations stay unchanged.
 
 ## Download
@@ -41,9 +41,9 @@ Already installed? [Download the `.xpi` plugin](https://github.com/JunyanKang/pa
 
 Choose Chinese, English, Japanese, French or German for the interface in Settings.
 
-[Modes and repeats](docs/GUIDE.en.md#choose-a-reading-mode) · [Resume your place](docs/GUIDE.en.md#read-continuously-and-resume) · [Translation and translated audio](docs/GUIDE.en.md#see-or-hear-a-translation) · [Keyboard shortcuts](docs/GUIDE.en.md#keyboard-shortcuts)
+[Modes and repeats](docs/GUIDE.en.md#choose-a-reading-mode) · [Resume your place](docs/GUIDE.en.md#read-continuously-and-resume) · [Translation and translated audio](docs/GUIDE.en.md#see-or-hear-a-translation) · [LLM translation](docs/GUIDE.en.md#llm-translation) · [Keyboard shortcuts](docs/GUIDE.en.md#keyboard-shortcuts)
 
-The package includes offline voices and their runtime: no subscription, API key or separate Python installation is needed. Translation needs internet access and defaults to Tencent for mainland China. Selection translation is on by default and sends selected text to that service; you can turn it off in Settings. [Privacy details](PRIVACY.md)
+The package includes offline voices and their runtime: no subscription, API key or separate Python installation is needed. Translation needs internet access and defaults to Tencent’s free service for mainland China. Optional LLM translation uses your own API key; provider fees apply. Selection translation is on by default and sends text from the selected scope to that service; you can turn it off in Settings. [Privacy details](PRIVACY.md)
 
 ## Updating
 

@@ -12,6 +12,30 @@ var PaperVoiceUI = {
   animation.finished.then(()=>{if(element._pvFade!==animation)return;element.hidden=!visible;animation.cancel();element._pvFade=null;},()=>{});
  },
  syncSelects(root) {root._pvSelects?.sync();},
+ installTooltips(root,controller) {
+  const doc=root.ownerDocument,win=doc.defaultView,tip=doc.createElement('div');tip.className='pv-tooltip';tip.setAttribute('role','tooltip');tip.id='pv-tooltip';tip.hidden=true;root.append(tip);
+  let target=null,timer=null,description=null;
+  const owns=el=>el?.closest?.('[data-paper-voice]')&&!!el.closest('[data-paper-voice="shell"],[data-paper-voice="selection-card"],[data-paper-voice="toolbar"],[data-paper-voice="selection"],[data-paper-voice="translation"]');
+  const collect=el=>{if(!owns(el))return;if(el.matches('[data-action=settings],[data-action=close],[data-action=llmBack],[data-action=orb]')){delete el.dataset.pvTooltip;el.removeAttribute('title');return;}const hasTitle=el.hasAttribute('title');if(!hasTitle&&el.dataset.pvTooltip)return;const text=hasTitle?el.getAttribute('title'):el.matches('button,a')&&!el.textContent.trim()?el.getAttribute('aria-label'):null;if(text===null)return;const labelled=el.matches('[data-theme-choice],[data-mode],[data-settings-tab]')||el.textContent.trim()===text||el.closest('.pv-panel')&&el.matches('button')&&!el.matches('.pv-select-trigger,[data-action=llmRemoveKey]')&&!!el.textContent.trim();if(text&&!labelled)el.dataset.pvTooltip=text;else delete el.dataset.pvTooltip;if(hasTitle)el.removeAttribute('title');};
+  const scan=el=>{collect(el);el.querySelectorAll?.('[title],[aria-label]').forEach(collect);};scan(doc.body);
+  const observer=new win.MutationObserver(records=>{for(const rec of records){if(rec.type==='attributes')collect(rec.target);else rec.addedNodes.forEach(scan);}});observer.observe(doc.body,{subtree:true,childList:true,attributes:true,attributeFilter:['title','aria-label']});
+  const hide=()=>{win.clearTimeout(timer);if(target){if(description===null)target.removeAttribute('aria-describedby');else target.setAttribute('aria-describedby',description);}target=null;PaperVoiceUI.visibility(tip,false);};
+  const show=el=>{
+   if(!el.isConnected||el.matches(':disabled')||el.getAttribute('aria-expanded')==='true')return;const value=el.querySelector('.pv-select-value');if(value&&value.scrollWidth<=value.clientWidth+1)return;
+   const text=el.dataset.pvTooltip;if(!text)return;
+   target=el;description=el.getAttribute('aria-describedby');el.setAttribute('aria-describedby',((description||'')+' '+tip.id).trim());tip.textContent=controller.t(text);controller.applyTheme(tip);
+   tip.style.left='0px';tip.style.top='0px';tip.style.visibility='hidden';PaperVoiceUI.visibility(tip,true);
+   const b=el.getBoundingClientRect(),t=tip.getBoundingClientRect(),top=b.bottom+8;
+   // Keep one consistent side. At the screen edge, omit a nonessential hint
+   // rather than covering its control or jumping to another side.
+   if(top+t.height>win.innerHeight-4){hide();tip.style.visibility='';return;}
+   tip.style.left=Math.max(8,Math.min(b.left+(b.width-t.width)/2,win.innerWidth-t.width-8))+'px';tip.style.top=top+'px';tip.style.visibility='';
+  };
+  const enter=e=>{const el=e.target.closest?.('[data-pv-tooltip]');if(!owns(el)||el===target)return;hide();timer=win.setTimeout(()=>show(el),e.type==='focusin'?0:450);};
+  const leave=e=>{if(!target||!target.contains(e.relatedTarget))hide();};
+  doc.addEventListener('pointerover',enter);doc.addEventListener('pointerout',leave);doc.addEventListener('focusin',enter);doc.addEventListener('focusout',leave);doc.addEventListener('pointerdown',hide,true);doc.addEventListener('keydown',hide,true);doc.addEventListener('scroll',hide,true);win.addEventListener('resize',hide);
+  return {hide,dispose(){hide();observer.disconnect();for(const [name,fn,capture] of [['pointerover',enter],['pointerout',leave],['focusin',enter],['focusout',leave],['pointerdown',hide,true],['keydown',hide,true],['scroll',hide,true]])doc.removeEventListener(name,fn,capture);win.removeEventListener('resize',hide);tip._pvFade?.cancel();tip.remove();}};
+ },
  installSelects(root,controller) {
   const doc=root.ownerDocument,win=doc.defaultView,entries=[];
   const menu=doc.createElement('div');menu.className='pv-select-popover';menu.dataset.field='selectPopover';menu.hidden=true;menu.setAttribute('role','listbox');root.append(menu);
@@ -53,9 +77,6 @@ var PaperVoiceUI = {
  },
  create(controller, reader) {
   const doc=reader._iframeWindow.document,root=doc.createElement('div');
-  root.style.setProperty('--pv-ready-atlas',`url("${controller.assetURI}mascot-ready-atlas.png")`);root.style.setProperty('--pv-reading-atlas',`url("${controller.assetURI}mascot-reading-atlas.png")`);
-  root.style.setProperty('--pv-ready-delight',`url("${controller.assetURI}mascot-ready-delight.png")`);root.style.setProperty('--pv-reading-encourage',`url("${controller.assetURI}mascot-reading-encourage.png")`);
-  const gestureImages=['mascot-ready-atlas.png','mascot-reading-atlas.png','mascot-ready-delight.png','mascot-reading-encourage.png'].map(name=>{const image=new doc.defaultView.Image();image.src=controller.assetURI+name;return image;});
   root.className='pv-shell';root.dataset.paperVoice='shell';root.dataset.state='idle';
   const icon=name=>`<img class="pv-icon" src="${controller.assetURI}icons/${name}.svg" alt=""/>`;
   root.innerHTML=`<style>${controller.cssText}</style><section class="pv-panel" data-paper-voice="panel" aria-label="Paper Voice 朗读控制" hidden>
@@ -64,7 +85,7 @@ var PaperVoiceUI = {
     <div class="pv-mode-options" role="group" aria-label="朗读模式">${PaperVoiceCore.modes.map(mode=>`<button data-mode="${mode.id}" aria-label="${mode.label}" title="${mode.label}" aria-pressed="false">${icon(mode.icon)}<span>${mode.short}</span></button>`).join('')}</div>
     <div class="pv-mode-note" data-field="modeNote"></div>
     <div class="pv-context-row" data-field="repeatRow" hidden><span>循环</span><select data-field="repeat" aria-label="循环次数"><option value="1">1 次</option><option value="0">持续循环</option><option value="2">2 次</option><option value="3">3 次</option><option value="5">5 次</option></select></div>
-    <div class="pv-context-row" data-field="documentRow" hidden><span>起点</span><select data-field="documentStart" aria-label="全文朗读起点"><option value="begin">从第 1 页</option><option value="current">从当前页</option><option value="resume">从上次进度</option><option value="selection">从选定位置（句首）</option></select></div>
+    <div class="pv-context-row" data-field="documentRow" hidden><span>起点</span><select data-field="documentStart" aria-label="全文朗读起点"><option value="begin">首页</option><option value="current">当前页</option><option value="resume">上次位置</option><option value="selection">选定句</option></select></div>
     <div class="pv-preview" data-field="preview">选择一段文字，留一点时间给耳朵。</div>
     <div class="pv-progress-track"><div data-field="progressBar"></div></div><div class="pv-status" data-field="status" role="status" aria-live="polite"></div>
     <div class="pv-transport"><button class="pv-icon-button" data-action="previous" aria-label="上一句" title="上一句">${icon('chevron-left')}</button><button class="pv-primary" data-action="primary">${icon('play')}<span data-field="primaryLabel">开始朗读</span></button><button class="pv-icon-button" data-action="next" aria-label="下一句" title="下一句">${icon('chevron-right')}</button><button class="pv-icon-button pv-stop" data-action="stop" aria-label="停止朗读" title="停止 · Esc">${icon('square')}</button></div>
@@ -83,9 +104,19 @@ var PaperVoiceUI = {
      <div id="pv-settings-translation" data-settings-pane="translation" role="tabpanel" aria-labelledby="pv-tab-translation" hidden>
     <div class="pv-setting-row pv-translation-row pv-translation-switches"><label><span>划词翻译</span><input type="checkbox" data-field="selectionTranslation"/></label><label><span>跟读译文</span><input type="checkbox" data-field="translation"/></label></div>
     <label class="pv-setting-row" data-field="readTranslationRow"><span>朗读译文</span><input type="checkbox" data-field="readTranslation"/></label>
-    <div class="pv-setting-row"><label for="pv-provider">翻译服务</label><select id="pv-provider" data-field="provider" aria-label="免费翻译服务"><option value="tencenttransmart">腾讯 · 大陆优先</option><option value="bing">微软 · 免费</option><option value="google">Google · 海外</option></select></div>
+    <div class="pv-setting-row"><label for="pv-provider">翻译服务</label><select id="pv-provider" data-field="provider" aria-label="翻译服务"><option value="tencenttransmart">腾讯 · 大陆优先</option><option value="bing">微软 · 免费</option><option value="google">Google · 海外</option><option value="llm">大模型 · API</option></select></div>
+    <button class="pv-llm-summary" data-action="configureLLM" hidden>${icon('sparkles')}<span data-field="llmSummary">配置大模型</span>${icon('chevron-right')}</button>
     <div class="pv-setting-row"><label for="pv-target">译文语言</label><select id="pv-target" data-field="target" aria-label="译文语言"><option value="zh-Hans">简体中文</option><option value="zh-Hant">繁體中文</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="fr">Français</option><option value="en">English</option><option value="de">Deutsch</option><option value="es">Español</option><option value="ru">Русский</option></select></div>
     <div class="pv-setting-row pv-caption-style-row"><label for="pv-caption-font">译文字体</label><select id="pv-caption-font" data-field="captionFont" aria-label="译文字体"><option value="system">系统字体</option><option value="sans">无衬线</option><option value="serif">衬线</option></select><select data-field="captionSize" aria-label="译文字号">${[10,11,12,13,14,15,16,18,20].map(n=>`<option value="${n}">${n} px</option>`).join('')}</select></div>
+     </div>
+     <div data-field="llmPage" hidden>
+      <div class="pv-llm-heading"><button data-action="llmBack" aria-label="返回译文设置">${icon('chevron-left')}</button><span>大模型翻译</span><a data-action="llmHelp" href="#" aria-label="API 设置指南">${icon('file-text')}</a></div>
+      <div class="pv-llm-row"><label for="pv-llm-provider">服务商</label><select id="pv-llm-provider" data-field="llmProvider" aria-label="大模型服务商">${controller.llmPresets.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
+      <div class="pv-llm-row"><label for="pv-llm-model">模型</label><input id="pv-llm-model" data-field="llmModel" type="text" spellcheck="false" autocomplete="off" aria-label="模型名称" placeholder="Model ID"/></div>
+      <div class="pv-llm-row"><label for="pv-llm-endpoint">地址</label><input id="pv-llm-endpoint" data-field="llmEndpoint" type="url" spellcheck="false" autocomplete="off" aria-label="API 地址" placeholder="https://…/v1"/></div>
+      <div class="pv-llm-row"><label for="pv-llm-key">密钥</label><input id="pv-llm-key" data-field="llmKey" type="password" spellcheck="false" autocomplete="new-password" aria-label="API Key" placeholder="API Key"/><button data-action="llmRemoveKey" aria-label="移除已保存密钥" title="移除已保存密钥">${icon('trash-2')}</button></div>
+      <div class="pv-llm-actions"><button data-action="llmSave">保存</button><button data-action="llmTest">保存并测试</button></div>
+      <div class="pv-llm-result" data-field="llmResult" role="status" aria-live="polite">密钥仅存本机 · 费用由服务商收取</div>
      </div>
      <div id="pv-settings-appearance" data-settings-pane="appearance" role="tabpanel" aria-labelledby="pv-tab-appearance" hidden>
        <div class="pv-theme-choices" role="group" aria-label="窗口主题">${controller.themes.map(t=>`<button data-theme-choice="${t.id}" aria-pressed="false" title="${t.name}"><span class="pv-theme-swatch" style="background-color:${t.paper};${t.art?`background-image:url('${controller.assetURI}themes/${t.art}.png');`:''}color:${t.accent}"><i></i><i></i></span><span>${t.name}</span></button>`).join('')}</div>
@@ -102,11 +133,12 @@ var PaperVoiceUI = {
   const find=name=>root.querySelector(`[data-field="${name}"]`),action=name=>root.querySelector(`[data-action="${name}"]`),panel=root.querySelector('.pv-panel');
   if(controller.version)find('aboutVersion').textContent='v'+controller.version+' · Junyan Kang';
   for(const v of PaperVoiceCore.voices){const o=doc.createElement('option');o.value=v.id;o.textContent=v.label;find('voice').append(o);}
-  const settings=(open)=>{find('home').hidden=open;find('settingsPage').hidden=!open;action('settings').querySelector('img').src=controller.assetURI+'icons/'+(open?'chevron-left':'settings')+'.svg';action('settings').setAttribute('aria-label',open?'返回播放控制':'声音与翻译设置');controller.localize?.(root);};
+  const settings=(open)=>{if(!open)find('llmKey').value='';find('home').hidden=open;find('settingsPage').hidden=!open;action('settings').querySelector('img').src=controller.assetURI+'icons/'+(open?'chevron-left':'settings')+'.svg';action('settings').setAttribute('aria-label',open?'返回播放控制':'声音与翻译设置');controller.localize?.(root);};
   action('settings').onclick=()=>{settings(find('settingsPage').hidden);controller.loadUpdateSettings();fit();};action('voiceSettings').onclick=()=>{settings(true);fit();};
   const fit=()=>{const right=parseFloat(root.style.right)||18,bottom=parseFloat(root.style.bottom)||18;panel.style.transform=`translate(${Math.max(0,right+panel.offsetWidth+8-doc.defaultView.innerWidth)}px,${Math.max(0,bottom+root.offsetHeight+8-doc.defaultView.innerHeight)}px)`;};
-  action('orb').onclick=()=>{controller.showPanel(reader,true);fit();};action('close').onclick=()=>{visible(panel,false);};
+  action('orb').onclick=()=>{controller.showPanel(reader,true);fit();};action('close').onclick=()=>{find('llmKey').value='';visible(panel,false);};
   const selectSettingsTab=name=>{
+   find('llmPage').hidden=true;find('llmKey').value='';find('llmResult').textContent=controller.t('密钥仅存本机 · 费用由服务商收取');
    for(const button of root.querySelectorAll('[data-settings-tab]')){const active=button.dataset.settingsTab===name;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;}
    for(const pane of root.querySelectorAll('[data-settings-pane]'))pane.hidden=pane.dataset.settingsPane!==name;
   };
@@ -130,7 +162,29 @@ var PaperVoiceUI = {
   action('quickTranslate').onclick=e=>controller.quickTranslationClick(e);
   action('quickTranslate').ondblclick=e=>{e.preventDefault();controller.quickTranslationDoubleClick();};
   find('target').onchange=e=>controller.setTranslationTarget(e.target.value);
-  find('provider').onchange=e=>{controller.set('translationProvider',e.target.value);if(e.target.value==='tencenttransmart'&&controller.get('translationTarget','zh-Hans')==='zh-Hant')controller.set('translationTarget','zh-Hans');controller.translationTicket++;controller.hideTranslation();controller.syncSettings();if(controller.get('translation',false))controller.toggleTranslation(true);};
+  find('provider').onchange=e=>{if(e.target.value==='llm'){openLLM();return;}controller.set('translationProvider',e.target.value);if(e.target.value==='tencenttransmart'&&controller.get('translationTarget','zh-Hans')==='zh-Hant')controller.set('translationTarget','zh-Hans');controller.translationTicket++;controller.hideTranslation();controller.syncSettings();if(controller.get('translation',false))controller.toggleTranslation(true);};
+  const loadLLM=id=>{
+   const config=controller.llmConfig(id);find('llmProvider').value=config.id;find('llmEndpoint').value=config.endpoint;find('llmModel').value=config.model;find('llmKey').value='';
+   let saved=false;try{saved=!!config.endpoint&&!!controller.llmKey(config);}catch(_){}
+   find('llmKey').placeholder=controller.t(saved?'已保存 · 留空保留':'API Key');action('llmRemoveKey').disabled=!saved;PaperVoiceUI.syncSelects(root);
+  };
+  const openLLM=()=>{selectSettingsTab('translation');root.querySelector('[data-settings-pane=translation]').hidden=true;find('llmPage').hidden=false;loadLLM(controller.get('llmProvider','minimax'));};
+  const draftLLM=()=>({...controller.llmConfig(find('llmProvider').value),endpoint:find('llmEndpoint').value.trim(),model:find('llmModel').value.trim()});
+  const saveLLM=async test=>{
+   action('llmSave').disabled=action('llmTest').disabled=true;find('llmResult').dataset.state='loading';find('llmResult').textContent=controller.t(test?'正在测试…':'正在保存…');
+   try{
+    await controller.saveLLM(draftLLM(),find('llmKey').value);find('llmKey').value='';find('llmKey').placeholder=controller.t('已保存 · 留空保留');action('llmRemoveKey').disabled=false;
+    if(test){const result=await controller.translate('Light is converted into neural signals in the retina.','en',{provider:'llm',target:'zh-Hans',noCache:true});find('llmResult').textContent=controller.t('连接成功')+' · '+(result.totalMs/1000).toFixed(2)+' s';find('llmResult').title=result.text;}
+    else find('llmResult').textContent=controller.t('已保存');
+    find('llmResult').dataset.state='ready';
+   }catch(error){find('llmResult').textContent=controller.t(error.message);find('llmResult').title=controller.t(error.message);find('llmResult').dataset.state='error';}
+   finally{action('llmSave').disabled=action('llmTest').disabled=false;}
+  };
+  action('configureLLM').onclick=openLLM;action('llmBack').onclick=()=>{selectSettingsTab('translation');controller.syncSettings();};
+  find('llmProvider').onchange=e=>{loadLLM(e.target.value);find('llmResult').textContent=controller.t('密钥仅存本机 · 费用由服务商收取');};
+  action('llmSave').onclick=()=>saveLLM(false);action('llmTest').onclick=()=>saveLLM(true);
+  action('llmRemoveKey').onclick=()=>{try{controller.removeLLMKey(controller.validateLLM(draftLLM()));loadLLM(find('llmProvider').value);find('llmResult').textContent=controller.t('密钥已移除');}catch(error){find('llmResult').textContent=controller.t(error.message);}};
+  action('llmHelp').onclick=e=>{e.preventDefault();Zotero.launchURL('https://github.com/JunyanKang/paper-voice/blob/main/docs/'+(controller.language()==='zh'?'GUIDE.md':'GUIDE.en.md')+'#'+(controller.language()==='zh'?'大模型翻译':'llm-translation'));};
   find('voice').onchange=e=>{controller.set('voiceFor_'+controller.settingsVoiceLanguage(),e.target.value);if(!controller.get('readTranslation',false))controller.set('voice',e.target.value);controller.syncSettings();controller.setStatus('声音已保存，下次开始朗读生效');};
   find('rate').oninput=e=>{controller.set('rate',PaperVoiceCore.rate(e.target.value));controller.syncSettings();};
   find('rate').onchange=()=>{controller.setStatus('语速已更新，下次开始朗读生效');};
@@ -192,23 +246,25 @@ var PaperVoiceUI = {
   action('orb').addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>5)moved=true;if(moved){closeNavigation();root.style.right=Math.max(8,Math.min(doc.defaultView.innerWidth-root.querySelector('.pv-mini').offsetWidth-8,drag.right-dx))+'px';root.style.bottom=Math.max(8,Math.min(doc.defaultView.innerHeight-70,drag.bottom-dy))+'px';}});
   action('orb').addEventListener('pointerup',()=>{drag=null;});
   action('orb').addEventListener('click',e=>{if(moved){e.stopImmediatePropagation();e.preventDefault();moved=false;}},true);
-  let nextInteraction=Date.now()+controller.companionIntervalMs(),interactionTimer=null;const gestureQueues={ready:[],reading:[]},lastGestures={ready:-1,reading:-1};
-  const finishInteraction=()=>{doc.defaultView.clearTimeout(interactionTimer);if(root.hasAttribute('data-interaction'))root.dataset.resting='true';};
+  let nextInteraction=Date.now()+controller.companionIntervalMs(),readingSince=null,readingElapsed=0,lastBreakAt=0;
+  const gestureQueues={ready:[],reading:[]},lastGestures={ready:null,reading:null},sprite=find('mascotInteraction');
+  const player=PaperVoiceCompanion.player(sprite,controller.assetURI,()=>{root.dataset.resting='true';});
+  const finishInteraction=()=>{player.finish();if(root.hasAttribute('data-interaction')){root.dataset.resting='true';if(!sprite.style.backgroundImage)root.removeAttribute('data-interaction');}};
   const companionState=()=>['playing','paused'].includes(controller.state)?'reading':'ready';
-  const syncCompanionPose=()=>{const state=companionState();if(root.dataset.interactionSet===state)return;finishInteraction();if(lastGestures[state]>=0){root.dataset.interactionSet=state;root.dataset.interaction=String(lastGestures[state]);root.dataset.resting='true';}else{root.removeAttribute('data-interaction');root.removeAttribute('data-interaction-set');root.removeAttribute('data-resting');}};
+  const syncCompanionPose=()=>{
+   const now=Date.now();if(controller.state==='playing'){if(readingSince===null)readingSince=now;}else{if(readingSince!==null)readingElapsed+=now-readingSince;readingSince=null;if(!['paused','loading'].includes(controller.state)){readingElapsed=0;lastBreakAt=0;}}
+   const state=companionState();if(root.dataset.interactionSet===state)return;finishInteraction();if(lastGestures[state]){root.dataset.interactionSet=state;root.dataset.interaction=lastGestures[state];root.dataset.resting='true';player.still(lastGestures[state]);}else{root.removeAttribute('data-interaction');root.removeAttribute('data-interaction-set');root.removeAttribute('data-resting');}
+  };
   const resetCompanionSchedule=()=>{nextInteraction=Date.now()+controller.companionIntervalMs();};
-  const playCompanion=()=>{
+  const playCompanion=forced=>{
    finishInteraction();
    if(doc.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
    const state=companionState();
    if(!gestureQueues[state].length){
-    const queue=[0,1,2,3,4];for(let i=queue.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[queue[i],queue[j]]=[queue[j],queue[i]];}
-    if(queue[0]===lastGestures[state])[queue[0],queue[1]]=[queue[1],queue[0]];
-    gestureQueues[state]=queue;
+    gestureQueues[state]=PaperVoiceCompanion.shuffled(PaperVoiceCompanion.sets[state],lastGestures[state]);
    }
-   const index=gestureQueues[state].shift();lastGestures[state]=index;
-   root.dataset.interactionSet=state;root.dataset.interaction=String(index);void find('mascotInteraction').offsetWidth;root.removeAttribute('data-resting');
-   interactionTimer=doc.defaultView.setTimeout(finishInteraction,3000);
+   const index=forced||gestureQueues[state].shift();lastGestures[state]=index;
+   root.dataset.interactionSet=state;root.dataset.interaction=index;root.removeAttribute('data-resting');player.play(index);
   };
   action('orb').addEventListener('pointerenter',()=>{if(!controller.get('companionInteractions',true))return;resetCompanionSchedule();playCompanion();});
   action('orb').addEventListener('pointerdown',finishInteraction);
@@ -221,9 +277,11 @@ var PaperVoiceUI = {
    if(doc.hidden||!root.isConnected||root.matches(':hover,:focus-within'))return;
    const activeReader=Zotero.Reader.getByTabID(Zotero.getMainWindow().Zotero_Tabs?.selectedID);
    if(activeReader!==reader&&!reader._window?.document?.hasFocus())return;
-   nextInteraction=now+controller.companionIntervalMs();playCompanion();
+   const elapsed=readingElapsed+(readingSince===null?0:now-readingSince),takeBreak=controller.state==='playing'&&elapsed-lastBreakAt>=PaperVoiceCompanion.breakInterval;
+   if(takeBreak)lastBreakAt=elapsed;
+   nextInteraction=now+controller.companionIntervalMs();playCompanion(takeBreak?'rest':undefined);
   };
-  const dispose=()=>{root._pvSelects?.dispose();doc.defaultView.clearTimeout(closeTimer);doc.defaultView.clearTimeout(audioCloseTimer);finishInteraction();for(const el of [panel,navigation,audioPopover])el._pvFade?.cancel();root.remove();};
-  doc.body.append(root);this.installSelects(root,controller);return {root,panel,find,action,closeNavigation,closeAudioPopover,tickCompanion,finishInteraction,syncCompanionPose,resetCompanionSchedule,dispose};
+  const dispose=()=>{root._pvSelects?.dispose();root._pvTooltips?.dispose();doc.defaultView.clearTimeout(closeTimer);doc.defaultView.clearTimeout(audioCloseTimer);player.dispose();for(const el of [panel,navigation,audioPopover])el._pvFade?.cancel();root.remove();};
+  doc.body.append(root);this.installSelects(root,controller);root._pvTooltips=this.installTooltips(root,controller);return {root,panel,find,action,closeNavigation,closeAudioPopover,tickCompanion,finishInteraction,syncCompanionPose,resetCompanionSchedule,dispose};
  }
 };
