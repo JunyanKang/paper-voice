@@ -138,10 +138,24 @@ var PaperVoice = {
     const button = doc.createElement('button'); button.dataset.paperVoice = 'selection';
     const fromSelection=()=>this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection';
     button.textContent = fromSelection()?'▶ 从此句开始连读':'▶ 自然朗读'; button.style.cssText = 'padding:5px 10px;cursor:pointer;';
-    button.addEventListener('click', e => { e.stopPropagation(); this.clearSelectionTimers();if(fromSelection()){this.startDocument(reader,'selection');return;} if(this.get('mode','selection')==='document'){this.stop();this.set('mode','selection');this.syncSettings();}this.speak(text, reader); });
+    const position=params.annotation?.position;
+    const selected={text,pageIndex:position?.pageIndex??null,position:position?JSON.parse(JSON.stringify(position)):null,anchorOffset:this.selectionAnchor?.(reader,position)??null};
+    button.addEventListener('click', async e => {
+      e.preventDefault();e.stopPropagation();if(button.disabled)return;
+      this.clearSelectionTimers();this.selectionContexts.set(reader,selected);this.lastText=text;this.lastReader=reader;
+      this.currentSentence='';this.readProgress=null;
+      this.showPanel(reader);const panel=this.panels.get(reader);if(panel&&!panel.find('settingsPage').hidden)panel.action('settings').click();
+      button.disabled=true;button.textContent=this.t('定位中…');button.setAttribute('aria-busy','true');
+      try{
+        if(this.get('mode','selection')==='document'&&!fromSelection()){this.stop();this.set('mode','selection');this.syncSettings();}
+        const task=fromSelection()?this.startDocument(reader,'selection'):this.speak(text,reader);
+        this.selectionAction={button,reader,generation:this.generation};this.updateSelectionAction();await task;
+      }catch(error){this.setStatus(error.message||String(error),'error');}
+      finally{this.updateSelectionAction();}
+    });
     this.localize(button);append(button);
     this.selectedPage=params.annotation?.position?.pageIndex ?? null;
-    this.selectionContexts.set(reader,{text,pageIndex:this.selectedPage,anchorOffset:this.selectionAnchor?.(reader,params.annotation?.position)??null});
+    this.selectionContexts.set(reader,selected);
     if (!this.get('auto', true) || this.get('mode','selection')==='document') return;
     const key = text + JSON.stringify(params.annotation?.position || {});
     if (this.lastSelections.get(reader) === key) return;
@@ -289,7 +303,16 @@ var PaperVoice = {
     const languages={'zh-Hans':['简','简体中文'],'zh-Hant':['繁','繁體中文'],ja:['日','日本語'],ko:['한','한국어'],fr:['FR','Français'],en:['EN','English'],de:['DE','Deutsch'],es:['ES','Español'],ru:['RU','Русский']};
     const code=this.get('translationTarget','zh-Hans'),[badge,label]=languages[code]||languages['zh-Hans'];return {code,badge,label};
   },
-  setStatus(message, state = this.state) { this.status = message; this.state = state; this.updatePanels(); },
+  updateSelectionAction() {
+    const action=this.selectionAction;if(!action)return;
+    const {button,reader,generation}=action;
+    const current=generation===this.generation&&reader===this.currentReader,active=current&&['loading','playing','paused'].includes(this.state);
+    button.disabled=!!active;button.setAttribute('aria-busy',String(current&&this.state==='loading'));
+    const label=active?(this.state==='loading'?'准备中…':this.state==='playing'?'正在朗读':'已暂停'):current&&this.state==='error'?'重试朗读':this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection'?'▶ 从此句开始连读':'▶ 自然朗读';
+    button.textContent=this.t(label);button.title=current?this.t(this.status):'';
+    if(!current||!button.isConnected)this.selectionAction=null;
+  },
+  setStatus(message, state = this.state) { this.status = message; this.state = state; this.updatePanels();this.updateSelectionAction(); },
   updatePanels() {
     const active=['playing','paused','loading'].includes(this.state),mode=this.get('mode','selection');
     for (const {root,find,action,closeNavigation,closeAudioPopover,finishInteraction,syncCompanionPose} of this.livePanels()) {
@@ -365,6 +388,14 @@ var PaperVoice = {
     }
     return this.documentCache.get(pdf);
   },
+  async resolveSelection(reader,selection) {
+    if(!selection||!Number.isInteger(selection.pageIndex))return null;
+    const view=reader?._internalReader?._primaryView,pdf=view?._iframeWindow?.PDFViewerApplication?.pdfDocument;
+    if(!pdf||selection.pageIndex<0||selection.pageIndex>=pdf.numPages)return null;
+    const page=Components.utils.waiveXrays(await pdf.getPage(selection.pageIndex+1)),items=(await page.getTextContent()).items;
+    const anchorOffset=PaperVoiceCore.selectionOffset(items,selection,view._pdfPages?.[selection.pageIndex]?.chars||[]);
+    return anchorOffset>=0?{...selection,anchorOffset}:null;
+  },
   async navigateScope(delta,reader,scope=null) {
     const current=this.currentUnit,mode=this.get('mode','selection'),generation=this.generation;
     if(!current||(mode==='selection'&&!scope))return;
@@ -399,9 +430,12 @@ var PaperVoice = {
     try {
       const pdf=reader._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfDocument;
       if(!pdf)throw new Error('当前阅读器未就绪，请等待 PDF 加载完成');
-      const margins=await this.publicationMargins(pdf);
       const selected=this.selectionContexts.get(reader);
       if(origin==='selection'&&(!selected?.text||!Number.isInteger(selected.pageIndex)))throw new Error('请先在这篇 PDF 中划选字母、单词或句子，再从选定位置开始');
+      const resolved=origin==='selection'?await this.resolveSelection(reader,selected):null;
+      if(generation!==this.generation)return;
+      if(origin==='selection'&&!resolved)throw new Error('未能准确定位选区，请在 PDF 中重新划选后再开始');
+      const margins=await this.publicationMargins(pdf);
       let saved={};try{saved=JSON.parse(this.get('progress.'+reader.itemID,'{}'))||{};}catch(_){}
       const current=(reader._internalReader._primaryView._iframeWindow.PDFViewerApplication.pdfViewer?.currentPageNumber||1)-1;
       const requested=origin==='resume'?saved.pageIndex:origin==='current'?current:0;
@@ -419,14 +453,7 @@ var PaperVoice = {
       if(generation!==this.generation)return;
       let units=PaperVoiceCore.layoutUnits(pages);
       if(origin==='selection'){
-        const page=pages.find(p=>p.pageIndex===selected.pageIndex),text=PaperVoiceCore.anchorText(page?.text||''),needle=PaperVoiceCore.anchorText(selected.text);
-        let offset=selected.anchorOffset;
-        if(!Number.isInteger(offset)){
-          offset=needle?text.indexOf(needle):-1;
-          if(offset>=0&&text.indexOf(needle,offset+1)>=0)offset=-1;
-          if(offset>=0)offset=PaperVoiceCore.sourceOffset(page,offset);
-        }
-        const index=offset>=0?PaperVoiceCore.selectedSentenceIndex(units,selected.pageIndex,offset):-1;
+        const index=PaperVoiceCore.selectedSentenceIndex(units,resolved.pageIndex,resolved.anchorOffset);
         if(index<0)throw new Error('未能准确定位选区，请在 PDF 中重新划选后再开始');
         units=units.slice(index);
       }
@@ -519,26 +546,20 @@ var PaperVoice = {
     text=PaperVoiceCore.cleanText(text);if(!text)return;
     this.stop(false);const generation=this.generation;this.currentReader=reader;this.ensurePanel(reader);
     if(text.length>24000){this.setStatus('选区过长，请分段选择或使用全文连读','error');return;}
-    if(!sample){this.lastText=text;this.lastReader=reader;if(!keepSentence)this.sentenceIndex=0;}
+    if(!sample){this.lastText=text;this.lastReader=reader;this.currentSentence='';this.readProgress=null;if(!keepSentence)this.sentenceIndex=0;}
     const requestedMode=sample?'selection':this.get('mode','selection');
     const pdf=reader?._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfDocument;
     if(!sample&&pdf&&['sentence','paragraph'].includes(requestedMode)){
       this.playbackMode=requestedMode;this.setStatus('正在定位所选文字…','loading');
       try{
-        const all=await this.documentUnits(reader);
-        if(generation!==this.generation)return;
         const context=this.selectionContexts.get(reader);
         const pageIndex=context?.pageIndex??(reader._internalReader._primaryView._iframeWindow.PDFViewerApplication.pdfViewer?.currentPageNumber||1)-1;
-        let offset=context?.anchorOffset;
-        if(!Number.isInteger(offset)){
-          const page=Components.utils.waiveXrays(await pdf.getPage(pageIndex+1));
-          const raw=PaperVoiceCore.anchorText(PaperVoiceCore.pdfText((await page.getTextContent()).items));
-          const needle=PaperVoiceCore.anchorText(context?.text||text);
-          offset=needle?raw.indexOf(needle):-1;
-          if(offset>=0&&raw.indexOf(needle,offset+1)>=0)offset=-1;
-        }
+        const resolved=await this.resolveSelection(reader,{...context,pageIndex,text:context?.text||text});
         if(generation!==this.generation)return;
-        const units=offset>=0?PaperVoiceCore.scopeUnits(all,{pageIndex,anchorOffset:offset,text},requestedMode):[];
+        if(!resolved)throw new Error('未能准确定位选区，请在 PDF 中重新划选后再开始');
+        const all=await this.documentUnits(reader);
+        if(generation!==this.generation)return;
+        const units=PaperVoiceCore.scopeUnits(all,resolved,requestedMode);
         if(!units.length)throw new Error('未能准确定位选区，请在 PDF 中重新划选后再开始');
         return this.runUnits(units,reader,generation,{mode:requestedMode,loops:Number(this.get('repeat',0))});
       }catch(error){if(generation===this.generation)this.setStatus(error.message||String(error),'error');return;}

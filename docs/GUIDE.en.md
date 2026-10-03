@@ -66,7 +66,7 @@ In **Document** mode, use **Start at**:
 | **Last position** | Returns to the most recent position in this PDF, including reading in Sentence, Select or Paragraph mode |
 | **Selected sentence** | Starts at the beginning of the sentence containing your selection |
 
-To listen from a specific sentence onward: choose **Selected sentence** → select a word in that sentence → click **Read from this sentence**.
+To listen from a specific sentence onward: choose **Selected sentence** → select a word in that sentence → click **Read from this sentence**. The panel opens to show preparation progress. If reading cannot start, the panel explains why and the selection button lets you retry.
 
 <p align="center"><img src="assets/continuous-en.png" width="960" alt="Document mode starting from a selected sentence, with source highlighting and translation nearby"></p>
 <p align="center"><sub>Figure 3 · Source highlighting and nearby translation help you keep your place during continuous reading.</sub></p>

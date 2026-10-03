@@ -401,6 +401,54 @@ var PaperVoiceCore = (() => {
     const span=spans.find(x=>offset>=x.start&&offset<x.end)||spans[spans.length-1];
     return offset+span.sourceStart-span.start;
   }
+  function selectionOffset(items,selection,glyphs=[]) {
+    // Offsets must refer to the unfiltered PDF stream, just like layoutUnits.
+    const raw=items.map(item=>anchorText(item.str)).join(''),needle=anchorText(selection?.text);
+    if(!needle)return -1;
+    const matches=[];
+    for(let at=raw.indexOf(needle);at>=0;at=raw.indexOf(needle,at+1))matches.push(at);
+    const rects=selection?.position?.rects||[];
+    const overlaps=(a,b)=>a?.length===4&&b?.length===4&&Math.min(a[2],b[2])-Math.max(a[0],b[0])>Math.min(a[2]-a[0],b[2]-b[0])*.25&&Math.min(a[3],b[3])-Math.max(a[1],b[1])>Math.min(a[3]-a[1],b[3]-b[1])*.4;
+    let offset=0,glyphText='';const hits=[];
+    for(const glyph of glyphs){
+      const text=anchorText(glyph.u??glyph.c??'');
+      if(text&&rects.some(rect=>overlaps(glyph.rect,rect)))hits.push(offset);
+      glyphText+=text;offset+=text.length;
+    }
+    const sourceHits=hits.map(hit=>{
+      if(glyphText===raw)return hit;
+      const start=Math.max(0,hit-32),context=glyphText.slice(start,hit+48),at=raw.indexOf(context);
+      return at>=0&&raw.indexOf(context,at+1)<0?at+hit-start:-1;
+    }).filter(hit=>hit>=0);
+    if(sourceHits.length){
+      // Font metrics can make a selection rectangle overlap an adjacent glyph.
+      // Match its text as well as its geometry instead of taking the first hit.
+      const found=matches.filter(at=>sourceHits.includes(at));
+      if(found.length===1)return found[0];
+      const crossing=sourceHits.filter(hit=>needle.startsWith(raw.slice(hit))&&raw.length>hit);
+      if(crossing.length===1)return crossing[0];
+    }
+    const anchor=selection?.anchorOffset;
+    if(Number.isInteger(anchor)&&anchor>=0){
+      const found=matches.filter(at=>at<=anchor&&anchor<at+needle.length);
+      if(found.length===1)return found[0];
+      if(needle.startsWith(raw.slice(anchor))&&raw.length>anchor)return anchor;
+    }
+    // When a text layer is being repainted, use PDF-space rectangles to choose
+    // between repeated phrases. Never guess the first occurrence of a word.
+    if(rects.length){
+      const spans=[];let start=0;
+      for(const item of items){
+        const length=anchorText(item.str).length,[,,,scale,x,y]=item.transform||[],height=Math.abs(item.height||scale||0);
+        if(length&&Number.isFinite(x)&&Number.isFinite(y)&&height&&rects.some(rect=>overlaps([x,y-height*.25,x+(item.width||0),y+height],rect)))spans.push({start,end:start+length});
+        start+=length;
+      }
+      const located=matches.filter(at=>spans.some(span=>at>=span.start&&at<span.end));
+      if(located.length===1)return located[0];
+      if(located.length>1||sourceHits.length)return -1;
+    }
+    return matches.length===1?matches[0]:-1;
+  }
   function figureCaptionItems(items) {
     const rows=pdfRows(items),sizes=[],excluded=new Set();
     // Keep small caption print separate from body text on the same baseline.
@@ -595,6 +643,6 @@ var PaperVoiceCore = (() => {
     while(index>0&&id!==undefined&&units[index-1].sentenceId===id)index--;
     return index;
   }
-  return { modes, voices, speechLanguages, detectSpeechLanguage, cleanText, chunks, sentences, rate, speechText, measurementSpeech, pdfText, pdfLayout, sourceOffset, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
+  return { modes, voices, speechLanguages, detectSpeechLanguage, cleanText, chunks, sentences, rate, speechText, measurementSpeech, pdfText, pdfLayout, sourceOffset, selectionOffset, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;

@@ -2,6 +2,10 @@
 var PaperVoiceI18n = (() => {
  const catalogs = {
   "en": {
+    "定位中…": "Locating…",
+    "准备中…": "Preparing…",
+    "重试朗读": "Retry reading",
+    "已暂停": "Paused",
     "透明度": "Transparency",
     "主题": "Theme",
     "偏好": "Preferences",
@@ -227,6 +231,10 @@ var PaperVoiceI18n = (() => {
     "英音 · 男声": "UK · Male"
   },
   "ja": {
+    "定位中…": "位置を確認中…",
+    "准备中…": "準備中…",
+    "重试朗读": "再試行",
+    "已暂停": "一時停止",
     "透明度": "透明度",
     "主题": "テーマ",
     "偏好": "環境設定",
@@ -452,6 +460,10 @@ var PaperVoiceI18n = (() => {
     "英音 · 男声": "英国英語・男性"
   },
   "fr": {
+    "定位中…": "Repérage…",
+    "准备中…": "Préparation…",
+    "重试朗读": "Réessayer",
+    "已暂停": "En pause",
     "透明度": "Transparence",
     "主题": "Thème",
     "偏好": "Préférences",
@@ -677,6 +689,10 @@ var PaperVoiceI18n = (() => {
     "英音 · 男声": "UK · Homme"
   },
   "de": {
+    "定位中…": "Position suchen…",
+    "准备中…": "Vorbereitung…",
+    "重试朗读": "Erneut versuchen",
+    "已暂停": "Pausiert",
     "透明度": "Transparenz",
     "主题": "Design",
     "偏好": "Einstellungen",
