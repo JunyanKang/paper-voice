@@ -227,6 +227,19 @@ var PaperVoiceCore = (() => {
       .replace(/\be\s*\.\s*g\s*\./gi,'for example');
     return cleanText(text.replace(/\s+([,.;:!?])/g,'$1'));
   }
+  function hasSpeech(value) {return /[\p{L}\p{N}]/u.test(value||'');}
+  function spokenUnits(units) {
+    const result=[];
+    for(const unit of units){
+      const spoken=unit.spokenText??speechText(unit.text);
+      if(hasSpeech(spoken)){result.push({...unit,spokenText:spoken});continue;}
+      const previous=result.at(-1);
+      // A silent reference can occupy the final chunk/page of a sentence. Keep
+      // its punctuation on the preceding audible fragment, never synthesize it alone.
+      if(previous&&unit.sentenceId!==undefined&&previous.sentenceId===unit.sentenceId&&/^[\s)\]}.!?。！？]*$/u.test(spoken))previous.spokenText+=spoken.trim();
+    }
+    return result;
+  }
   // Speech-only expansions: the PDF source and highlight coordinates stay unchanged.
   const measurementNames={
     pm:['picometer','皮米','ピコメートル','picomètre'],nm:['nanometer','纳米','ナノメートル','nanomètre'],
@@ -683,6 +696,6 @@ var PaperVoiceCore = (() => {
     if(letter(source[b-1]))while(b<source.length&&wordAt(b))b++;
     return cleanText(source.slice(a,b));
   }
-  return { modes, voices, speechLanguages, detectSpeechLanguage, cleanText, chunks, sentences, rate, speechText, measurementSpeech, ratioSpeech, pdfText, pdfLayout, sourceOffset, selectionOffset, completeSelection, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
+  return { modes, voices, speechLanguages, detectSpeechLanguage, cleanText, chunks, sentences, rate, speechText, hasSpeech, spokenUnits, measurementSpeech, ratioSpeech, pdfText, pdfLayout, sourceOffset, selectionOffset, completeSelection, marginSignatures, layoutUnits, scopeUnits, afterUnit, unitIndex, selectedSentenceIndex, markSelectedSuperscripts, anchorText, pageUnits, resumeUnitIndex };
 })();
 if (typeof module !== 'undefined') module.exports = PaperVoiceCore;

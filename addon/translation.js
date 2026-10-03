@@ -177,10 +177,10 @@ var PaperVoiceTranslation = {
    this.caption?.layout();
    // Zotero's privileged/plugin realm must pass a content-realm options dictionary.
    container.scrollTo(Components.utils.cloneInto({top:Math.max(0,target),left:targetLeft,behavior:reduced||distant?'instant':'smooth'},win));
-   // Begin the new audio only after its source is in place. Native smooth
-   // scrolling may take almost a second; cap it, then settle the final pixels.
+   // Keep the source in place before audio begins, but bound scrolling to a
+   // brief sentence transition instead of adding a half-second playback gap.
    const generation=this.generation;
-   for(let i=0;i<12;i++){
+   for(let i=0;i<4;i++){
     await Zotero.Promise.delay(40);
     if(this.generation!==generation||this.dead)return;
     const expectedTop=Math.max(0,Math.min(target,container.scrollHeight-height)),expectedLeft=Math.max(0,Math.min(targetLeft,container.scrollWidth-width));

@@ -70,10 +70,11 @@ var PaperVoice = {
         }
       };
       const key = e => {
-        if(e.target.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"],button,[role="button"],[role="menu"],[role="listbox"],[role="combobox"],[role="tree"],[role="slider"],.pv-panel,[data-field="playbackTools"]')||e.isComposing)return;
+        const transport=e.target.closest?.('[data-action="primary"],[data-action="previous"],[data-action="next"],[data-action="stop"],[data-action="quickPause"],[data-action="quickMode"],[data-action="quickStop"],[data-action="quickTranslate"],[data-action="orb"]');
+        if(e.isComposing||(!transport&&e.target.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"],button,[role="button"],[role="menu"],[role="listbox"],[role="combobox"],[role="tree"],[role="slider"],.pv-panel,[data-field="playbackTools"]')))return;
         const active=this.currentReader===reader&&['playing','paused','loading'].includes(this.state);
         if(!active)return;
-        const action=PaperVoiceShortcuts.match(this.get('shortcuts',null),e);
+        const action=PaperVoiceShortcuts.match(this.get('shortcuts',null),e,Zotero.isMac);
         if(!action)return;
         e.preventDefault();e.stopPropagation();
         if(e.repeat)return;
@@ -274,10 +275,28 @@ var PaperVoice = {
   },
   companionIntervalMs() {return Math.max(1,Math.min(60,Number(this.get('companionInterval',5))||5))*60000;},
   setCompanionInterval(value) {value=Number(value);if(![1,3,5,10,15,30].includes(value))return;this.set('companionInterval',value);for(const panel of this.livePanels())panel.resetCompanionSchedule?.();this.syncSettings();},
-  captionFontFamily() {return ({system:'system-ui,sans-serif',serif:'Georgia,"Noto Serif CJK SC","Songti SC",SimSun,serif',sans:'Arial,"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif'})[this.get('captionFont','system')]||'system-ui,sans-serif';},
+  installedCaptionFonts() {
+    if(!this.captionFonts){try{this.captionFonts=PaperVoiceFonts.discover(this.host);}catch(error){Zotero.logError(error);return [];}}
+    return this.captionFonts;
+  },
+  captionFont() {
+    const fonts=this.installedCaptionFonts(),saved=this.get('captionFont','system');
+    if(fonts.some(x=>x.family===saved))return saved;
+    const family=PaperVoiceFonts.defaultFamily(fonts,this.language(),saved);if(family)this.set('captionFont',family);return family;
+  },
+  captionFontFamily() {return PaperVoiceFonts.css(this.captionFont());},
+  syncCaptionFonts(select) {
+    const usage=this.get('captionFontUsage','{}'),language=this.language(),key=language+'|'+usage;
+    if(select._pvFontOrder!==key){
+      select.replaceChildren();
+      for(const {family} of PaperVoiceFonts.sorted(this.installedCaptionFonts(),language,PaperVoiceFonts.history(usage))){const option=select.ownerDocument.createElement('option');option.value=family;option.textContent=family;select.append(option);}
+      select._pvFontOrder=key;
+    }
+    select.value=this.captionFont();
+  },
   applyCaptionTypography(box) {box.style.fontFamily=this.captionFontFamily();box.style.fontSize=this.get('captionSize',12)+'px';box.style.fontWeight='400';box.style.lineHeight='1.45';},
   setCaptionStyle(name,value) {
-    if(name==='captionFont'){if(!['system','serif','sans'].includes(value))return;this.set(name,value);}
+    if(name==='captionFont'){if(!this.installedCaptionFonts().some(x=>x.family===value))return;this.set(name,value);const usage=PaperVoiceFonts.history(this.get('captionFontUsage','{}'));usage[value]=(Number(usage[value])||0)+1;this.set('captionFontUsage',JSON.stringify(usage));Services.prefs.savePrefFile(null);}
     else if(name==='captionSize')this.set(name,Math.max(10,Math.min(20,Math.round(Number(value)||12))));
     this.syncSettings();
     if(this.caption){this.applyCaptionTypography(this.caption.box);this.positionTranslation(this.caption);}
@@ -300,7 +319,7 @@ var PaperVoice = {
       this.syncTheme?.(root);
       if(find('companionInterval'))find('companionInterval').value=this.get('companionInterval',5);
       if(find('companion'))find('companion').checked=this.get('companionInteractions',true);
-      if(find('captionFont')){find('captionFont').value=this.get('captionFont','system');find('captionSize').value=this.get('captionSize',12);}
+      if(find('captionFont')){this.syncCaptionFonts(find('captionFont'));find('captionSize').value=this.get('captionSize',12);}
       if(find('transparency')){find('transparency').value=this.get('surfaceTransparency',12);find('transparencyLabel').textContent=this.get('surfaceTransparency',12)+'%';}
       if(find('language')){find('language').value=this.get('interfaceLanguage','auto');find('language').querySelector('[value=auto]').textContent=this.t('跟随系统');}
       if(find('speechLanguage')) {
@@ -409,7 +428,8 @@ var PaperVoice = {
     const active=['playing','paused','loading'].includes(this.state),mode=this.get('mode','selection');
     for (const {root,find,action,closeNavigation,closeAudioPopover,finishInteraction,syncCompanionPose} of this.livePanels()) {
       if(root.dataset.state!==this.state)finishInteraction?.();root.dataset.state=this.state;syncCompanionPose?.();find('status').textContent=this.status;
-      find('preview').textContent=this.currentSentence || this.lastText.slice(0,220);if(!find('preview').textContent)find('preview').textContent='选择一段文字，留一点时间给耳朵。';
+      const preview=find('preview'),text=this.currentSentence||this.lastText||'选择一段文字，留一点时间给耳朵。';
+      if(preview.textContent!==text){preview.textContent=text;preview.scrollTop=0;}
       find('progressBar').style.width=(this.readProgress?100*this.readProgress.current/this.readProgress.total:0)+'%';
       if(action('quickReadTranslation')){action('quickReadTranslation').setAttribute('aria-checked',String(this.get('readTranslation',false)));action('quickReadTranslation').disabled=!this.translationVoiceLanguage();action('quickReadTranslation').title=this.translationVoiceLanguage()?(this.get('readTranslation',false)?'只读译文 · 点击切回原文':'朗读原文 · 点击切换译文'):'该译文语种暂无离线声音';}
       if(!active)closeAudioPopover?.();
@@ -683,8 +703,8 @@ var PaperVoice = {
     return this.runUnits(units,reader,generation,{mode,loops,sample});
   },
   async runUnits(units,reader,generation,{mode,loops,sample=false,startIndex=0}) {
-    startIndex=units.slice(0,startIndex).filter(unit=>unit.spokenText??PaperVoiceCore.speechText(unit.text)).length;
-    units=units.filter(unit=>unit.spokenText??PaperVoiceCore.speechText(unit.text));
+    startIndex=units.slice(0,startIndex).filter(unit=>PaperVoiceCore.hasSpeech(unit.spokenText??PaperVoiceCore.speechText(unit.text))).length;
+    units=PaperVoiceCore.spokenUnits(units);
     if(!units.length||startIndex>=units.length){this.setStatus('选区仅包含引文标记，无需朗读','idle');return;}
     if(this.state!=='paused')this.setStatus('正在准备自然语音…','loading');
     const languageMode=sample?this.settingsVoiceLanguage():this.get('speechLanguage','auto');
@@ -745,7 +765,7 @@ var PaperVoice = {
         if(generation!==this.generation||this.dead)return;
         mode=session.pendingMode;session.pendingMode=null;this.playbackMode=mode;
         const scoped=mode==='document'?(all.length?all.slice(Math.max(0,PaperVoiceCore.unitIndex(all,units[0]))):units):PaperVoiceCore.scopeUnits(all.length?all:units,units[0],mode==='selection'?'sentence':mode);
-        if(scoped.length)units=scoped;
+        if(scoped.length)units=PaperVoiceCore.spokenUnits(scoped);
         session.units=units;loops=1;startIndex=0;
       }
       if(languageMode==='auto'){
@@ -831,7 +851,7 @@ var PaperVoice = {
             if(generation!==this.generation||this.dead)return;
             mode=session.pendingMode;session.pendingMode=null;this.playbackMode=mode;
             const scope=mode==='document'?(all.length?all:units):PaperVoiceCore.scopeUnits(all.length?all:units,unit,mode==='selection'?'sentence':mode);
-            units=PaperVoiceCore.afterUnit(scope,unit).filter(u=>u.spokenText??PaperVoiceCore.speechText(u.text));
+            units=PaperVoiceCore.spokenUnits(PaperVoiceCore.afterUnit(scope,unit));
             loops=1;cycle=0;i=-1;session.units=units;activeConfig=null;activeSentence=null;
             if(units.length)next=prepare(0);
           }

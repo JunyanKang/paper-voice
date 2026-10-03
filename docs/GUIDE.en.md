@@ -56,6 +56,8 @@ The four modes appear at the top of the main panel. The active mode is highlight
 
 You can switch modes while paused. Resume to finish the current sentence or paragraph in the new mode; switching to Full text continues through the document.
 
+Scroll inside the source preview to read long text in full. Scrollbars stay hidden. Pausing or resuming preserves your scroll position; a new sentence starts at the top.
+
 ## Read continuously and resume
 
 ### Choose where to begin
@@ -69,7 +71,7 @@ In **Document** mode, use **Start at**:
 | **Last position** | Returns to the most recent position in this PDF, including reading in Sentence, Select or Paragraph mode |
 | **Selected sentence** | Starts at the beginning of the sentence containing your selection |
 
-To listen from a specific sentence onward: choose **Selected sentence** → select a word in that sentence → click **Read from this sentence**. The panel opens to show preparation progress, and the popup and mouse selection clear when audio starts, leaving the current sentence highlighted. If reading cannot start, the panel explains why and the selection button lets you retry.
+To listen from a specific sentence onward: choose **Selected sentence** → select a word in that sentence → click **Read from this sentence**. The button shows preparation and playback status, and the popup and mouse selection clear when audio starts, leaving the current sentence highlighted. If reading cannot start, a status message explains why and the selection button lets you retry.
 
 <p align="center"><img src="assets/continuous-en.png" width="960" alt="Document mode starting from a selected sentence, with source highlighting and translation nearby"></p>
 <p align="center"><sub>Figure 3 · Source highlighting and nearby translation help you keep your place during continuous reading.</sub></p>
@@ -154,6 +156,8 @@ Open **Settings → Translate** to choose a service and target language.
 Turn on **Show translation** to show its language button in the floating controls; turning it off also hides the button. Translated text appears near the current source passage and follows the reading position. This setting alone does not play translated audio.
 
 Text translation targets include Simplified Chinese, Traditional Chinese, Japanese, Korean, French, English, German, Spanish and Russian. Adjust **Caption font** and **Caption size** on the same page.
+
+The font list uses families installed on your computer. In the Chinese interface, fonts that support Chinese appear first. Within each group, frequently selected fonts come first, followed by alphabetical order. Your choice and usage history stay on your computer and survive updates. Scroll the list or type a font name’s first letters to find it.
 
 ### Listen only to the translation
 

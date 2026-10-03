@@ -169,3 +169,6 @@
 .pv-quick [data-action=quickTranslate]{flex-direction:column;gap:2px}
 .pv-translation-audio-indicator{display:flex;align-items:center;justify-content:center;height:9px;line-height:0;color:var(--pv-accent)}
 .pv-quick [data-field=quickTranslationAudio] .pv-icon{width:10px;height:9px;opacity:1}
+
+/* The source preview keeps its fixed footprint while exposing the complete text. */
+.pv-preview{display:block;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;overscroll-behavior:contain;-webkit-line-clamp:unset;overflow-wrap:anywhere;cursor:text}.pv-preview::-webkit-scrollbar{display:none}

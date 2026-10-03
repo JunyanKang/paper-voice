@@ -20,8 +20,10 @@ var PaperVoiceShortcuts = (() => {
   if(!codes.test(code)||parts.some(x=>!modifiers.includes(x))||new Set(parts).size!==parts.length)return null;
   return [...modifiers.filter(x=>parts.includes(x)),code].join('+');
  }
- function eventKey(event) {
-  if(event.isComposing||['Process','Unidentified','Shift','Control','Alt','Meta','AltGraph'].includes(event.key)||event.getModifierState?.('AltGraph'))return null;
+ function eventKey(event,isMac=false) {
+  // Gecko reports macOS Option as AltGraph even for navigation keys. Only
+  // Windows/Linux AltGr must be excluded to protect character entry.
+  if(event.isComposing||['Process','Unidentified','Shift','Control','Alt','Meta','AltGraph'].includes(event.key)||(!isMac&&event.getModifierState?.('AltGraph')))return null;
   let code=event.code;
   if(!codes.test(code||'')){
    const key=event.key;
@@ -69,7 +71,7 @@ var PaperVoiceShortcuts = (() => {
   return [...parts.map(p=>p==='Alt'?(isMac?'Option':'Alt'):p==='Meta'?(isMac?'Cmd':'Win'):p),label].join(' + ');
  }
  function aria(key){return key?key.replace(/Key([A-Z])/g,'$1').replace(/Digit([0-9])/g,'$1').replace(/Ctrl/g,'Control'):'';}
- function match(value,event){const key=eventKey(event);if(!key)return null;const bindings=read(value);return actions.find(a=>bindings[a.id]===key)?.id||null;}
+ function match(value,event,isMac=false){const key=eventKey(event,isMac);if(!key)return null;const bindings=read(value);return actions.find(a=>bindings[a.id]===key)?.id||null;}
  function systemKey(key,isMac=false) {
   const command=isMac?'Meta':'Ctrl';
   return [command+'+KeyF',command+'+KeyW',command+'+KeyQ',command+'+KeyS',command+'+KeyP',command+'+Tab',command+'+Space','Ctrl+Alt+Delete','Alt+F4',...(isMac?['Meta+Tab','Meta+Space','Shift+Meta+Digit3','Shift+Meta+Digit4']:['Meta+KeyL','Meta+KeyD','Meta+KeyE','Alt+Tab'])].some(x=>normalize(x)===key);
