@@ -303,6 +303,14 @@ var PaperVoice = {
     for(const reader of Zotero.Reader._readers)for(const box of reader._iframeWindow?.document.querySelectorAll('.pv-selection-translation')||[])this.applyCaptionTypography(box);
   },
   surfaceOpacity() {return 1-Math.max(0,Math.min(40,Number(this.get('surfaceTransparency',12))||0))/100;},
+  async setCaptionPlacement(value) {
+    if(!['above','below'].includes(value))return;
+    this.set('captionPlacement',value);Services.prefs.savePrefFile(null);this.syncSettings();
+    const c=this.caption;
+    if(!c)return;
+    if(value==='above'){const match=this.findSentence(c.reader,c.unit);if(match)await this.focusReadingPosition(match);}
+    if(this.caption===c)this.positionTranslation(c);
+  },
   setSurfaceTransparency(value) {this.set('surfaceTransparency',Math.max(0,Math.min(40,Math.round(Number(value)||0))));this.syncSettings();if(this.caption)this.caption.box.style.setProperty('--pv-caption-opacity',String(this.surfaceOpacity()));},
   settingsVoiceLanguage() {return this.get('readTranslation',false)?(this.translationVoiceLanguage()||this.speechLanguage()):this.speechLanguage();},
   settingsVoice() {const language=this.settingsVoiceLanguage();return this.get('readTranslation',false)?this.get('voiceFor_'+language,PaperVoiceCore.voices.find(v=>v.language===language).id):this.get('voice','af_heart');},
@@ -319,6 +327,7 @@ var PaperVoice = {
       this.syncTheme?.(root);
       if(find('companionInterval'))find('companionInterval').value=this.get('companionInterval',5);
       if(find('companion'))find('companion').checked=this.get('companionInteractions',true);
+      if(find('captionPlacement'))find('captionPlacement').value=this.get('captionPlacement','below');
       if(find('captionFont')){this.syncCaptionFonts(find('captionFont'));find('captionSize').value=this.get('captionSize',12);}
       if(find('transparency')){find('transparency').value=this.get('surfaceTransparency',12);find('transparencyLabel').textContent=this.get('surfaceTransparency',12)+'%';}
       if(find('language')){find('language').value=this.get('interfaceLanguage','auto');find('language').querySelector('[value=auto]').textContent=this.t('跟随系统');}

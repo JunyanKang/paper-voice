@@ -123,6 +123,7 @@ var PaperVoiceUI = {
        <div class="pv-theme-choices" role="group" aria-label="窗口主题">${controller.themes.map(t=>`<button data-theme-choice="${t.id}" aria-pressed="false" title="${t.name}"><span class="pv-theme-swatch" style="background-color:${t.paper};${t.art?`background-image:url('${controller.assetURI}themes/${t.art}.png');`:''}color:${t.accent}"><i></i><i></i></span><span>${t.name}</span></button>`).join('')}</div>
        <div class="pv-background-row"><button data-action="importBackground" title="自动裁切 · 文字保护蒙版 · 仅存本机">导入图片</button><button data-field="customBackground" data-action="customBackground" aria-pressed="false" hidden>我的图片</button><button data-field="removeBackground" data-action="removeBackground" hidden>移除</button><span class="pv-theme-hint" data-field="themeHint" role="status"></span></div>
        <div class="pv-setting-row pv-transparency-row"><label for="pv-transparency">透明度</label><input id="pv-transparency" data-field="transparency" type="range" min="0" max="40" step="1" aria-label="窗口透明度"/><span data-field="transparencyLabel">12%</span></div>
+       <div class="pv-setting-row"><label for="pv-caption-placement">译文位置</label><select id="pv-caption-placement" data-field="captionPlacement" aria-label="译文位置"><option value="below">原文下方</option><option value="above">原文上方</option></select></div>
        <div class="pv-setting-row"><label for="pv-language">界面语言</label><select id="pv-language" data-field="language" aria-label="Interface language / 界面语言"><option value="auto">跟随系统</option><option value="zh">简体中文</option><option value="en">English</option><option value="ja">日本語</option><option value="fr">Français</option><option value="de">Deutsch</option></select></div>
        <div class="pv-setting-row pv-companion-row"><label for="pv-companion">角色互动</label><button data-action="previewCompanion">预览</button><select data-field="companionInterval" aria-label="互动间隔" title="互动间隔">${[1,3,5,10,15,30].map(n=>`<option value="${n}">${n} 分钟</option>`).join('')}</select><input id="pv-companion" type="checkbox" data-field="companion"/></div>
      </div>
@@ -203,6 +204,7 @@ var PaperVoiceUI = {
   find('language').onchange=e=>{controller.setLanguage(e.target.value);fit();};
   find('speechLanguage').onchange=e=>{controller.setSpeechLanguage(e.target.value);fit();};
   find('captionFont').onchange=e=>controller.setCaptionStyle('captionFont',e.target.value);find('captionSize').onchange=e=>controller.setCaptionStyle('captionSize',e.target.value);
+  find('captionPlacement').onchange=e=>controller.setCaptionPlacement(e.target.value);
   find('transparency').oninput=e=>controller.setSurfaceTransparency(e.target.value);
   find('readTranslation').onchange=e=>controller.setReadTranslation(e.target.checked);
   find('selectionTranslation').onchange=e=>{controller.set('selectionTranslation',e.target.checked);controller.syncSettings();};

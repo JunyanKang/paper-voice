@@ -218,6 +218,7 @@ Open **Settings → Style**.
 |---|---|
 | **Colors** | Porcelain, Botanical, Tidal, Amber or Midnight; Tidal is the default |
 | **Your background** | Import image accepts PNG, JPG and WebP files stored only on your computer. Use My image to return to it, or Remove to delete it |
+| **Caption position** | Below text by default, or above it. Caption width follows the actual local text area and leaves the active source visible |
 | **Transparency** | Move the slider; higher values make the background more transparent while text and controls remain clear |
 | **Interface language** | Choose 简体中文, English, 日本語, Français, Deutsch or System; this does not change the reading or translation language |
 | **Companion** | Turn gestures on or off, choose an interval, or select Preview. Hovering over the mascot also triggers a gesture |
@@ -225,6 +226,8 @@ Open **Settings → Style**.
 **System** follows Zotero’s language, with English as the fallback for unsupported languages. Switching languages keeps the panel size unchanged.
 
 Translation font and size are under **Settings → Translate**.
+
+Speech expands common measurements, decimal points and scientific scripts: `per mm²` becomes “per square millimeter” and `0.5` becomes “zero point five.” Chemical formulas and variable indices are handled separately. PDF text and highlights stay unchanged.
 
 The mascot uses five gestures in each of its idle and reading sets: page turning, a somersault, sitting cross-legged, stretching, picking up a microphone and giving a thumbs-up. It keeps the final pose. After about 30 minutes of active reading, a brief remove-and-replace-headphones gesture takes priority without pausing audio. Interactions respect the system’s Reduce Motion setting.
 

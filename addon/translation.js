@@ -126,6 +126,43 @@ var PaperVoiceTranslation = {
   }
   return blocks;
  },
+ readingColumn(match,block) {
+  const h=Math.max(1,...block.rects.map(r=>r.height)),rows=[];
+  // Use complete text-layer lines around the active passage, rather than the
+  // selected words or a fixed fraction of the page. This also handles mixed layouts.
+  for(const span of match.spans||[]){
+   for(const r of span.getClientRects()){
+    if(!r.width||r.height<h*.65||r.height>h*1.45||r.bottom<block.top-h*10||r.top>block.bottom+h*10)continue;
+    let row=rows.find(x=>Math.abs(x.y-(r.top+r.bottom)/2)<h*.4);
+    if(!row){row={y:(r.top+r.bottom)/2,rects:[]};rows.push(row);}row.rects.push(r);
+   }
+  }
+  const lines=[];
+  for(const row of rows){
+   row.rects.sort((a,b)=>a.left-b.left);let line=null;
+   for(const r of row.rects){
+    if(!line||r.left-line.right>h*1.35){line={left:r.left,right:r.right,top:r.top,bottom:r.bottom,row};lines.push(line);}
+    else {line.right=Math.max(line.right,r.right);line.top=Math.min(line.top,r.top);line.bottom=Math.max(line.bottom,r.bottom);}
+   }
+  }
+  const touches=(line,r)=>line.left<r.right+1&&line.right>r.left-1&&line.top<r.bottom&&line.bottom>r.top;
+  const anchored=lines.filter(line=>block.rects.some(r=>touches(line,r)));
+  const seed=anchored.sort((a,b)=>(b.right-b.left)-(a.right-a.left))[0];
+  if(!seed)return {left:block.left,right:block.right};
+  const aligned=lines.filter(line=>Math.abs(line.left-seed.left)<h*2.5);
+  let leftLimit=-Infinity,rightLimit=Infinity;
+  for(const line of aligned){
+   for(const other of lines){
+    if(other.row!==line.row)continue;
+    if(other.right<line.left-h*1.35)leftLimit=Math.max(leftLimit,other.right+h*.5);
+    if(other.left>line.right+h*1.35)rightLimit=Math.min(rightLimit,other.left-h*.5);
+   }
+  }
+  // Full-width headings above a multi-column body must not widen its caption.
+  const column=aligned.filter(line=>line.left>=leftLimit&&line.right<=rightLimit);
+  if(!column.length)return {left:seed.left,right:seed.right};
+  return {left:Math.min(...column.map(line=>line.left)),right:Math.max(...column.map(line=>line.right))};
+ },
  async highlightSentence(reader,unit,generation) {
   this.clearSentenceHighlight();
   const active={markers:[],reader,unit:{...unit,text:unit.highlightText||unit.sentenceText||unit.text,anchorOffset:unit.highlightOffset??unit.sentenceOffset},focusUnit:unit};
@@ -244,23 +281,21 @@ var PaperVoiceTranslation = {
   // sentence, the final DOM rectangle may be at the top of the opposite column.
   const block=blocks.find(part=>part.rects.some(r=>r.bottom>0&&r.top<fr.height&&r.right>0&&r.left<fr.width));
   if(!block){box.style.visibility='hidden';return;}
-  const sentence=c.unit.sentenceText&&c.unit.sentenceText!==c.unit.text?
-   this.findSentence(reader,{...c.unit,text:c.unit.sentenceText,anchorOffset:c.unit.sentenceOffset}):match;
-  const columns=sentence?this.readingBlocks(sentence):blocks;
-  let columnLeft=12,columnRight=fr.width-12;
-  for(const other of columns){
-   if(other.left>=block.right+4)columnRight=Math.min(columnRight,(block.right+other.left)/2-6);
-   if(other.right<=block.left-4)columnLeft=Math.max(columnLeft,(other.right+block.left)/2+6);
-  }
+  const column=this.readingColumn(match,block);
   box.style.visibility='visible';
   // Follow the current source directly. Covering subsequent unread text is intentional;
   // the original PDF viewport keeps its full width and height.
-  const left=Math.max(columnLeft,Math.min(block.left,columnRight-48));
-  const width=Math.max(1,Math.min(420,columnRight-left));
+  const left=Math.max(12,column.left),right=Math.min(fr.width-12,column.right);
+  const width=Math.max(1,right-left);
   box.style.width=width+'px';box.style.maxHeight=Math.max(56,fr.height*.55)+'px';
   const height=box.getBoundingClientRect().height;
   let top=block.bottom+8;c.inline=true;box.dataset.placement='below-source';
-  if(top+height>fr.height-12&&block.top-height-8>=12){
+  if(this.get('captionPlacement','below')==='above'){
+   const room=block.top-20;
+   if(room<24){box.style.visibility='hidden';return;}
+   box.style.maxHeight=Math.min(fr.height*.55,room)+'px';
+   top=block.top-box.getBoundingClientRect().height-8;box.dataset.placement='above-source';
+  }else if(top+height>fr.height-12&&block.top-height-8>=12){
    top=block.top-height-8;box.dataset.placement='above-source';
   }else if(top+height>fr.height-12){
    box.style.maxHeight=Math.max(56,fr.height-top-12)+'px';

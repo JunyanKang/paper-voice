@@ -182,7 +182,12 @@ var PaperVoiceCore = (() => {
   }
   function pdfText(items) {
     return cleanText(items.map((item,i)=>{
-      const value=citationSuperscript(items,i)?item.str.replace(/\d/g,d=>superDigits[Number(d)]):item.str;
+      let value=citationSuperscript(items,i)?item.str.replace(/\d/g,d=>superDigits[Number(d)]):item.str;
+      const previous=items[i-1],h=Math.abs(previous?.height||previous?.transform?.[3]||0);
+      const unit=String(previous?.str||'').match(/([\p{L}µμÅ%°]+)\s*$/u)?.[1];
+      const rise=(item.transform?.[5]||0)-(previous?.transform?.[5]||0),gap=(item.transform?.[4]||0)-((previous?.transform?.[4]||0)+(previous?.width||0));
+      if(unit&&(measurementNames[unit]||scientificUnits.test(unit))&&/^[+−-]?\d{1,2}$/.test(String(item.str).trim())&&h>0&&Math.abs(item.height||item.transform?.[3]||0)<=h*.85&&rise>=h*.1&&rise<=h&&gap>=-h*.3&&gap<h*1.5)value=String(item.str).trim().replace(/\d/g,d=>superDigits[Number(d)]).replace(/[−-]/g,'⁻').replace(/\+/g,'⁺');
+      if(previous&&/^[0-9]{1,2}$/.test(String(item.str).trim())&&h>0&&Math.abs(item.height||item.transform?.[3]||0)<=h*.85&&rise<=-h*.05&&rise>=-h*.65&&gap>=-h*.3&&gap<h*1.5&&/[\p{L}]$/u.test(String(previous.str).trim()))value=String(item.str).trim().replace(/\d/g,d=>'₀₁₂₃₄₅₆₇₈₉'[Number(d)]);
       return value+(item.hasEOL?'\n':joinsPDFLigature(item,items[i+1])?'':' ');
     }).join(''));
   }
@@ -242,6 +247,13 @@ var PaperVoiceCore = (() => {
   }
   // Speech-only expansions: the PDF source and highlight coordinates stay unchanged.
   const measurementNames={
+    fs:['femtosecond','飞秒','フェムト秒','femtoseconde'],ps:['picosecond','皮秒','ピコ秒','picoseconde'],
+    fmol:['femtomole','飞摩尔','フェムトモル','femtomole'],pmol:['picomole','皮摩尔','ピコモル','picomole'],
+    'Ω':['ohm','欧姆','オーム','ohm'],'kΩ':['kilohm','千欧姆','キロオーム','kilohm'],'MΩ':['megohm','兆欧姆','メガオーム','mégohm'],
+    T:['tesla','特斯拉','テスラ','tesla'],mT:['millitesla','毫特斯拉','ミリテスラ','millitesla'],
+    Bq:['becquerel','贝克勒尔','ベクレル','becquerel'],kBq:['kilobecquerel','千贝克勒尔','キロベクレル','kilobecquerel'],MBq:['megabecquerel','兆贝克勒尔','メガベクレル','mégabecquerel'],
+    Gy:['gray','戈瑞','グレイ','gray'],mGy:['milligray','毫戈瑞','ミリグレイ','milligray'],Sv:['sievert','希沃特','シーベルト','sievert'],mSv:['millisievert','毫希沃特','ミリシーベルト','millisievert'],
+    U:['enzyme unit','酶活单位','酵素単位',"unité d’activité enzymatique"],
     pm:['picometer','皮米','ピコメートル','picomètre'],nm:['nanometer','纳米','ナノメートル','nanomètre'],
     'μm':['micrometer','微米','マイクロメートル','micromètre'],mm:['millimeter','毫米','ミリメートル','millimètre'],cm:['centimeter','厘米','センチメートル','centimètre'],m:['meter','米','メートル','mètre'],km:['kilometer','千米','キロメートル','kilomètre'],'Å':['angstrom','埃','オングストローム','ångström'],
     pg:['picogram','皮克','ピコグラム','picogramme'],ng:['nanogram','纳克','ナノグラム','nanogramme'],'μg':['microgram','微克','マイクログラム','microgramme'],mg:['milligram','毫克','ミリグラム','milligramme'],g:['gram','克','グラム','gramme'],kg:['kilogram','千克','キログラム','kilogramme'],
@@ -265,7 +277,7 @@ var PaperVoiceCore = (() => {
     const aliases={um:'μm',ug:'μg',uL:'μL',ul:'μL','μl':'μL',ml:'mL',nl:'nL',l:'L',us:'μs',umol:'μmol',uM:'μM',sec:'s',secs:'s',mins:'min',hr:'h',hrs:'h'};
     const escape=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
     const tokens=[...Object.keys(measurementNames),...Object.keys(aliases)].sort((a,b)=>b.length-a.length).map(x=>Array.from(x,escape).join('\\s*')).join('|');
-    const unit='(?:'+tokens+')',power='(?:\\s*(?:[²³]|\\^[23]|[⁻−-][¹²³123])|[23])?',atom=unit+power;
+    const unit='(?:'+tokens+')',power='(?:\\s*(?:[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+|\\^\\s*(?:\\{[+−-]?\\d+\\}|[+−-]?\\d+)|[−-][123])|[23])?',atom=unit+power;
     // Match only a complete unit token after a number. Gene names and ordinary words stay intact.
     const boundary='(?![\\p{Script=Latin}\\p{Script=Greek}\\p{N}_])';
     const number='[+−-]?(?:\\d+(?:[.,]\\d+)*|\\.\\d+)(?:[eE][+−-]?\\d+)?';
@@ -273,37 +285,75 @@ var PaperVoiceCore = (() => {
     const per={en:' per ',zh:'每',ja:'毎',fr:' par '}[lang];
     const numeral=x=>x.replace(/([\d.,]+)[eE]([+−-]?\d+)/g,(_,base,power)=>base+({en:' times ten to the power of ',zh:'乘十的',ja:'掛ける十の',fr:' fois dix puissance '}[lang])+power.replace(/^[−-]/,{en:'minus ',zh:'负',ja:'マイナス',fr:'moins '}[lang])+({en:'',zh:'次方',ja:'乗',fr:''}[lang])).replace(/\s*±\s*/g,{en:' plus or minus ',zh:'正负',ja:'プラスマイナス',fr:' plus ou moins '}[lang]).replace(/(\d)\s*[–−-]\s*(?=[+−-]?\d)/g,'$1'+({en:' to ',zh:'至',ja:'から',fr:' à '}[lang])).replace(/^[−-]/,{en:'minus ',zh:'负',ja:'マイナス',fr:'moins '}[lang]);
     const name=(raw,plural)=>{
-      let token=raw.replace(/\s/g,'').replace(/µ/g,'μ'),exponent=token.match(/([²³]|\^?[23]|[⁻−-][¹²³123])$/)?.[0]||'';
+      let token=raw.replace(/\s/g,'').replace(/µ/g,'μ'),exponent=token.match(/([⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+|\^(?:\{[+−-]?\d+\}|[+−-]?\d+)|[−-][123]|[23])$/)?.[0]||'';
       token=token.slice(0,token.length-exponent.length);token=aliases[token]||token;
       let word=measurementNames[token]?.[col];if(!word)return raw;
-      const negative=/^[⁻−-]/.test(exponent);if(negative)plural=false;exponent=exponent.replace(/[⁻−^\-]/g,'').replace('¹','1').replace('²','2').replace('³','3');
+      exponent=exponent.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g,x=>String(superDigits.indexOf(x))).replace(/[⁻−]/g,'-').replace(/⁺/g,'+').replace(/[\^{}]/g,'');
+      const negative=exponent.startsWith('-');if(negative)plural=false;exponent=exponent.replace(/^[+-]/,'');
       if(plural&&lang==='en'&&!/hertz$|molar$|percent|per mille|lux$/.test(word)&&token!=='rpm'){const words=word.split(' ');words[0]+='s';word=words.join(' ');}
       if(plural&&lang==='fr'&&!/hertz$|lux$|pour cent|pour mille/.test(word)&&token!=='rpm'){const words=word.split(' ');words[0]+='s';word=words.join(' ');}
       if(plural&&token==='bp'&&lang==='en')word='base pairs';
       if(plural&&token==='IU'&&lang==='en')word='international units';
       if(plural&&token==='IU'&&lang==='fr')word='unités internationales';
       if(exponent==='2'||exponent==='3')word=lang==='en'?({2:'square ',3:'cubic '}[exponent])+word:lang==='fr'?word+({2:' carré',3:' cube'}[exponent])+(plural?'s':''):({zh:{2:'平方',3:'立方'},ja:{2:'平方',3:'立方'}}[lang][exponent])+word;
+      if(exponent&&exponent!=='1'&&exponent!=='2'&&exponent!=='3')word+=({en:' to the power of ',zh:'的',ja:'の',fr:' puissance '}[lang])+exponent+({en:'',zh:'次方',ja:'乗',fr:''}[lang]);
       return negative?per.trim()+' '+word:word;
     };
-    let text=cleanText(value).replace(/µ/g,'μ').replace(/℃/g,'°C').replace(/℉/g,'°F').replace(/º(?=\s*[CF])/g,'°');
+    let text=scientificScriptSpeech(cleanText(value),lang).replace(/µ/g,'μ').replace(/℃/g,'°C').replace(/℉/g,'°F').replace(/º(?=\s*[CF])/g,'°');
     text=ratioSpeech(text,lang);
+    text=text.replace(/(?<![\p{L}\p{N}_])((?:\d+(?:\.\d+)?)\s*[×⋅]\s*)?10\s*(?:\^\s*\{?([+−-]?\d+)\}?|([⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+))(?![\p{L}\p{N}_])/gu,(_,factor,plain,raised)=>{
+      const exponent=(plain||raised).replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g,x=>String(superDigits.indexOf(x))).replace(/[⁻−]/g,'-').replace(/⁺/g,'+');
+      return (factor?factor.replace(/[×⋅]\s*$/,({en:' times ',zh:'乘',ja:'掛ける',fr:' fois '}[lang])):'')+({en:'ten to the power of ',zh:'十的',ja:'十の',fr:'dix puissance '}[lang])+exponent.replace(/^-/,{en:'minus ',zh:'负',ja:'マイナス',fr:'moins '}[lang])+({en:'',zh:'次方',ja:'乗',fr:''}[lang]);
+    });
+
     text=text.replace(new RegExp('('+quantity+')\\s*[×x]\\s*g'+boundary,'gu'),(_,n)=>numeral(n)+({en:' times gravity',zh:'倍重力加速度',ja:'倍の重力加速度',fr:' fois la gravité'}[lang]));
-    const factor='(?:[/·]\\s*'+atom+'|'+unit+'\\s*[⁻−-][¹²³123])';
+    const inversePower='(?:⁻[⁰¹²³⁴⁵⁶⁷⁸⁹]+|[−-][123]|\\^\\s*(?:\\{-[1-9]\\d*\\}|-[1-9]\\d*))';
+    const factor='(?:[/·⋅]\\s*'+atom+'|'+unit+'\\s*'+inversePower+')';
     const pattern=new RegExp('(?<![\\p{Script=Latin}\\p{Script=Greek}\\p{N}_])('+quantity+')\\s*('+atom+')'+boundary+'((?:\\s*'+factor+boundary+')*)','gu');
     const figureRanges=Array.from(text.matchAll(figureReferencePattern()),m=>({start:m.index,end:m.index+m[0].length}));
-    return text.replace(pattern,(whole,n,first,rest,at)=>{
+    text=text.replace(pattern,(whole,n,first,rest,at)=>{
       // Panel letters are identifiers, not amperes, volts or other SI units.
       if(figureRanges.some(r=>at>=r.start&&at+whole.length<=r.end))return whole;
       const single=Number(n.replace(/,/g,''))===1,token=first.replace(/\s/g,'');
       let spoken=name(first,!single),amount=numeral(n);
       if(lang==='zh'&&(token==='%'||token==='‰'))return spoken+amount;
       if(lang==='ja'&&(token==='°C'||token==='°F'))return (token==='°C'?'摂氏':'華氏')+amount+'度';
-      for(const part of rest.matchAll(new RegExp('([/·])?\\s*('+atom+')','gu'))){
-        const inverse=/[⁻−-][¹²³123]$/.test(part[2]);
+      for(const part of rest.matchAll(new RegExp('([/·⋅])?\\s*('+atom+')','gu'))){
+        const inverse=/(?:⁻[⁰¹²³⁴⁵⁶⁷⁸⁹]+|[−-][123]|\^(?:\{-[1-9]\d*\}|-[1-9]\d*))$/.test(part[2]);
         spoken+=inverse&&part[1]!=='/'?' '+name(part[2],false):(part[1]==='/'?per:({en:' times ',zh:'乘',ja:'掛ける',fr:' fois '}[lang]))+name(part[2],false);
       }
       return amount+(['zh','ja'].includes(lang)?'':' ')+spoken;
     });
+    // Density denominators need no adjacent quantity: '50,000 cells per mm²'.
+    // A separated ordinary 2/3 is accepted only in this explicit unit context.
+    text=text.replace(new RegExp('(?:\\bper\\s+|/\\s*)('+atom+'(?:\\s+[23](?![\\p{L}\\p{N}_]))?)'+boundary,'gu'),(whole,raw,at)=>{
+      if(/https?:\/\/\S*$|\b10\.\d{4,9}\/\S*$/.test(text.slice(0,at)))return whole;
+      const denominator=raw.replace(/\s+([23])$/,'$1');return (whole.startsWith('/')?' ':'')+per.trim()+' '+name(denominator,false);
+    });
+    // Spell decimal fractional digits explicitly; front-end phonemizers can
+    // drop the point in coordinated measurements. Protect IDs, URLs and figures.
+    const protectedRanges=Array.from(text.matchAll(/https?:\/\/\S+|\b10\.\d{4,9}\/\S+|\b\d+(?:\.\d+){2,}\b/gu),m=>({start:m.index,end:m.index+m[0].length}));
+    protectedRanges.push(...Array.from(text.matchAll(figureReferencePattern()),m=>({start:m.index,end:m.index+m[0].length})));
+    const digits={en:['zero','one','two','three','four','five','six','seven','eight','nine'],zh:['零','一','二','三','四','五','六','七','八','九'],ja:['ゼロ','一','二','三','四','五','六','七','八','九'],fr:['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf']}[lang];
+    return cleanText(text.replace(/(?<![\p{Script=Latin}\p{Script=Greek}\p{N}_.])(?:\d+)?\.\d+(?![\p{Script=Latin}\p{Script=Greek}\p{N}_]|\.\d)/gu,(decimal,at)=>{
+      if(protectedRanges.some(r=>at>=r.start&&at<r.end)||/\b(?:version|ver|v)\s*$/i.test(text.slice(Math.max(0,at-12),at)))return decimal;
+      const [integer,fraction]=decimal.split('.'),head=!integer||/^0+$/.test(integer)?digits[0]:integer;
+      return head+({en:' point ',zh:'点',ja:'点',fr:' virgule '}[lang])+Array.from(fraction,x=>digits[Number(x)]).join(['en','fr'].includes(lang)?' ':'');
+    }));
+  }
+  function scientificScriptSpeech(value,language) {
+    const col={en:0,zh:1,ja:2,fr:3}[language]??0;
+    const chemicals={CO2:['carbon dioxide','二氧化碳','二酸化炭素','dioxyde de carbone'],H2O:['water','水','水',"eau"],O2:['oxygen','氧气','酸素','oxygène'],H2O2:['hydrogen peroxide','过氧化氢','過酸化水素',"peroxyde d’hydrogène"],NO2:['nitrogen dioxide','二氧化氮','二酸化窒素',"dioxyde d’azote"]};
+    const formulas='H\\s*[₂2]\\s*O\\s*[₂2]|C\\s*O\\s*[₂2]|H\\s*[₂2]\\s*O|O\\s*[₂2]|N\\s*O\\s*[₂2]';
+    value=value.replace(new RegExp('(?<![\\p{L}\\p{N}_])(?:'+formulas+')(?![\\p{L}\\p{N}_₂])','gu'),raw=>chemicals[raw.replace(/\s/g,'').replace(/₂/g,'2')]?.[col]||raw);
+    const ions={Ca:['calcium','钙','カルシウム','calcium'],Mg:['magnesium','镁','マグネシウム','magnésium'],Na:['sodium','钠','ナトリウム','sodium'],K:['potassium','钾','カリウム','potassium'],Cl:['chloride','氯','塩化物','chlorure'],H:['hydrogen','氢','水素','hydrogène']};
+    value=value.replace(/(?<![\p{L}\p{N}_])(Ca|Mg|Na|K|Cl|H)\s*([²2])?\s*([⁺⁻+−-])(?![\p{L}\p{N}_])/gu,(raw,atom,two,sign)=>{
+      const positive=/[⁺+]/.test(sign),charge=(two?({en:' two',zh:'二',ja:'二',fr:' deux'}[language]):'')+(positive?{en:' plus',zh:'正',ja:'プラス',fr:' plus'}:{en:' minus',zh:'负',ja:'マイナス',fr:' moins'})[language];
+      return ions[atom][col]+charge;
+    });
+    // Preserve variables as variables, rather than confusing their indices with powers.
+    const script={en:' subscript ',zh:'下标',ja:'下付き',fr:' indice '},digits={en:['zero','one','two','three','four','five','six','seven','eight','nine'],zh:['零','一','二','三','四','五','六','七','八','九'],ja:['ゼロ','一','二','三','四','五','六','七','八','九'],fr:['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf']}[language];
+    return value.replace(/(?<![\p{L}\p{N}_])([\p{Script=Latin}\p{Script=Greek}]+)\s*([₀₁₂₃₄₅₆₇₈₉₊₋ᵢⱼₖₘₙₚₛₜₓ]+)(?![\p{L}\p{N}_])/gu,(_,base,index)=>base+script[language]+Array.from(index,x=>'₀₁₂₃₄₅₆₇₈₉'.includes(x)?digits['₀₁₂₃₄₅₆₇₈₉'.indexOf(x)]:x.normalize('NFKD')).join(language==='en'||language==='fr'?' ':''));
   }
   function ratioSpeech(value,language='en') {
     const separator={en:' to ',zh:'比',ja:'対',fr:' pour '}[language]||' to ';
