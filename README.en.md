@@ -1,56 +1,80 @@
 <p align="right"><a href="README.md">简体中文</a> · <b>English</b></p>
 
-<p align="center"><img src="docs/assets/paper-voice-hero.png" width="880" alt="Paper Voice — paper reading for Zotero"></p>
+<p align="center"><img src="docs/assets/paper-voice-banner.png" width="960" alt="Paper Voice · A different rhythm for reading papers"></p>
 
 <h1 align="center">Your papers, read aloud.</h1>
 
-<p align="center">Listen in Zotero, follow the original, or hear a translation.</p>
-<p align="center">Free to use · Offline voices · English, Chinese, Japanese and French</p>
-<p align="center"><a href="#download">Download</a> · <a href="#quick-start">Quick start</a> · <a href="docs/GUIDE.en.md">User guide</a></p>
+<p align="center">Listen in Zotero, follow the original, and bring a translation along.<br>Focus on one sentence or keep listening through a paper.</p>
+<p align="center"><b>Free and open source · Offline voices · Source highlighting</b></p>
+<p align="center"><a href="#download-and-install">Download and install</a> · <a href="docs/GUIDE.en.md">Illustrated guide</a> · <a href="https://github.com/JunyanKang/paper-voice/issues">Report an issue</a></p>
 
-- **Listen at your own pace.** Focus on a sentence, repeat a paragraph, or listen from your current position to the end.
-- **Keep your place.** Highlighting, scrolling, column changes and page turns follow the reading.
-- **Read across languages.** Select text for a translation, follow translated captions, or listen to the translation itself. You can also connect your own LLM API.
-- **Stay with the paper’s argument.** Recognizable citations, figure captions and publication details are skipped for smoother listening. Your PDF and annotations stay unchanged.
+<p align="center"><img src="docs/assets/readme-reading-en.png" width="960" alt="Paper Voice reading a sample PDF in Zotero: the source sentence is highlighted, a translation appears nearby, and the panel provides reading modes and playback controls"></p>
 
-## Download
+## Read at your own pace
 
-For **Zotero 10**. First-time users should choose a complete package, which includes the plugin, offline voices and installer. Choose the ZIP for your system under **Assets** on the release page.
+Replay a difficult sentence or keep moving through a familiar passage. Four modes give you control over how much to hear.
 
-**Windows · Intel / AMD 64-bit computers**
+| What you want to hear | Mode | How to begin |
+|---|---|---|
+| One complete sentence | **Sentence** | Select any word in it |
+| A specific passage | **Select** | Select exactly the text you want |
+| A complete argument | **Paragraph** | Select text anywhere in the paragraph |
+| The paper continuously | **Document** | Start at the beginning, current page, selected sentence or last position |
 
-[Get the Windows package →](https://github.com/JunyanKang/paper-voice/releases/latest)
+Sentence, selection and paragraph modes support repeat playback. Your latest reading position is saved, so you can resume after restarting or updating.
 
-**Mac · Apple Silicon (M series), macOS 14 or later**
+## Keep your place as you listen
 
-[Get the Mac package →](https://github.com/JunyanKang/paper-voice/releases/latest)
+The current source sentence is highlighted, with scrolling, column changes and page turns following the reading. Floating controls keep pause, replay and navigation close without leaving the panel open.
 
-Already installed? [Download the `.xpi` plugin](https://github.com/JunyanKang/paper-voice/releases/latest) · [Updating](#updating) · [Other platforms and compatibility](docs/COMPATIBILITY.en.md)
+Paper-specific text processing skips recognizable citation markers, figure captions and publication details while preserving meaningful figure references in the prose. Common units, ratios, superscripts and subscripts are prepared for speech. **Your PDF and annotations stay unchanged.**
 
-## Quick start
+## See a translation—or listen to it
 
-1. **Install voices.** Extract the complete package, open the installer and select Install voices. Wait for Voices ready.
-2. **Add the plugin.** In Zotero, open Tools → Plugins → gear → Install Plugin From File and select the included `.xpi`.
-3. **Start listening.** Open a PDF with selectable text and select a passage to listen and see its translation. Click the book mascot in the lower-right corner to choose a mode; see [continuous reading](docs/GUIDE.en.md#read-continuously-and-resume) to listen from a sentence to the end.
+- **Translate a selection.** See the translation beside the text. Choose a selection, sentence or paragraph; partially selected words in languages such as English are completed for translation.
+- **Follow translated text.** Translations stay near the sentence being read, adapt to its text region, and can appear above or below it.
+- **Listen to the translation.** Switch the audio to the translated text while the original stays highlighted and in view.
 
-<p align="center"><img src="docs/assets/quick-start-en.png" width="960" alt="Select PDF text in Zotero to listen, with Sentence, Select, Paragraph and Document modes in the floating panel"></p>
+Choose **Tencent, Microsoft or Google**, or connect your own LLM API, including **MiniMax, DeepSeek, Qwen, OpenAI, Claude and Gemini**. [Connect a service →](docs/GUIDE.en.md#llm-translation)
 
-## User guide
+**4 spoken languages, 14 offline voices.** Listen in English, Mandarin Chinese, Japanese or French, with automatic language detection and manual selection. English includes US/UK accents and male/female voices. Translated audio supports the same four languages.
 
-**[Open the illustrated user guide →](docs/GUIDE.en.md)**
+**9 translation targets, 5 interface languages.** Written translations include Simplified and Traditional Chinese alongside other languages. The interface supports Chinese, English, Japanese, French and German. [Explore languages and voices →](docs/GUIDE.en.md#choose-a-language-and-voice)
 
-Choose Chinese, English, Japanese, French or German for the interface in Settings.
+## Make it part of your reading routine
 
-[Modes and repeats](docs/GUIDE.en.md#choose-a-reading-mode) · [Resume your place](docs/GUIDE.en.md#read-continuously-and-resume) · [Translation and translated audio](docs/GUIDE.en.md#see-or-hear-a-translation) · [LLM translation](docs/GUIDE.en.md#llm-translation) · [Custom shortcuts](docs/GUIDE.en.md#keyboard-shortcuts)
+Press **Space** to pause or resume, **↑ / ↓** for the previous or next sentence, and **Esc** to stop. Customize shortcuts with conflict detection. [All shortcuts →](docs/GUIDE.en.md#keyboard-shortcuts)
 
-The package includes offline voices and their runtime: no subscription, API key or separate Python installation is needed. Translation needs internet access and defaults to Tencent’s free service for mainland China. Optional LLM translation uses your own API key; provider fees apply. Selection translation is on by default and sends text from the selected scope to that service; you can turn it off in Settings. [Privacy details](PRIVACY.md)
+Choose from 10 themes, import a background, adjust transparency, and use fonts installed on your computer for translated text. The book mascot adds occasional interactions; you can turn them off in Settings.
 
-## Updating
+## Download and install
 
-Use the update control in Settings, or install the latest `.xpi` from [Releases](https://github.com/JunyanKang/paper-voice/releases/latest). See the [upgrade guide](docs/GUIDE.en.md#how-do-i-update) to check whether your existing voice pack needs replacing.
+For **Zotero 10**. On your first installation, choose the complete ZIP package for your system under **Assets** on the release page. It includes the plugin, offline voices and installer.
+
+**[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
+Intel / AMD 64-bit computers · Choose the ZIP with `Windows-x64` in its name
+
+**[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
+Apple Silicon (M series), macOS 14 or later · Choose the ZIP with `macOS-arm64` in its name
+
+1. **Install voices.** Extract the entire ZIP, open the installer, and select Install voices. Wait for Voices ready.
+2. **Add the plugin.** In Zotero, go to Tools → Plugins → gear → Install Plugin From File, then select the included `.xpi`.
+3. **Start listening.** Open a PDF with selectable text and select a passage. Click the book mascot to adjust the mode, voice and translation.
+
+The package includes the voices and their runtime; no separate Python installation is needed. Scanned PDFs need text recognition first.
+
+**[Open the illustrated guide →](docs/GUIDE.en.md)** · [Installation help](docs/INSTALL.en.md) · [Other platforms and compatibility](docs/COMPATIBILITY.en.md)
+
+Already using Paper Voice? Check for updates in Settings or install the latest `.xpi`. See the [upgrade guide](docs/GUIDE.en.md#how-do-i-update) to check whether your voice pack needs replacing.
+
+## Cost and privacy
+
+**The plugin and offline speech are free, with no subscription or API key required.** Speech is generated on your computer. Turn off translation to listen to the original entirely offline.
+
+Translation needs internet access, and selection translation is on by default. Only the text needed for translation is sent to your chosen service—not the entire PDF or library. You can turn this off in Settings. Optional LLM translation uses your own API key; provider fees apply. [Privacy details →](PRIVACY.md)
 
 ---
 
-[Installation help](docs/INSTALL.en.md) · [Common questions](docs/GUIDE.en.md#updates-and-common-questions) · [Compatibility](docs/COMPATIBILITY.en.md) · [Report an issue](https://github.com/JunyanKang/paper-voice/issues) · [Acknowledgments](docs/ACKNOWLEDGMENTS.md)
+[User guide](docs/GUIDE.en.md) · [Common questions](docs/GUIDE.en.md#updates-and-common-questions) · [Feedback](https://github.com/JunyanKang/paper-voice/issues) · [Acknowledgments](docs/ACKNOWLEDGMENTS.md)
 
 Created by [Junyan Kang](https://github.com/JunyanKang) · [MIT License](LICENSE)

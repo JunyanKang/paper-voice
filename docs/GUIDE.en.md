@@ -21,7 +21,7 @@ Start with a selected passage, then find your own pace for a whole paper. This g
 
 ### Install the voices and plugin
 
-Choose a complete package for your computer on the [download page](../README.en.md#download), extract it, and open the installer. Select **Install voices**. Once **Voices ready** appears, open **Tools → Plugins → gear → Install Plugin From File** in Zotero and select the included `.xpi`.
+Choose a complete package for your computer on the [download page](../README.en.md#download-and-install), extract it, and open the installer. Select **Install voices**. Once **Voices ready** appears, open **Tools → Plugins → gear → Install Plugin From File** in Zotero and select the included `.xpi`.
 
 <p align="center"><img src="assets/installer-macos-en.png" width="560" alt="Mac installer: install offline voices first, then add the plugin to Zotero"></p>
 <p align="center"><sub>Figure 1 · Choose English or Chinese in the installer. The completion status appears beside the first step.</sub></p>
