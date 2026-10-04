@@ -215,19 +215,19 @@ The integration uses [OpenAI-compatible Chat Completions](https://platform.opena
 
 Open **Settings → Style**.
 
-<p align="center"><img src="assets/settings-appearance-en.png" width="420" alt="Appearance settings with ten horizontally browsable themes, image import, transparency, interface language and companion gestures"></p>
+<p align="center"><img src="assets/settings-appearance-en.png" width="320" alt="Appearance settings with five theme previews"> <img src="assets/settings-themes-en.png" width="320" alt="All ten themes expand in place after selecting the ellipsis"></p>
 <p align="center"><sub>Figure 6 · Themes and interface preferences are together on one page, with changes visible immediately.</sub></p>
 
 | To change… | Use… |
 |---|---|
-| **Colors** | Browse horizontally with a trackpad or mouse wheel and select a theme. The scrollbar stays hidden. Horizon is the default |
+| **Colors** | Horizon is the default. Five previews appear in one row; select … to see all themes, then choose one to close the picker |
 | **Your background** | Import image accepts PNG, JPG and WebP files stored only on your computer. Use My image to return to it, or Remove to delete it |
 | **Caption position** | Below text by default, or above it. Caption width follows the actual local text area and leaves the active source visible |
 | **Transparency** | Move the slider; higher values make the background more transparent while text and controls remain clear |
 | **Interface language** | Choose 简体中文, English, 日本語, Français, Deutsch or System; this does not change the reading or translation language |
 | **Companion** | Turn gestures on or off, choose an interval, or select Preview. Hovering over the mascot also triggers a gesture |
 
-Choose from Linen, Indigo, Horizon, Clay, Lunar, Sakura, Inkstone, Silver, Aurora and Velvet. Colors carry through the panels, controls, menus, captions and source highlights. With a theme card focused, use Left/Right to switch or Home/End to reach the first/last theme.
+Themes follow a color progression: Horizon, Silver, Inkstone, Linen, Clay, Sakura, Velvet, Lunar, Indigo and Aurora. The picker expands in place into two rows of five, with each theme name inside its swatch. Colors carry through the panels, controls, menus, captions and source highlights. In the picker, use arrow keys to move, Enter to select and Esc to close. Clicking elsewhere also closes it.
 
 **System** follows Zotero’s language, with English as the fallback for unsupported languages. Switching languages keeps the panel size unchanged.
 

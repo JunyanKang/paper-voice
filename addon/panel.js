@@ -79,6 +79,7 @@ var PaperVoiceUI = {
   const doc=reader._iframeWindow.document,root=doc.createElement('div');
   root.className='pv-shell';root.dataset.paperVoice='shell';root.dataset.state='idle';
   const icon=name=>`<img class="pv-icon" src="${controller.assetURI}icons/${name}.svg" alt=""/>`;
+  const themeTile=t=>`<button type="button" data-theme-choice="${t.id}" aria-label="${t.name}" aria-pressed="false"><span class="pv-theme-swatch" style="background-color:${t.paper};background-image:url('${controller.assetURI}themes/${t.art}');color:${t.accent};--pv-swatch-mask:${t.paper}99;--pv-swatch-accent:${t.accent};--pv-swatch-text:${t.ink};--pv-swatch-ink:${t.dark?t.paper:'#ffffff'}"><i></i><i></i><span class="pv-theme-name">${t.name}</span></span></button>`;
   root.innerHTML=`<style>${controller.cssText}</style><section class="pv-panel" data-paper-voice="panel" aria-label="Paper Voice 朗读控制" hidden>
    <header class="pv-header"><img class="pv-brand-icon" src="${controller.assetURI}mascot.png" alt=""/><div class="pv-brand">Paper Voice<span>论文听读</span></div><button class="pv-icon-button" data-action="settings" aria-label="声音与翻译设置">${icon('settings')}</button><button class="pv-icon-button" data-action="close" aria-label="收起朗读面板">${icon('x')}</button></header>
    <div data-field="home">
@@ -121,7 +122,11 @@ var PaperVoiceUI = {
       <div class="pv-llm-result" data-field="llmResult" role="status" aria-live="polite">密钥仅存本机 · 费用由服务商收取</div>
      </div>
      <div id="pv-settings-appearance" data-settings-pane="appearance" role="tabpanel" aria-labelledby="pv-tab-appearance" hidden>
-       <div class="pv-theme-choices" data-field="themeChoices" role="group" aria-label="窗口主题">${controller.themes.map(t=>`<button data-theme-choice="${t.id}" aria-pressed="false" title="${t.name}"><span class="pv-theme-swatch" style="background-color:${t.paper};${t.art?`background-image:url('${controller.assetURI}themes/${t.art}');`:''}color:${t.accent};--pv-swatch-mask:${t.paper}99;--pv-swatch-accent:${t.accent};--pv-swatch-ink:${t.dark?t.paper:'#ffffff'}"><i></i><i></i></span><span>${t.name}</span></button>`).join('')}</div>
+       <div class="pv-theme-browser" data-field="themeBrowser">
+        <div class="pv-theme-choices" data-field="themeChoices" role="group" aria-label="窗口主题">${controller.themes.map(themeTile).join('')}</div>
+        <button type="button" class="pv-theme-more" data-action="themeMore" aria-label="全部主题" aria-expanded="false" aria-controls="pv-theme-picker"><span aria-hidden="true">…</span></button>
+        <div id="pv-theme-picker" class="pv-theme-popover" data-field="themePicker" role="dialog" aria-label="全部主题" hidden><div class="pv-theme-choices" data-field="allThemes" role="group" aria-label="窗口主题">${controller.themes.map(themeTile).join('')}</div></div>
+       </div>
        <div class="pv-background-row"><button data-action="importBackground" title="自动裁切 · 文字保护蒙版 · 仅存本机">导入图片</button><button data-field="customBackground" data-action="customBackground" aria-pressed="false" hidden>我的图片</button><button data-field="removeBackground" data-action="removeBackground" hidden>移除</button><span class="pv-theme-hint" data-field="themeHint" role="status"></span></div>
        <div class="pv-setting-row pv-transparency-row"><label for="pv-transparency">透明度</label><input id="pv-transparency" data-field="transparency" type="range" min="0" max="40" step="1" aria-label="窗口透明度"/><span data-field="transparencyLabel">12%</span></div>
        <div class="pv-setting-row"><label for="pv-caption-placement">译文位置</label><select id="pv-caption-placement" data-field="captionPlacement" aria-label="译文位置"><option value="below">原文下方</option><option value="above">原文上方</option></select></div>
@@ -141,12 +146,12 @@ var PaperVoiceUI = {
   const find=name=>root.querySelector(`[data-field="${name}"]`),action=name=>root.querySelector(`[data-action="${name}"]`),panel=root.querySelector('.pv-panel');
   if(controller.version)find('aboutVersion').textContent='v'+controller.version+' · Junyan Kang';
   for(const v of PaperVoiceCore.voices){const o=doc.createElement('option');o.value=v.id;o.textContent=v.label;find('voice').append(o);}
-  const settings=(open)=>{cancelShortcutRecording?.();if(!open)find('llmKey').value='';find('home').hidden=open;find('settingsPage').hidden=!open;action('settings').querySelector('img').src=controller.assetURI+'icons/'+(open?'chevron-left':'settings')+'.svg';action('settings').setAttribute('aria-label',open?'返回播放控制':'声音与翻译设置');controller.localize?.(root);};
+  const settings=(open)=>{root._pvCloseThemePicker?.();cancelShortcutRecording?.();if(!open)find('llmKey').value='';find('home').hidden=open;find('settingsPage').hidden=!open;action('settings').querySelector('img').src=controller.assetURI+'icons/'+(open?'chevron-left':'settings')+'.svg';action('settings').setAttribute('aria-label',open?'返回播放控制':'声音与翻译设置');controller.localize?.(root);};
   action('settings').onclick=()=>{settings(find('settingsPage').hidden);controller.loadUpdateSettings();fit();};action('voiceSettings').onclick=()=>{settings(true);selectSettingsTab('voice');controller.loadUpdateSettings();fit();};
   const fit=()=>{const right=parseFloat(root.style.right)||18,bottom=parseFloat(root.style.bottom)||18;panel.style.transform=`translate(${Math.max(0,right+panel.offsetWidth+8-doc.defaultView.innerWidth)}px,${Math.max(0,bottom+root.offsetHeight+8-doc.defaultView.innerHeight)}px)`;};
-  action('orb').onclick=()=>{controller.showPanel(reader,true);fit();};action('close').onclick=()=>{cancelShortcutRecording();find('llmKey').value='';visible(panel,false);};
+  action('orb').onclick=()=>{controller.showPanel(reader,true);fit();};action('close').onclick=()=>{root._pvCloseThemePicker?.();cancelShortcutRecording();find('llmKey').value='';visible(panel,false);};
   const selectSettingsTab=name=>{
-   cancelShortcutRecording();
+   root._pvCloseThemePicker?.();cancelShortcutRecording();
    find('llmPage').hidden=true;find('llmKey').value='';find('llmResult').textContent=controller.t('密钥仅存本机 · 费用由服务商收取');
    for(const button of root.querySelectorAll('[data-settings-tab]')){const active=button.dataset.settingsTab===name;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;}
    for(const pane of root.querySelectorAll('[data-settings-pane]'))pane.hidden=pane.dataset.settingsPane!==name;
@@ -197,28 +202,34 @@ var PaperVoiceUI = {
   const cancelOutside=e=>{if(recordingShortcut&&!e.target.closest?.('[data-shortcut],[data-shortcut-clear]'))cancelShortcutRecording();};
   doc.defaultView.addEventListener('keydown',recordShortcut,true);doc.addEventListener('pointerdown',cancelOutside,true);
   syncShortcutBindings();
-  const themeChoices=find('themeChoices'),themeButtons=[...root.querySelectorAll('[data-theme-choice]')];
-  const revealTheme=button=>{
-   if(!button||!themeChoices.clientWidth)return;
-   const a=themeChoices.getBoundingClientRect(),b=button.getBoundingClientRect();
-   if(b.left<a.left+3)themeChoices.scrollLeft-=a.left+3-b.left;
-   else if(b.right>a.right-3)themeChoices.scrollLeft+=b.right-a.right+3;
+  const themeChoices=find('themeChoices'),themePicker=find('themePicker'),themeBrowser=find('themeBrowser'),themeMore=action('themeMore');
+  const themeButtons=[...themeChoices.querySelectorAll('[data-theme-choice]')],allThemeButtons=[...find('allThemes').querySelectorAll('[data-theme-choice]')];
+  let themesOpen=false;
+  root._pvRevealTheme=()=>{
+   const index=Math.max(0,themeButtons.findIndex(b=>b.dataset.themeChoice===controller.theme().id)),start=Math.floor(index/5)*5;
+   themeButtons.forEach((b,i)=>{b.hidden=i<start||i>=start+5;});
   };
-  root._pvRevealTheme=()=>revealTheme(themeButtons.find(b=>b.dataset.themeChoice===controller.theme().id));
-  for(const b of themeButtons){
-   b.onclick=()=>{controller.setTheme(b.dataset.themeChoice);revealTheme(b);};
-   b.onfocus=()=>revealTheme(b);
+  const closeThemes=(focus=false)=>{themesOpen=false;themeBrowser.dataset.expanded='false';themeChoices.inert=false;themeMore.setAttribute('aria-expanded','false');visible(themePicker,false);if(focus){themeMore.focus();doc.defaultView.requestAnimationFrame(()=>{if(!themesOpen&&themeMore.isConnected&&!find('settingsPage').hidden)themeMore.focus();});}};
+  root._pvCloseThemePicker=closeThemes;
+  themeMore.onclick=()=>{
+   if(themesOpen){closeThemes();return;}
+   root._pvSelects?.close();themesOpen=true;themeBrowser.dataset.expanded='true';themeChoices.inert=true;themeMore.setAttribute('aria-expanded','true');visible(themePicker,true);
+   (allThemeButtons.find(b=>b.dataset.themeChoice===controller.theme().id)||allThemeButtons[0]).focus();
+  };
+  for(const b of [...themeButtons,...allThemeButtons]){
+   b.onclick=()=>{controller.setTheme(b.dataset.themeChoice);root._pvRevealTheme();if(themesOpen)closeThemes(true);};
    b.onkeydown=e=>{
-    if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
-    e.preventDefault();e.stopPropagation();const i=themeButtons.indexOf(b),j=e.key==='Home'?0:e.key==='End'?themeButtons.length-1:Math.max(0,Math.min(themeButtons.length-1,i+(e.key==='ArrowRight'?1:-1)));
-    const next=themeButtons[j];next.focus();next.click();
+    if(e.key==='Escape'&&themesOpen){e.preventDefault();e.stopPropagation();closeThemes(true);return;}
+    if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key))return;
+    e.preventDefault();e.stopPropagation();const buttons=allThemeButtons.includes(b)?allThemeButtons:themeButtons.filter(x=>!x.hidden),i=buttons.indexOf(b),delta=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='ArrowDown'?5:-5;
+    const j=e.key==='Home'?0:e.key==='End'?buttons.length-1:Math.max(0,Math.min(buttons.length-1,i+delta));
+    buttons.forEach((x,k)=>x.tabIndex=k===j?0:-1);buttons[j].focus();
    };
   }
-  themeChoices.addEventListener('wheel',e=>{
-   if(e.ctrlKey||e.metaKey)return;
-   if(Math.abs(e.deltaY)>Math.abs(e.deltaX)&&e.deltaY){e.preventDefault();themeChoices.scrollLeft+=e.deltaY*(e.deltaMode===1?18:e.deltaMode===2?themeChoices.clientWidth:1);}
-   e.stopPropagation();
-  },{passive:false});
+  const closeThemesOutside=e=>{if(themesOpen&&!themeBrowser.contains(e.target))closeThemes();};
+  const themeEscape=e=>{if(themesOpen&&e.key==='Escape'&&themeBrowser.contains(e.target)){e.preventDefault();e.stopImmediatePropagation();closeThemes(true);}};
+  doc.defaultView.addEventListener('keydown',themeEscape,true);
+  doc.addEventListener('pointerdown',closeThemesOutside,true);doc.addEventListener('focusin',closeThemesOutside);
   action('importBackground').onclick=async()=>{action('importBackground').disabled=true;try{await controller.chooseThemeImage();find('themeHint').textContent=controller.t(controller.get('themeImageEnabled',false)?'背景已保存':'');}catch(e){find('themeHint').textContent=String(e.message||e);find('themeHint').title=String(e.message||e);}finally{action('importBackground').disabled=false;}};
   action('customBackground').onclick=()=>{controller.set('themeImageEnabled',true);controller.syncSettings();};
   action('removeBackground').onclick=async()=>{try{await controller.removeThemeImage();find('themeHint').textContent='';}catch(e){find('themeHint').textContent=String(e.message||e);}};
@@ -370,7 +381,7 @@ var PaperVoiceUI = {
    if(takeBreak)lastBreakAt=elapsed;
    nextInteraction=now+controller.companionIntervalMs();playCompanion(takeBreak?'rest':undefined);
   };
-  const dispose=()=>{pageEvents?.off('pagechanging',onPageChanged);if(pageAnimationTimer!==null)doc.defaultView.clearTimeout(pageAnimationTimer);doc.defaultView.removeEventListener('keydown',recordShortcut,true);doc.removeEventListener('pointerdown',cancelOutside,true);recordingShortcut=null;root._pvSelects?.dispose();root._pvTooltips?.dispose();doc.defaultView.clearTimeout(closeTimer);doc.defaultView.clearTimeout(audioCloseTimer);player.dispose();for(const el of [panel,navigation,audioPopover])el._pvFade?.cancel();root.remove();};
+  const dispose=()=>{doc.defaultView.removeEventListener('keydown',themeEscape,true);doc.removeEventListener('pointerdown',closeThemesOutside,true);doc.removeEventListener('focusin',closeThemesOutside);themePicker._pvFade?.cancel();pageEvents?.off('pagechanging',onPageChanged);if(pageAnimationTimer!==null)doc.defaultView.clearTimeout(pageAnimationTimer);doc.defaultView.removeEventListener('keydown',recordShortcut,true);doc.removeEventListener('pointerdown',cancelOutside,true);recordingShortcut=null;root._pvSelects?.dispose();root._pvTooltips?.dispose();doc.defaultView.clearTimeout(closeTimer);doc.defaultView.clearTimeout(audioCloseTimer);player.dispose();for(const el of [panel,navigation,audioPopover])el._pvFade?.cancel();root.remove();};
   doc.body.append(root);this.installSelects(root,controller);root._pvTooltips=this.installTooltips(root,controller);return {root,panel,find,action,syncShortcutBindings,cancelShortcutRecording,closeNavigation,closeAudioPopover,tickCompanion,finishInteraction,syncCompanionPose,resetCompanionSchedule,dispose};
  }
 };

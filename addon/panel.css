@@ -182,14 +182,19 @@
 .pv-panel .pv-transport{margin-top:14px;margin-bottom:14px}
 .pv-panel .pv-header{margin-bottom:14px}
 
-/* Ten palettes share one material hierarchy and a compact horizontal gallery. */
-.pv-theme-choices{justify-content:flex-start;gap:8px;padding:4px 2px 6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain;scroll-padding-inline:3px;min-width:0;max-width:100%}
+/* Five compact previews and an on-demand two-row theme chooser. */
+.pv-theme-browser{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 20px;column-gap:4px;align-items:end}
+.pv-theme-choices{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;padding:4px 0 6px;overflow:hidden;scrollbar-width:none;min-width:0;max-width:100%}
 .pv-theme-choices::-webkit-scrollbar{display:none}
-.pv-theme-choices button{flex:0 0 70px;min-width:70px;max-width:70px;border-radius:10px;scroll-margin-inline:3px}
-.pv-theme-choices .pv-theme-swatch{height:46px;padding:11px 9px;gap:5px;border-radius:10px;isolation:isolate;overflow:hidden;box-shadow:inset 0 0 0 1px #7d878922}
+.pv-theme-choices button{min-width:0;max-width:none;border-radius:8px;padding:0;text-align:center}
+.pv-panel .pv-theme-more{display:flex;align-items:center;justify-content:center;align-self:end;width:20px;height:24px;margin-bottom:5px;padding:0;border-radius:6px;color:var(--pv-muted);font-size:18px;line-height:1}
+.pv-theme-more:hover,.pv-theme-more[aria-expanded=true]{color:var(--pv-accent);background:var(--pv-soft)}
+.pv-theme-popover{position:absolute;left:0;right:0;top:0;z-index:12;padding:9px;border-radius:14px;background:var(--pv-surface);color:var(--pv-ink);outline:1px solid var(--pv-glass-line);outline-offset:-1px;box-shadow:var(--pv-small-shadow),inset 0 1px 0 var(--pv-rim-light);text-shadow:none}
+.pv-theme-popover .pv-theme-choices{gap:8px 7px;padding:1px;overflow:visible}
+.pv-theme-choices .pv-theme-swatch{height:48px;padding:10px 8px 23px;gap:4px;border-radius:10px;isolation:isolate;overflow:hidden;box-shadow:inset 0 0 0 1px #7d878922}
 .pv-theme-swatch::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--pv-swatch-mask);pointer-events:none}
 .pv-theme-choices button>span+span{margin-top:5px;overflow:hidden;text-overflow:ellipsis;line-height:16px}
-.pv-theme-choices button[aria-pressed=true] .pv-theme-swatch::after{right:4px;bottom:4px;background:var(--pv-swatch-accent);color:var(--pv-swatch-ink)}
+.pv-theme-choices button[aria-pressed=true] .pv-theme-swatch::after{right:4px;top:4px;bottom:auto;background:var(--pv-swatch-accent);color:var(--pv-swatch-ink)}
 .pv-theme-choices button:hover .pv-theme-swatch{box-shadow:inset 0 0 0 1px var(--pv-swatch-accent)}
 .pv-shell[data-theme] .pv-settings-tabs,.pv-shell[data-theme] .pv-mode-options{background:color-mix(in srgb,var(--pv-ink) 5%,transparent)}
 .pv-shell[data-theme] .pv-settings-tabs button[aria-selected=true],.pv-shell[data-theme] .pv-mode-options button[aria-pressed=true]{background:var(--pv-surface);color:var(--pv-accent);box-shadow:0 2px 6px color-mix(in srgb,var(--pv-ink) 8%,transparent)}
@@ -204,3 +209,11 @@
 .pv-shell[data-theme] .pv-panel,.pv-shell[data-theme] .pv-quick,.pv-shell[data-theme] .pv-nav-card,.pv-shell[data-theme] .pv-audio-toggle,.pv-shell[data-theme] .pv-select-popover,.pv-shell[data-theme] .pv-tooltip{border:0;outline:1px solid var(--pv-glass-line);outline-offset:-1px;box-shadow:var(--pv-small-shadow),inset 0 1px 0 var(--pv-rim-light)}
 .pv-shell[data-theme] .pv-panel{box-shadow:var(--pv-glass-shadow),inset 0 1px 0 var(--pv-rim-light)}
 .pv-shell[data-theme] .pv-panel::before,.pv-shell[data-theme] .pv-quick::before,.pv-shell[data-theme] .pv-nav-card::before,.pv-shell[data-theme] .pv-audio-toggle::before,.pv-caption[data-theme]::before{box-shadow:inset 0 1px 0 var(--pv-rim-light)}
+
+/* Labels are part of each swatch; keyboard focus remains inside its bounds. */
+.pv-theme-name{position:absolute;left:1px;right:1px;bottom:5px;text-align:center;font:400 10px/14px system-ui,sans-serif;color:var(--pv-swatch-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-theme-browser[data-expanded=true]>[data-field=themeChoices],.pv-theme-browser[data-expanded=true]>.pv-theme-more{visibility:hidden}
+.pv-shell[data-theme] .pv-theme-choices button:focus,.pv-shell[data-theme] .pv-theme-choices button:focus-visible{outline:none!important;box-shadow:none!important;background:transparent}
+.pv-shell[data-theme] .pv-theme-choices button:focus-visible .pv-theme-name{text-decoration:underline;text-decoration-color:var(--pv-swatch-accent);text-underline-offset:2px}
+
+.pv-theme-choices .pv-theme-swatch i{width:62%}.pv-theme-choices .pv-theme-swatch i+i{width:40%}

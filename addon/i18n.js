@@ -16,6 +16,7 @@ var PaperVoiceI18n = (() => {
     "主题": "Theme",
     "偏好": "Preferences",
     "窗口主题": "Window theme",
+    "全部主题": "All themes",
     "织麦": "Linen",
     "靛蓝": "Indigo",
     "天际": "Horizon",
@@ -252,10 +253,11 @@ var PaperVoiceI18n = (() => {
     "主题": "テーマ",
     "偏好": "環境設定",
     "窗口主题": "ウィンドウテーマ",
+    "全部主题": "すべてのテーマ",
     "织麦": "リネン",
     "靛蓝": "藍染",
     "天际": "空の光",
-    "赤陶": "テラコッタ",
+    "赤陶": "陶土",
     "月岩": "月の石",
     "导入图片": "画像を読み込む",
     "我的图片": "マイ画像",
@@ -488,6 +490,7 @@ var PaperVoiceI18n = (() => {
     "主题": "Thème",
     "偏好": "Préférences",
     "窗口主题": "Thème de fenêtre",
+    "全部主题": "Tous les thèmes",
     "织麦": "Lin",
     "靛蓝": "Indigo",
     "天际": "Horizon",
@@ -724,11 +727,12 @@ var PaperVoiceI18n = (() => {
     "主题": "Design",
     "偏好": "Einstellungen",
     "窗口主题": "Fensterdesign",
+    "全部主题": "Alle Designs",
     "织麦": "Leinen",
     "靛蓝": "Indigo",
     "天际": "Horizont",
     "赤陶": "Tonerde",
-    "月岩": "Mondstein",
+    "月岩": "Mond",
     "导入图片": "Bild laden",
     "我的图片": "Mein Bild",
     "移除": "Entfernen",
@@ -968,7 +972,7 @@ var PaperVoiceI18n = (() => {
  };
  for(const [key,values] of Object.entries(compactStrings))['en','ja','fr','de'].forEach((lang,i)=>catalogs[lang][key]=values[i]);
 
- const themeNames={en:['Sakura','Inkstone','Silver','Aurora','Velvet'],ja:['桜霞','墨竹','銀翼','オーロラ','ベルベット'],fr:['Sakura','Encre','Argent','Aurore','Velours'],de:['Sakura','Tusche','Silber','Polarlicht','Samt']};
+ const themeNames={en:['Sakura','Inkstone','Silver','Aurora','Velvet'],ja:['桜霞','墨竹','銀翼','オーロラ','酒紅'],fr:['Sakura','Encre','Argent','Aurore','Velours'],de:['Sakura','Tusche','Silber','Aurora','Samt']};
  for(const [lang,names] of Object.entries(themeNames))['樱雾','墨竹','银翼','极光','酒绒'].forEach((name,i)=>catalogs[lang][name]=names[i]);
  for(const [lang,label] of Object.entries({en:'Original / translated audio',ja:'原文／訳文の音声',fr:'Audio original / traduit',de:'Original / Übersetzung lesen'}))catalogs[lang]['原文／译文朗读']=label;
  Object.assign(catalogs.en,{"快捷键": "Keys", "暂停／继续": "Pause / resume", "停止朗读": "Stop reading", "显示／隐藏译文": "Show / hide translation", "上一句": "Previous sentence", "重读当前句": "Replay sentence", "下一句": "Next sentence", "上一段": "Previous paragraph", "重读当前段": "Replay paragraph", "下一段": "Next paragraph", "未设置": "Unassigned", "空格": "Space", "清除快捷键": "Clear shortcut", "恢复默认": "Reset defaults", "点击按键修改": "Click a key to change it", "按下新按键…": "Press keys…", "按下组合键 · 点击别处取消": "Press keys · Click elsewhere to cancel", "此按键无法使用": "This key is not supported", "快捷键已保存": "Shortcut saved", "快捷键已清除": "Shortcut cleared", "系统可能占用此组合": "May be used by system", "已恢复默认快捷键": "Default shortcuts restored"});
