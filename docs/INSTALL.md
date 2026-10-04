@@ -1,12 +1,14 @@
-# 安装 Paper Voice
+<p align="center"><img src="../addon/assets/mascot.png" width="64" alt="Paper Voice"></p>
 
-[← 产品首页](../README.md) · **简体中文** / [English](INSTALL.en.md)
+<h1 align="center">安装 Paper Voice</h1>
 
-> 下载 → 安装声音 → 添加插件。完成后，打开 PDF 即可开始听读。
-
-安装助手支持 **简体中文 / English**，默认跟随系统语言，也可在窗口底部切换。
+<p align="center"><b>简体中文</b> · <a href="INSTALL.en.md">English</a></p>
+<p align="center">下载完整包，安装声音与插件，然后开始第一次听读。</p>
+<p align="center"><a href="../README.md">产品首页</a> · <a href="GUIDE.md">使用指南</a> · <a href="COMPATIBILITY.md">兼容性</a></p>
 
 ## 首次安装
+
+适用于 **Zotero 10**。安装助手支持简体中文和 English，可在窗口底部切换。
 
 从 [最新版本](https://github.com/JunyanKang/paper-voice/releases/latest) 下载对应电脑的完整 ZIP，先解压，再开始安装。
 
@@ -18,7 +20,8 @@
 
 打开 **Paper Voice 安装助手**，点击「安装声音」。第一步右侧出现绿色「✓ 声音已就绪」后，点击「完成」。声音包已包含在下载文件中，无需另行下载或注册账户。
 
-<p align="center"><img src="assets/installer-macos.png" width="600" alt="安装完成后，声音已就绪显示在第一步右侧"></p>
+<p align="center"><img src="assets/installer-macos.png" width="560" alt="安装完成后，声音已就绪显示在第一步右侧"></p>
+<p align="center"><sub>Mac 安装助手 · 看到“声音已就绪”后，再添加 Zotero 插件。</sub></p>
 
 Windows 用户请保留同目录的 `Resources` 文件夹；不要只把安装助手单独拖出。Mac 的声音资源已收纳在安装助手内部。
 
@@ -34,9 +37,12 @@ Windows 用户请保留同目录的 `Resources` 文件夹；不要只把安装�
 
 打开可选中文字的 PDF。右下角出现书页精灵后，划选正文即可听读，选区附近也会显示译文。点击精灵可选择模式和声音；若关闭了自动朗读，请点击选区菜单里的朗读按钮。
 
-划词翻译默认开启，需要联网；想完全离线使用，请在 **设置 → 译文** 中关闭「划词翻译」「跟读译文」「朗读译文」。
+划词翻译默认开启，需要联网；想完全离线使用，请在 **设置 → 译文** 中关闭「划词翻译」「显示译文」「朗读译文」。
 
 下一步：[了解四种模式、声音与随行译文](GUIDE.md)。
+
+<p align="center"><img src="assets/quick-start-zh.png" width="900" alt="Paper Voice main reading panel"></p>
+<p align="center"><sub>安装完成后，在正文中划选即可开始。示例界面使用天际主题。</sub></p>
 
 ## 更新已有插件
 
@@ -71,3 +77,7 @@ Windows 用户请保留同目录的 `Resources` 文件夹；不要只把安装�
 - Windows：`%APPDATA%\Zotero\Zotero\paper-voice-engine`
 
 个人设置和阅读进度保存在 Zotero 偏好设置的 `extensions.paperVoice.*` 下。
+
+---
+
+[产品首页](../README.md) · [使用指南](GUIDE.md) · [兼容性](COMPATIBILITY.md) · [隐私说明](../PRIVACY.md)

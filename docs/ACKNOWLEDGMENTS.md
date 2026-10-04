@@ -1,4 +1,6 @@
-# 致谢 · Acknowledgments
+<h1 align="center">致谢 · Acknowledgments</h1>
+
+<p align="center"><a href="../README.md">产品首页</a> · <a href="../README.en.md">English overview</a> · <a href="GUIDE.md">使用指南</a></p>
 
 Paper Voice 建立在以下开源项目之上，感谢作者和维护者的工作。
 

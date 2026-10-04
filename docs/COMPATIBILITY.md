@@ -1,8 +1,10 @@
-# 兼容性与使用说明
+<p align="center"><img src="../addon/assets/mascot.png" width="64" alt="Paper Voice"></p>
 
-[← 返回产品首页](../README.md) · [安装指南](INSTALL.md) · [English](COMPATIBILITY.en.md)
+<h1 align="center">兼容性与使用说明</h1>
 
-这里集中说明平台支持、语音与翻译特性，以及 PDF 处理范围，便于安装前了解适用条件。
+<p align="center"><b>简体中文</b> · <a href="COMPATIBILITY.en.md">English</a></p>
+<p align="center">平台支持、声音与翻译特性，以及 PDF 处理范围。</p>
+<p align="center"><a href="../README.md">产品首页</a> · <a href="INSTALL.md">安装帮助</a> · <a href="GUIDE.md">使用指南</a></p>
 
 ## 平台范围
 
@@ -41,7 +43,7 @@ Mac 原生验证使用 Zotero 10.0.3 beta。Windows 自动化环境为 Windows S
 
 ## 翻译与网络
 
-划词翻译默认开启，将所选范围的文字发送至所选服务：划选范围会补全不完整单词，单句和段落范围会展开至所在句段。跟读译文和朗读译文默认关闭；开启后会发送当前句及预取的下一句。在 **设置 → 译文** 关闭这三项后，可完全离线听读。
+划词翻译默认开启，将所选范围的文字发送至所选服务：划选范围会补全不完整单词，单句和段落范围会展开至所在句段。显示译文和朗读译文默认关闭；开启后会发送当前句及预取的下一句。在 **设置 → 译文** 关闭这三项后，可完全离线听读。
 
 | 服务 | 使用提示 |
 |---|---|
@@ -60,3 +62,7 @@ Mac 原生验证使用 Zotero 10.0.3 beta。Windows 自动化环境为 Windows S
 大模型翻译使用用户自己的 API 密钥，不属于免费公共通道。国内外服务提供配置预设，也支持自定义 OpenAI 兼容地址；Claude 使用 Messages 格式。实际可用的模型、地区与密钥类型由服务商决定。MiniMax 已在 Zotero 中完成真实请求与流式显示验证；其他预设已检查接口格式和适配解析，未使用各家的付费密钥逐一实测。
 
 模型响应可能含有错误或不自然的表述；重要术语、数字和结论应对照原文。服务限流、模型思考与网络状况会影响等待时间。配置和使用方法见[大模型翻译指南](GUIDE.md#大模型翻译)。
+
+---
+
+[产品首页](../README.md) · [使用指南](GUIDE.md) · [安装帮助](INSTALL.md) · [隐私说明](../PRIVACY.md)

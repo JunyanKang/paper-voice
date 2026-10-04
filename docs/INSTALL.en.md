@@ -1,8 +1,14 @@
-# Install Paper Voice
+<p align="center"><img src="../addon/assets/mascot.png" width="64" alt="Paper Voice"></p>
 
-[Product home](../README.en.md) · [简体中文](INSTALL.md) / **English**
+<h1 align="center">Install Paper Voice</h1>
 
-> Download → Set up voices → Add the plugin. Open a PDF and make room to listen.
+<p align="center"><a href="INSTALL.md">简体中文</a> · <b>English</b></p>
+<p align="center">Download the complete package, install the voices and plugin, and start listening.</p>
+<p align="center"><a href="../README.en.md">Product home</a> · <a href="GUIDE.en.md">User guide</a> · <a href="COMPATIBILITY.en.md">Compatibility</a></p>
+
+## Before you start
+
+For **Zotero 10**. The installer supports English and Simplified Chinese.
 
 Download the complete ZIP for your computer from [Releases](https://github.com/JunyanKang/paper-voice/releases/latest), then extract it.
 
@@ -14,9 +20,10 @@ Download the complete ZIP for your computer from [Releases](https://github.com/J
 
 Open the installer and choose **English** or **简体中文** at the bottom of the window. The default follows your system language.
 
-Click **Install voices**. When **✓ Voices ready** appears beside step 1, the voice setup is complete. No account, extra download or administrator password is required.
+Click **Install voices**. When **✓ Voices ready** appears beside step 1, the voice setup is complete. No account or separate voice download is required.
 
-<p align="center"><img src="assets/installer-macos-en.png" width="600" alt="The installer shows Voices ready beside step one when setup is complete"></p>
+<p align="center"><img src="assets/installer-macos-en.png" width="560" alt="The installer shows Voices ready beside step one when setup is complete"></p>
+<p align="center"><sub>Mac installer · Once Voices ready appears, add the Zotero plugin.</sub></p>
 
 On Windows, keep the `Resources` folder beside the installer. On Mac, resources are included inside the app.
 
@@ -28,9 +35,12 @@ In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and 
 
 Open a PDF with selectable text and select a passage to listen and see its translation. Click the floating book mascot to choose a voice or reading mode. If auto-reading is off, use the reading button in the selection popup.
 
-Selection translation is on by default and needs internet access. For fully offline use, turn off **Selection**, **Captions** and **Read translation** under **Settings → Translation**.
+Selection translation is on by default and needs internet access. For fully offline use, turn off **Selection**, **Show translation** and **Read translation** under **Settings → Translate**.
 
 Explore the [user guide](GUIDE.en.md) for reading modes, voice choices and translation.
+
+<p align="center"><img src="assets/quick-start-en.png" width="900" alt="Paper Voice main reading panel"></p>
+<p align="center"><sub>Select text in a PDF to start. The sample uses the Horizon theme.</sub></p>
 
 ## Updates
 
@@ -61,3 +71,7 @@ If you no longer need the offline voices, delete the following folder and its ba
 - Windows: `%APPDATA%\Zotero\Zotero\paper-voice-engine`
 
 Personal settings and reading progress are stored in Zotero preferences under `extensions.paperVoice.*`.
+
+---
+
+[Product home](../README.en.md) · [User guide](GUIDE.en.md) · [Compatibility](COMPATIBILITY.en.md) · [Privacy](../PRIVACY.en.md)

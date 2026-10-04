@@ -1,8 +1,10 @@
-# Paper Voice user guide
+<p align="center"><img src="../addon/assets/mascot.png" width="64" alt="Paper Voice"></p>
 
-[Product home](../README.en.md) · [简体中文](GUIDE.md) / **English** · [Installation help](INSTALL.en.md)
+<h1 align="center">Paper Voice user guide</h1>
 
-Start with a selected passage, then find your own pace for a whole paper. This guide covers reading, translation and settings in the order you will use them.
+<p align="center"><a href="GUIDE.md">简体中文</a> · <b>English</b></p>
+<p align="center">From your first selection to a whole paper. Find the controls you need, one reading task at a time.</p>
+<p align="center"><a href="../README.en.md">Product home</a> · <a href="INSTALL.en.md">Installation</a> · <a href="#contents">Contents</a></p>
 
 ## Contents
 
@@ -24,7 +26,7 @@ Start with a selected passage, then find your own pace for a whole paper. This g
 Choose a complete package for your computer on the [download page](../README.en.md#download-and-install), extract it, and open the installer. Select **Install voices**. Once **Voices ready** appears, open **Tools → Plugins → gear → Install Plugin From File** in Zotero and select the included `.xpi`.
 
 <p align="center"><img src="assets/installer-macos-en.png" width="560" alt="Mac installer: install offline voices first, then add the plugin to Zotero"></p>
-<p align="center"><sub>Figure 1 · Choose English or Chinese in the installer. The completion status appears beside the first step.</sub></p>
+<p align="center"><sub>Choose English or Chinese in the installer. The completion status appears beside the first step.</sub></p>
 
 On Windows, keep the `Resources` folder beside the installer. See [Installation help](INSTALL.en.md) for detailed steps, system prompts and uninstall instructions.
 
@@ -34,8 +36,8 @@ On Windows, keep the `Resources` folder beside the installer. See [Installation 
 2. Select some body text and release the mouse to start listening.
 3. Click the **book mascot** in the lower-right corner to open the panel, choose a reading mode or enter Settings.
 
-<p align="center"><img src="assets/quick-start-en.png" width="960" alt="Paper Voice main panel over a PDF, with four reading modes, a repeat setting and playback controls"></p>
-<p align="center"><sub>Figure 2 · Choose what to read in the main panel. Floating controls remain available when you close the panel.</sub></p>
+<p align="center"><img src="assets/quick-start-en.png" width="900" alt="Paper Voice main panel over a PDF, with four reading modes, a repeat setting and playback controls"></p>
+<p align="center"><sub>Choose what to read in the main panel. Floating controls remain available when you close the panel.</sub></p>
 
 If you prefer to see the translation before listening, turn off **Auto-read selection** in **Settings → Voice**. Select text, then click **Read aloud** in its popup. In Document mode with a selected-sentence start, the action is **Read from this sentence**.
 
@@ -73,8 +75,8 @@ In **Document** mode, use **Start at**:
 
 To listen from a specific sentence onward: choose **Selected sentence** → select a word in that sentence → click **Read from this sentence**. The button shows preparation and playback status, and the popup and mouse selection clear when audio starts, leaving the current sentence highlighted. If reading cannot start, a status message explains why and the selection button lets you retry.
 
-<p align="center"><img src="assets/continuous-en.png" width="960" alt="Document mode starting from a selected sentence, with source highlighting and translation nearby"></p>
-<p align="center"><sub>Figure 3 · Source highlighting and nearby translation help you keep your place during continuous reading.</sub></p>
+<p align="center"><img src="assets/continuous-en.png" width="900" alt="Document mode starting from a selected sentence, with source highlighting and translation nearby"></p>
+<p align="center"><sub>Source highlighting and nearby translation help you keep your place during continuous reading.</sub></p>
 
 ### Follow the text and keep your place
 
@@ -83,6 +85,8 @@ The current passage is highlighted as the view scrolls, moves between columns an
 After restarting Zotero or updating the plugin, reopen the same PDF and select **Resume** to continue an unfinished session. You can also choose **Last position** in Document mode.
 
 Paper Voice skips recognizable citations, figure captions, headers, footers and publication details while retaining meaningful explanatory figure references. These changes apply only to listening; your PDF and annotations stay unchanged.
+
+Speech expands common measurements, decimal points and scientific scripts: `per mm²` becomes “per square millimeter” and `0.5` becomes “zero point five.” Chemical formulas and variable indices are handled separately. PDF text and highlights stay unchanged.
 
 ## Pause, navigate and replay
 
@@ -101,7 +105,7 @@ Hover over the **pause / resume button**, then move into the expanded navigation
 - **Sentence row:** previous sentence, replay sentence, next sentence.
 - **Paragraph row:** previous paragraph, replay paragraph, next paragraph; available in Document and Paragraph modes.
 
-<p align="center"><img src="assets/pause-navigation-en.png" width="420" alt="Hovering over Pause reveals sentence and paragraph controls; the mode button switches reading modes"></p>
+<p align="center"><img src="assets/pause-navigation-en.png" width="440" alt="Hovering over Pause reveals sentence and paragraph controls; the mode button switches reading modes"></p>
 <p align="center"><sub>Hover over Pause / resume for navigation; clicking still pauses or resumes playback.</sub></p>
 
 For example, if you miss a sentence during continuous reading, choose Replay sentence to hear it again without switching to Sentence mode. You can also use the [keyboard shortcuts](#keyboard-shortcuts).
@@ -110,8 +114,8 @@ For example, if you miss a sentence during continuous reading, choose Replay sen
 
 Open **Settings → Voice**.
 
-<p align="center"><img src="assets/settings-voice-en.png" width="420" alt="Voice settings with automatic language detection, voice selection, speed, automatic reading and a preview button"></p>
-<p align="center"><sub>Figure 4 · Preview a voice, then adjust the pace to suit your listening.</sub></p>
+<p align="center"><img src="assets/settings-voice-en.png" width="360" alt="Voice settings with automatic language detection, voice selection, speed, automatic reading and a preview button"></p>
+<p align="center"><sub>Preview a voice, then adjust the pace to suit your listening.</sub></p>
 
 1. **Text language:** **Auto** detects the language from the PDF. You can also choose English, Mandarin Chinese, Japanese or French. Manual selection helps with short passages or mixed-language text.
 2. **Voice:** Choose from the voices for that language. English offers US and UK accents, with male and female voices. Mandarin defaults to Yunxi; Japanese defaults to Tebukuro.
@@ -144,12 +148,13 @@ Use the **Selection / Sentence / Paragraph** buttons beside the target language 
 
 The scope is remembered for future selections. It is independent of the reading mode and does not interrupt playback.
 
-<p align="center"><img src="assets/selection-translation-en.png" width="318" alt="A compact selection popup shows the translation above a separate reading action"></p>
+<p align="center"><img src="assets/selection-translation-en.png" width="440" alt="A compact selection popup shows the translation above a separate reading action"></p>
+<p align="center"><sub>Choose the translation scope; this example shows the whole sentence.</sub></p>
 
 Open **Settings → Translate** to choose a service and target language.
 
-<p align="center"><img src="assets/settings-translation-en.png" width="420" alt="Translation settings with separate display and audio switches, service, target language and caption font and size"></p>
-<p align="center"><sub>Figure 5 · Showing a translation and reading it aloud are separate choices.</sub></p>
+<p align="center"><img src="assets/settings-translation-en.png" width="360" alt="Translation settings with separate display and audio switches, service, target language and caption font and size"></p>
+<p align="center"><sub>Showing a translation and reading it aloud are separate choices.</sub></p>
 
 ### Listen to the original and read the translation
 
@@ -174,7 +179,7 @@ Translated audio supports Chinese, Japanese, French and English. Other target la
 - **Hover:** reveal the compact headphone button, then click to choose translated or original audio. Gray means original audio; the theme accent means translated audio.
 - **Option + T on Mac / Alt + T on Windows:** show or hide translations without changing the target language.
 
-<p align="center"><img src="assets/translation-audio-en.png" width="340" alt="Compact headphone button: theme accent indicates translated audio"></p>
+<p align="center"><img src="assets/translation-audio-en.png" width="360" alt="Compact headphone button: theme accent indicates translated audio"></p>
 
 ### Choose a translation service
 
@@ -184,13 +189,14 @@ Translated audio supports Chinese, Japanese, French and English. Other target la
 | **Microsoft** | For Traditional Chinese, or as an alternative when another service cannot connect |
 | **Google** | When your network can access Google Translate |
 
-Use Microsoft, Google, or an LLM supporting Traditional Chinese for that target. Selection translation sends the text expanded to your selected scope to your chosen service; captions and translated audio send the current sentence and a prefetched next sentence. Turn off all three translation options for fully offline reading. If a free service is unavailable, switch services or try again later. [Privacy details](../PRIVACY.md)
+Use Microsoft, Google, or an LLM supporting Traditional Chinese for that target. Selection translation sends the text expanded to your selected scope to your chosen service; captions and translated audio send the current sentence and a prefetched next sentence. Turn off all three translation options for fully offline reading. If a free service is unavailable, switch services or try again later. [Privacy details](../PRIVACY.en.md)
 
 ## LLM translation
 
 To translate with your own model, choose **Settings → Translate → Service → LLM · API**. The free Tencent, Microsoft and Google services remain available without an API key.
 
-<p align="center"><img src="assets/settings-llm-en.png" width="420" alt="LLM settings with provider, model, API URL, masked key input and Save & test"></p>
+<p align="center"><img src="assets/settings-llm-en.png" width="360" alt="LLM settings with provider, model, API URL, masked key input and Save & test"></p>
+<p align="center"><sub>Use your own API key, then save and test the connection.</sub></p>
 
 ### Connect in three steps
 
@@ -216,7 +222,7 @@ The integration uses [OpenAI-compatible Chat Completions](https://platform.opena
 Open **Settings → Style**.
 
 <p align="center"><img src="assets/settings-appearance-en.png" width="320" alt="Appearance settings with five theme previews"> <img src="assets/settings-themes-en.png" width="320" alt="All ten themes expand in place after selecting the ellipsis"></p>
-<p align="center"><sub>Figure 6 · Themes and interface preferences are together on one page, with changes visible immediately.</sub></p>
+<p align="center"><sub>Themes and interface preferences are together on one page, with changes visible immediately.</sub></p>
 
 | To change… | Use… |
 |---|---|
@@ -233,7 +239,6 @@ Themes follow a color progression: Horizon, Silver, Inkstone, Linen, Clay, Sakur
 
 Translation font and size are under **Settings → Translate**.
 
-Speech expands common measurements, decimal points and scientific scripts: `per mm²` becomes “per square millimeter” and `0.5` becomes “zero point five.” Chemical formulas and variable indices are handled separately. PDF text and highlights stay unchanged.
 
 The mascot can somersault, sit cross-legged, stretch, pick up a microphone or give a thumbs-up. It can also inspect with a magnifying glass, write a note, launch a paper plane, sip tea or bow. Page turning appears only when the PDF changes pages. It keeps the final pose. After about 30 minutes of active reading, a brief remove-and-replace-headphones gesture takes priority without pausing audio. Interactions respect the system’s Reduce Motion setting.
 
@@ -258,7 +263,8 @@ Start with three: **Space to pause, ↓ for the next sentence, ← to hear this 
 
 Open **Settings → Keys**, click a key on the right, then press your preferred combination. Click elsewhere to cancel. While recording, × clears that action; **Reset defaults** restores every key.
 
-<p align="center"><img src="assets/settings-shortcuts-en.png" width="420" alt="Custom shortcut settings"></p>
+<p align="center"><img src="assets/settings-shortcuts-en.png" width="360" alt="Custom shortcut settings"></p>
+<p align="center"><sub>Select a key to record a new shortcut; conflict changes appear below.</sub></p>
 
 **Your latest change takes priority.** If another action already uses the key, it moves to the key you just freed. If no key was freed, that action becomes **Unassigned**. The message below shows the adjustment. Custom keys survive restarts and plugin updates. Common system combinations get a warning; other system or Zotero shortcuts may not be detected in advance.
 
@@ -291,4 +297,4 @@ Columns, text encoding and unusual PDF layouts can affect recognition. Try a sma
 
 ---
 
-[Back to contents](#contents) · [Product home](../README.en.md) · [Install or uninstall](INSTALL.en.md) · [Compatibility](COMPATIBILITY.en.md) · [Privacy](../PRIVACY.md)
+[Back to contents](#contents) · [Product home](../README.en.md) · [Install or uninstall](INSTALL.en.md) · [Compatibility](COMPATIBILITY.en.md) · [Privacy](../PRIVACY.en.md)

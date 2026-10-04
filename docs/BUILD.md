@@ -1,6 +1,6 @@
-# 构建
+<h1 align="center">构建 Paper Voice</h1>
 
-[← 返回产品首页](../README.md)
+<p align="center"><a href="../README.md">产品首页</a> · <a href="../README.en.md">English overview</a> · <a href="GUIDE.md">使用指南</a></p>
 
 本页供需要自行构建的开发者使用。一般用户请从 [Releases](https://github.com/JunyanKang/paper-voice/releases/latest) 下载。
 

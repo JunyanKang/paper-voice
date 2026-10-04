@@ -1,8 +1,10 @@
-# Paper Voice 使用指南
+<p align="center"><img src="../addon/assets/mascot.png" width="64" alt="Paper Voice"></p>
 
-[产品首页](../README.md) · **简体中文** / [English](GUIDE.en.md) · [安装帮助](INSTALL.md)
+<h1 align="center">Paper Voice 使用指南</h1>
 
-从第一次划选，到按自己的节奏听完整篇论文。本指南按操作顺序介绍听读、翻译和设置。
+<p align="center"><b>简体中文</b> · <a href="GUIDE.en.md">English</a></p>
+<p align="center">从第一次划选，到连续听完整篇论文。按使用场景找到需要的操作。</p>
+<p align="center"><a href="../README.md">产品首页</a> · <a href="INSTALL.md">安装帮助</a> · <a href="#目录">目录</a></p>
 
 ## 目录
 
@@ -24,7 +26,7 @@
 从 [下载页](../README.md#下载与安装) 选择适合电脑的完整包，解压后打开安装助手。点击 **安装声音**，看到 **声音已就绪** 后，在 Zotero 的 **工具 → 插件 → 齿轮 → 从文件安装插件** 中选择包内的 `.xpi`。
 
 <p align="center"><img src="assets/installer-macos.png" width="560" alt="Mac 安装助手：第一步安装声音，第二步将插件添加到 Zotero"></p>
-<p align="center"><sub>图 1 · 安装助手支持中英文切换；声音安装完成后，状态显示在第一步右侧。</sub></p>
+<p align="center"><sub>安装助手支持中英文切换；声音安装完成后，状态显示在第一步右侧。</sub></p>
 
 Windows 用户请保留安装助手旁的 `Resources` 文件夹。具体安装步骤、系统提示和卸载方法见 [安装帮助](INSTALL.md)。
 
@@ -34,8 +36,8 @@ Windows 用户请保留安装助手旁的 `Resources` 文件夹。具体安装�
 2. 拖选正文，松开鼠标，即可开始朗读。
 3. 点击右下角的 **书页精灵**，展开面板，选择阅读模式或打开设置。
 
-<p align="center"><img src="assets/quick-start-zh.png" width="960" alt="PDF 中的 Paper Voice 主面板，顶部排列四种阅读模式，下方设置循环次数并控制播放"></p>
-<p align="center"><sub>图 2 · 在主面板选择听读范围；收起面板后，仍可通过悬浮控制条操作。</sub></p>
+<p align="center"><img src="assets/quick-start-zh.png" width="900" alt="PDF 中的 Paper Voice 主面板，顶部排列四种阅读模式，下方设置循环次数并控制播放"></p>
+<p align="center"><sub>在主面板选择听读范围；收起面板后，仍可通过悬浮控制条操作。</sub></p>
 
 如果希望先看译文再播放，在 **设置 → 声音** 中关闭「划选后自动朗读」。划选后，点击选区菜单里的 **自然朗读**；全文模式选择「选定句」时，按钮显示为 **从此句开始连读**。
 
@@ -73,8 +75,8 @@ Windows 用户请保留安装助手旁的 `Resources` 文件夹。具体安装�
 
 要从某句话一路听下去：选择 **选定句** → 在句中划选一个词 → 点击 **从此句开始连读**。按钮会显示准备与播放状态，声音开始播放后，划词菜单和鼠标选区一起收起，留下当前朗读句子的高亮；若未能开始，会显示原因，选区按钮可点击重试。
 
-<p align="center"><img src="assets/continuous-zh.png" width="960" alt="全文模式从选定句首开始，正在听的原文有背景高亮，译文显示在附近"></p>
-<p align="center"><sub>图 3 · 连续听读时，原文高亮和译文帮助你保持阅读位置。</sub></p>
+<p align="center"><img src="assets/continuous-zh.png" width="900" alt="全文模式从选定句首开始，正在听的原文有背景高亮，译文显示在附近"></p>
+<p align="center"><sub>连续听读时，原文高亮和译文帮助你保持阅读位置。</sub></p>
 
 ### 跟随正文，也记住进度
 
@@ -83,6 +85,8 @@ Windows 用户请保留安装助手旁的 `Resources` 文件夹。具体安装�
 重启 Zotero 或更新插件后，重新打开同一篇 PDF，点击 **继续** 恢复未结束的听读。也可以在全文模式中选择「从上次进度」。
 
 Paper Voice 会略过可识别的引文标记、图注、页眉页脚和出版信息；带有实际含义的图示说明会保留。处理只用于听读，不会改动 PDF 或批注。
+
+朗读会展开常见计量单位、小数和科学上下标：例如 `per mm²` 读作每平方毫米，`0.5` 保留小数点读法；化学式和变量下标按各自含义处理。原文与高亮保持不变。
 
 ## 暂停、跳转与重读
 
@@ -101,7 +105,7 @@ Paper Voice 会略过可识别的引文标记、图注、页眉页脚和出版�
 - **句子一行**：上一句、重读当前句、下一句。
 - **段落一行**：上一段、重读当前段、下一段；全文和段落模式提供这组操作。
 
-<p align="center"><img src="assets/pause-navigation-zh.png" width="420" alt="悬停暂停按钮后展开句子与段落导航，模式按钮用于切换阅读模式"></p>
+<p align="center"><img src="assets/pause-navigation-zh.png" width="440" alt="悬停暂停按钮后展开句子与段落导航，模式按钮用于切换阅读模式"></p>
 <p align="center"><sub>悬停暂停／继续按钮展开导航；单击该按钮仍然是暂停或继续。</sub></p>
 
 例如，全文听到一句没有听清，选择「重读当前句」，即可回听这句；无需退回单句模式。常用操作也可直接使用下方的 [快捷键](#键盘快捷键)。
@@ -110,8 +114,8 @@ Paper Voice 会略过可识别的引文标记、图注、页眉页脚和出版�
 
 打开 **设置 → 声音**。
 
-<p align="center"><img src="assets/settings-voice-zh.png" width="420" alt="声音设置页：自动识别 PDF 语言、选择声音、调整语速、设置划选后自动朗读并试听"></p>
-<p align="center"><sub>图 4 · 先试听音色，再按自己的听读习惯调整语速。</sub></p>
+<p align="center"><img src="assets/settings-voice-zh.png" width="360" alt="声音设置页：自动识别 PDF 语言、选择声音、调整语速、设置划选后自动朗读并试听"></p>
+<p align="center"><sub>先试听音色，再按自己的听读习惯调整语速。</sub></p>
 
 1. **朗读语言**：默认选择「自动」，根据 PDF 内容识别语言；也可手动指定英语、中文（普通话）、日语或法语。短文本或多语混排识别不准时，手动选择更合适。
 2. **声音**：在当前语言的声音列表中选择。英语提供美音、英音及男女声；中文默认 Yunxi，日语默认 Tebukuro。
@@ -144,12 +148,13 @@ Paper Voice 会略过可识别的引文标记、图注、页眉页脚和出版�
 
 范围选择会保留用于下一次划选。它只改变翻译内容，不改变朗读模式，也不会打断正在播放的声音。
 
-<p align="center"><img src="assets/selection-translation-zh.png" width="318" alt="划词菜单只显示译文，下方独立放置从此句开始连读按钮"></p>
+<p align="center"><img src="assets/selection-translation-zh.png" width="440" alt="划词菜单只显示译文，下方独立放置从此句开始连读按钮"></p>
+<p align="center"><sub>选择翻译范围；此处为完整单句的译文。</sub></p>
 
 打开 **设置 → 译文**，选择翻译服务和目标语言。
 
-<p align="center"><img src="assets/settings-translation-zh.png" width="420" alt="译文设置页：显示译文与朗读译文开关、翻译服务、目标语言以及译文字体字号"></p>
-<p align="center"><sub>图 5 · 显示译文和朗读译文是两项不同的选择。</sub></p>
+<p align="center"><img src="assets/settings-translation-zh.png" width="360" alt="译文设置页：显示译文与朗读译文开关、翻译服务、目标语言以及译文字体字号"></p>
+<p align="center"><sub>显示译文和朗读译文是两项不同的选择。</sub></p>
 
 ### 边听原文，边看译文
 
@@ -176,7 +181,7 @@ Paper Voice 会略过可识别的引文标记、图注、页眉页脚和出版�
 - **悬停译文按钮**：上方出现紧凑的耳麦按钮，点击切换听译文或原文；灰色表示原文，主题亮色表示译文。
 - **Option + T（Mac）／Alt + T（Windows）**：显示或隐藏译文，不切换目标语言。
 
-<p align="center"><img src="assets/translation-audio-zh.png" width="340" alt="紧凑耳麦按钮：主题亮色表示朗读译文"></p>
+<p align="center"><img src="assets/translation-audio-zh.png" width="360" alt="紧凑耳麦按钮：主题亮色表示朗读译文"></p>
 
 ### 选择翻译服务
 
@@ -193,7 +198,8 @@ Paper Voice 会略过可识别的引文标记、图注、页眉页脚和出版�
 
 想使用自己的模型翻译论文，可在 **设置 → 译文 → 翻译服务** 中选择 **大模型 · API**。免费翻译服务仍然保留；没有 API 密钥时继续使用腾讯、微软或 Google 即可。
 
-<p align="center"><img src="assets/settings-llm-zh.png" width="420" alt="大模型翻译设置：服务商、模型名称、API 地址、已遮蔽的密钥输入，以及保存并测试按钮"></p>
+<p align="center"><img src="assets/settings-llm-zh.png" width="360" alt="大模型翻译设置：服务商、模型名称、API 地址、已遮蔽的密钥输入，以及保存并测试按钮"></p>
+<p align="center"><sub>使用自己的 API 密钥；保存并测试连接后即可使用。</sub></p>
 
 ### 三步接入
 
@@ -219,7 +225,7 @@ Paper Voice 会略过可识别的引文标记、图注、页眉页脚和出版�
 打开 **设置 → 外观**。
 
 <p align="center"><img src="assets/settings-appearance-zh.png" width="320" alt="外观设置与五个主题预览"> <img src="assets/settings-themes-zh.png" width="320" alt="点击省略号后在原位展开全部十个主题"></p>
-<p align="center"><sub>图 6 · 主题和阅读偏好集中在同一页，选择后即可看到效果。</sub></p>
+<p align="center"><sub>主题和阅读偏好集中在同一页，选择后即可看到效果。</sub></p>
 
 | 想调整什么 | 在哪里操作 |
 |---|---|
@@ -236,7 +242,6 @@ Paper Voice 会略过可识别的引文标记、图注、页眉页脚和出版�
 
 译文的字体和字号在 **设置 → 译文** 中调整。
 
-朗读会展开常见计量单位、小数和科学上下标：例如 `per mm²` 读作每平方毫米，`0.5` 保留小数点读法；化学式和变量下标按各自含义处理。原文与高亮保持不变。
 
 书页精灵会随机做出翻跟头、跷腿、伸懒腰、拿麦克风和点赞等动作，还会拿放大镜、写便签、放飞纸飞机、喝茶或鞠躬。翻页动作只在 PDF 切换页面时出现。互动结束保留当前姿态；连续朗读约 30 分钟后，会优先出现一次摘耳机休息、再戴回的动作，不会暂停声音。系统开启「减少动态效果」时不播放互动。
 
@@ -261,7 +266,8 @@ Paper Voice 会略过可识别的引文标记、图注、页眉页脚和出版�
 
 打开 **设置 → 快捷键**，点击右侧按键，再按下你希望使用的组合键。点击别处取消录入；录入时点击旁边的 × 可清除这一项，底部「恢复默认」可还原全部按键。
 
-<p align="center"><img src="assets/settings-shortcuts-zh.png" width="420" alt="快捷键设置"></p>
+<p align="center"><img src="assets/settings-shortcuts-zh.png" width="360" alt="快捷键设置"></p>
+<p align="center"><sub>点击按键录入新组合，冲突处理结果显示在下方。</sub></p>
 
 **新设置优先。** 若新按键已被另一操作使用，原操作会换到本次释放的按键；没有可交换的按键时，原操作显示「未设置」。下方会显示调整结果。自定义按键会随重启和插件更新保留。常见系统组合会提示可能被占用；系统或 Zotero 的其他快捷键未必都能提前识别。
 
