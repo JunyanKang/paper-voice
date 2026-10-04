@@ -1,43 +1,57 @@
 /* One palette across reader surfaces. Personal backgrounds never leave the profile. */
 var PaperVoiceThemes = {
+  // Legacy IDs preserve saved choices; their original artwork and palettes are replaced.
   themes: [
-    {id:'porcelain',name:'玉瓷',paper:'#f6f5f0',ink:'#243a36',muted:'#52625c',accent:'#286452',soft:'#dce9e1',focus:'#876219',highlight:'#d3a52942',art:null},
-    {id:'botanical',name:'森雾',paper:'#edf2e9',ink:'#293b2c',muted:'#52634f',accent:'#3e6637',soft:'#d7e4d0',focus:'#795822',highlight:'#87aa4a42',art:'botanical'},
-    {id:'tidal',name:'潮汐',paper:'#edf4f8',ink:'#233c50',muted:'#4c6173',accent:'#275f8c',soft:'#d3e6f2',focus:'#8b5f26',highlight:'#5fa1d842',art:'tidal'},
-    {id:'amber',name:'暮砂',paper:'#f6eee7',ink:'#49372e',muted:'#675246',accent:'#8b4b32',soft:'#edd9ca',focus:'#6c5845',highlight:'#d4996242',art:'amber'},
-    {id:'midnight',name:'深空',paper:'#202937',ink:'#f0f2f6',muted:'#c0cad8',accent:'#afc9ef',soft:'#384c65',focus:'#e8c48c',highlight:'#9082cc45',art:'midnight',dark:true}
+    {id:'porcelain',name:'织麦',paper:'#f6f1e7',surface:'#fffaf0',ink:'#3e372b',muted:'#544a3b',accent:'#72552e',soft:'#e9ddc7',line:'#d7c9af',focus:'#72552e',highlight:'#c5a46438',art:'linen.jpg',mask:.54},
+    {id:'botanical',name:'靛蓝',paper:'#172c49',surface:'#223c5f',ink:'#f2f6fd',muted:'#ceddf4',accent:'#b7d6fb',soft:'#2d4769',line:'#4b6484',focus:'#b7d6fb',highlight:'#8caedd40',art:'indigo.jpg',mask:.52,dark:true},
+    {id:'tidal',name:'天际',paper:'#edf4f8',surface:'#f8fcfe',ink:'#20384b',muted:'#3e5261',accent:'#245d85',soft:'#d4e5ef',line:'#bfd6e4',focus:'#245d85',highlight:'#5fa1d838',art:'horizon.jpg',mask:.50},
+    {id:'amber',name:'赤陶',paper:'#f6eee8',surface:'#fff7f0',ink:'#48342e',muted:'#60463e',accent:'#874935',soft:'#eed9cc',line:'#dec4b6',focus:'#874935',highlight:'#cb907238',art:'terracotta.jpg',mask:.56},
+    {id:'midnight',name:'月岩',paper:'#25292e',surface:'#32383f',ink:'#f5f3ee',muted:'#dddad2',accent:'#e2cdab',soft:'#43443f',line:'#666962',focus:'#e2cdab',highlight:'#b7ae943c',art:'lunar.jpg',mask:.54,dark:true},
+    {id:'sakura',name:'樱雾',paper:'#faf2f4',surface:'#fffafc',ink:'#4c2d3a',muted:'#634453',accent:'#85405b',soft:'#f0dce5',line:'#dfc5d0',focus:'#85405b',highlight:'#d991b238',art:'sakura.jpg',mask:.64},
+    {id:'inkstone',name:'墨竹',paper:'#f3f2ee',surface:'#fbfaf6',ink:'#2c3332',muted:'#454d49',accent:'#85443b',soft:'#e8dcd7',line:'#cfcfc5',focus:'#85443b',highlight:'#b1aaa03a',art:'inkstone.jpg',mask:.72},
+    {id:'silver',name:'银翼',paper:'#f0f3f5',surface:'#fbfcfd',ink:'#2d3742',muted:'#46515c',accent:'#455c73',soft:'#dbe3ea',line:'#c6d0d9',focus:'#455c73',highlight:'#7f9dbb38',art:'silver.jpg',mask:.70},
+    {id:'aurora',name:'极光',paper:'#14292d',surface:'#1d383e',ink:'#ecf9f6',muted:'#c2e2dc',accent:'#8adccb',soft:'#29464b',line:'#426469',focus:'#8adccb',highlight:'#71c2ae3c',art:'aurora.jpg',mask:.55,dark:true},
+    {id:'velvet',name:'酒绒',paper:'#2e222c',surface:'#3e2d3a',ink:'#fff2f5',muted:'#edd3df',accent:'#f1bfc8',soft:'#513644',line:'#745465',focus:'#f1bfc8',highlight:'#d39aa83c',art:'velvet.jpg',mask:.68,dark:true}
   ],
   theme() {return this.themes.find(t=>t.id===this.get('theme','tidal'))||this.themes.find(t=>t.id==='tidal');},
-  themeImage() {return this.get('themeImageEnabled',false)&&this.customThemeImage?this.customThemeImage:(this.theme().art?this.assetURI+'themes/'+this.theme().art+'.png':'');},
+  themeImage() {return this.get('themeImageEnabled',false)&&this.customThemeImage?this.customThemeImage:(this.theme().art?this.assetURI+'themes/'+this.theme().art:'');},
   setTheme(id) {if(!this.themes.some(t=>t.id===id))return;this.set('theme',id);this.set('themeImageEnabled',false);this.syncSettings();},
   applyTheme(root,caption=false) {
     const t=this.theme(),image=this.themeImage(),rgb=t.paper.match(/\w\w/g).map(x=>parseInt(x,16)).join(','),reduced=root.ownerDocument.defaultView.matchMedia('(prefers-reduced-transparency: reduce)').matches;
     root.dataset.theme=t.id;root.dataset.themeTone=t.dark?'dark':'light';
-    for(const key of ['paper','ink','muted','accent','soft','focus','highlight'])root.style.setProperty('--pv-'+key,t[key]);
+    for(const key of ['paper','surface','ink','muted','accent','soft','line','focus','highlight'])root.style.setProperty('--pv-'+key,t[key]);
     // Apply user transparency to the entire decorative layer, never to text or controls.
     const custom=this.get('themeImageEnabled',false)&&!!this.customThemeImage;
     const alpha=reduced?1:this.surfaceOpacity();
     root.style.setProperty('--pv-glass',`rgba(${rgb},${alpha})`);
-    root.style.setProperty('--pv-glass-line',t.dark?'#ffffff20':'#ffffff80');
-    root.style.setProperty('--pv-glass-shadow',t.dark?'0 8px 28px #0005':'0 8px 28px #23393022,0 1px 3px #23393010');
+    root.style.setProperty('--pv-glass-line',t.dark?'#ffffff32':t.ink+'30');
+    root.style.setProperty('--pv-rim-light',t.dark?'#ffffff22':'#ffffffd9');
+    root.style.setProperty('--pv-glass-shadow',t.dark?'0 12px 32px #080d183d,0 2px 6px #080d1826':'0 12px 32px #1827381c,0 2px 6px #18273814');
+    root.style.setProperty('--pv-small-shadow',t.dark?'0 5px 16px #080d1838,0 1px 3px #080d1826':'0 5px 16px #1827381a,0 1px 3px #18273812');
     root.style.setProperty('--pv-art',image&&!reduced?`url("${image}")`:'none');
     root.style.setProperty('--pv-art-opacity',String(alpha));
-    root.style.setProperty('--pv-image-mask',`rgba(${rgb},${caption ? .96 : custom ? .92 : .58})`);
-    root.style.setProperty('--pv-text-halo',alpha<1?'0 1px 2px var(--pv-paper),0 0 4px var(--pv-paper)':'none');
+    root.style.setProperty('--pv-image-mask',`rgba(${rgb},${caption ? .97 : custom ? .94 : t.mask})`);
+    root.style.setProperty('--pv-text-halo','none');
     root.style.setProperty('--pv-icon-filter',t.dark?'brightness(0) invert(.92)':'brightness(0) opacity(.78)');
-    root.style.setProperty('--pv-primary-ink',t.dark?'#202937':'#ffffff');
+    root.style.setProperty('--pv-primary-ink',t.dark?t.paper:'#ffffff');
+    root.style.setProperty('--pv-control-mask',`rgba(${rgb},${t.dark?.88:.90})`);
     root.style.setProperty('--pv-primary-filter',t.dark?'brightness(0) opacity(.85)':'brightness(0) invert(1)');
     root.style.colorScheme=t.dark?'dark':'light';
-    if(caption){root.style.color=t.ink;root.style.backgroundColor='transparent';root.style.textShadow='var(--pv-text-halo)';root.style.backgroundImage='none';root.style.isolation='isolate';root.style.boxShadow='var(--pv-glass-shadow), inset 0 0 0 1px var(--pv-glass-line)';}
+    if(caption){root.style.color=t.ink;root.style.backgroundColor='transparent';root.style.textShadow='var(--pv-text-halo)';root.style.backgroundImage='none';root.style.isolation='isolate';root.style.boxShadow='var(--pv-small-shadow),inset 0 1px 0 var(--pv-rim-light)';root.style.outline='1px solid var(--pv-glass-line)';root.style.outlineOffset='-1px';}
   },
   syncTheme(root) {
     this.applyTheme(root);
-    for(const b of root.querySelectorAll('[data-theme-choice]'))b.setAttribute('aria-pressed',String(b.dataset.themeChoice===this.theme().id&&!this.get('themeImageEnabled',false)));
+    for(const b of root.querySelectorAll('[data-theme-choice]')){const selected=b.dataset.themeChoice===this.theme().id&&!this.get('themeImageEnabled',false);b.setAttribute('aria-pressed',String(selected));b.tabIndex=b.dataset.themeChoice===this.theme().id?0:-1;}
+    if(root._pvLastTheme!==this.theme().id){root._pvLastTheme=this.theme().id;root._pvRevealTheme?.();}
     const find=name=>root.querySelector(`[data-field="${name}"]`),image=this.customThemeImage;
     if(find('customBackground')){find('customBackground').hidden=!image;find('customBackground').setAttribute('aria-pressed',String(!!image&&this.get('themeImageEnabled',false)));}
     if(find('removeBackground'))find('removeBackground').hidden=!image;
     const row=root.querySelector('.pv-background-row');if(row)row.dataset.hasImage=String(!!image);
     if(this.caption)this.applyTheme(this.caption.box,true);
+    for(const selection of this.selectionContexts?.values?.()||[]){
+      const card=selection.button?.closest('.pv-selection-card');
+      if(card?.isConnected){this.applyTheme(card);const popup=card.closest('.selection-popup');if(popup)this.applyTheme(popup);}
+    }
     for(const marker of this.sentenceHighlight?.markers||[])marker.style.background=this.theme().highlight;
   },
   themeImagePath() {return PathUtils.join(PathUtils.profileDir,'paper-voice-background.jpg');},

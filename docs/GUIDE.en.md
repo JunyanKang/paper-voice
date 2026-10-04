@@ -215,17 +215,19 @@ The integration uses [OpenAI-compatible Chat Completions](https://platform.opena
 
 Open **Settings → Style**.
 
-<p align="center"><img src="assets/settings-appearance-en.png" width="420" alt="Appearance settings with five themes, image import, transparency, interface language and companion gestures"></p>
+<p align="center"><img src="assets/settings-appearance-en.png" width="420" alt="Appearance settings with ten horizontally browsable themes, image import, transparency, interface language and companion gestures"></p>
 <p align="center"><sub>Figure 6 · Themes and interface preferences are together on one page, with changes visible immediately.</sub></p>
 
 | To change… | Use… |
 |---|---|
-| **Colors** | Porcelain, Botanical, Tidal, Amber or Midnight; Tidal is the default |
+| **Colors** | Browse horizontally with a trackpad or mouse wheel and select a theme. The scrollbar stays hidden. Horizon is the default |
 | **Your background** | Import image accepts PNG, JPG and WebP files stored only on your computer. Use My image to return to it, or Remove to delete it |
 | **Caption position** | Below text by default, or above it. Caption width follows the actual local text area and leaves the active source visible |
 | **Transparency** | Move the slider; higher values make the background more transparent while text and controls remain clear |
 | **Interface language** | Choose 简体中文, English, 日本語, Français, Deutsch or System; this does not change the reading or translation language |
 | **Companion** | Turn gestures on or off, choose an interval, or select Preview. Hovering over the mascot also triggers a gesture |
+
+Choose from Linen, Indigo, Horizon, Clay, Lunar, Sakura, Inkstone, Silver, Aurora and Velvet. Colors carry through the panels, controls, menus, captions and source highlights. With a theme card focused, use Left/Right to switch or Home/End to reach the first/last theme.
 
 **System** follows Zotero’s language, with English as the fallback for unsupported languages. Switching languages keeps the panel size unchanged.
 

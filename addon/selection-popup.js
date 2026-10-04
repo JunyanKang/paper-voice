@@ -5,7 +5,7 @@ var PaperVoiceSelectionUI = {
   const style=doc.createElement('style');style.textContent=`
    /* Zotero owns transform for anchoring; entry animation must never override it. */
    .selection-popup:has(.pv-selection-card):not([class*="page-popup-"]){visibility:hidden}
-   .selection-popup[data-pv-selection]{color:var(--pv-ink);background:var(--pv-glass);border:1px solid color-mix(in srgb,var(--pv-ink) 10%,transparent);border-radius:15px;box-shadow:0 10px 32px #172c3d1c;backdrop-filter:blur(18px);animation:pv-selection-enter .16s ease-out}
+   .selection-popup[data-pv-selection]{color:var(--pv-ink);background:var(--pv-glass);border:0;outline:1px solid var(--pv-glass-line);outline-offset:-1px;border-radius:15px;box-shadow:var(--pv-small-shadow),inset 0 1px 0 var(--pv-rim-light);backdrop-filter:blur(18px);animation:pv-selection-enter .16s ease-out}
    .selection-popup[data-pv-selection]>.tool-toggle{background:var(--pv-soft)}
    .selection-popup[data-pv-selection]>.tool-toggle>button{color:var(--pv-muted)}
    .selection-popup[data-pv-selection]>.tool-toggle>button.active{background:var(--pv-paper);color:var(--pv-accent)}

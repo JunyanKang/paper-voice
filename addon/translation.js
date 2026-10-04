@@ -198,8 +198,12 @@ var PaperVoiceTranslation = {
   return {left:Math.min(...column.map(line=>line.left)),right:Math.max(...column.map(line=>line.right))};
  },
  async highlightSentence(reader,unit,generation) {
+  const target={...unit,text:unit.highlightText||unit.sentenceText||unit.text,anchorOffset:unit.highlightOffset??unit.sentenceOffset},previous=this.sentenceHighlight;
+  if(previous?.layer?.isConnected&&previous.reader===reader&&previous.unit.pageIndex===target.pageIndex&&previous.unit.text===target.text&&previous.unit.anchorOffset===target.anchorOffset){
+   previous.focusUnit=unit;const focus=this.findSentence(reader,unit);if(focus)await this.focusReadingPosition(focus);return;
+  }
   this.clearSentenceHighlight();
-  const active={markers:[],reader,unit:{...unit,text:unit.highlightText||unit.sentenceText||unit.text,anchorOffset:unit.highlightOffset??unit.sentenceOffset},focusUnit:unit};
+  const active={markers:[],reader,unit:target,focusUnit:unit};
   this.sentenceHighlight=active;
   let match;
   // Navigate each spoken unit when its page is absent/offscreen, including selected passages.
@@ -216,20 +220,38 @@ var PaperVoiceTranslation = {
   await this.focusReadingPosition(focus);
   if(this.sentenceHighlight!==active||generation!==this.generation||this.dead)return;
   const draw=()=>{
-   active.timer=null;if(this.sentenceHighlight!==active)return;
-   active.markers.forEach(marker=>marker.remove());active.markers=[];
-   const current=this.findSentence(reader,active.unit)||this.findSentence(reader,active.focusUnit);if(!current)return;
-   for(const rect of current.rects){
-    if(rect.bottom<0||rect.top>win.innerHeight)continue;
-    const marker=current.doc.createElement('div');marker.dataset.paperVoice='sentence-highlight';
-    marker.style.cssText=`pointer-events:none;position:fixed;z-index:8;left:${rect.left-1}px;top:${rect.top}px;width:${rect.width+2}px;height:${rect.height}px;background:${this.theme?.().highlight||'#e3b84138'};border-radius:3px;`;
-    current.doc.body.append(marker);active.markers.push(marker);
+   active.raf=undefined;if(this.sentenceHighlight!==active)return;
+   const current=this.findSentence(reader,active.unit)||this.findSentence(reader,active.focusUnit);
+   // PDF.js can temporarily remove the text layer during zoom. Preserve the
+   // page-anchored geometry until the new layer is ready, rather than flashing.
+   if(!current)return;
+   const page=current.page,bounds=page.getBoundingClientRect();
+   const scaleX=bounds.width/page.offsetWidth||1,scaleY=bounds.height/page.offsetHeight||1;
+   if(!active.layer||active.layer.parentElement!==page){
+    const layer=current.doc.createElement('div');layer.dataset.paperVoice='highlight-layer';
+    layer.style.cssText='pointer-events:none;position:absolute;inset:0;z-index:8;overflow:hidden;';
+    page.append(layer);active.layer?.remove();active.layer=layer;active.markers=[];
    }
+   const rects=current.rects.filter((rect,i,all)=>!all.slice(0,i).some(r=>Math.abs(r.left-rect.left)<.1&&Math.abs(r.top-rect.top)<.1&&Math.abs(r.width-rect.width)<.1&&Math.abs(r.height-rect.height)<.1));
+   for(let i=0;i<rects.length;i++){
+    const rect=rects[i];let marker=active.markers[i];
+    if(!marker){marker=current.doc.createElement('div');marker.dataset.paperVoice='sentence-highlight';active.layer.append(marker);active.markers.push(marker);}
+    const style=`pointer-events:none;position:absolute;left:${(rect.left-bounds.left)/scaleX-page.clientLeft-1}px;top:${(rect.top-bounds.top)/scaleY-page.clientTop}px;width:${rect.width/scaleX+2}px;height:${rect.height/scaleY}px;background:${this.theme?.().highlight||'#e3b84138'};border-radius:3px;`;
+    if(marker.getAttribute('style')!==style)marker.setAttribute('style',style);
+   }
+   while(active.markers.length>rects.length)active.markers.pop().remove();
   };
-  active.redraw=()=>{if(active.timer===null||active.timer===undefined)active.timer=this.host.setTimeout(draw,40);};
-  win.addEventListener('scroll',active.redraw,true);win.addEventListener('resize',active.redraw);
+  active.redraw=()=>{if(active.raf===undefined)active.raf=win.requestAnimationFrame(draw);};
+  // The highlight lives on the PDF page and therefore scrolls with the text
+  // without any event-driven removal or viewport-coordinate repositioning.
+  win.addEventListener('resize',active.redraw);
   const viewerRoot=reader._internalReader?._primaryView?._iframeWindow?.PDFViewerApplication?.pdfViewer?.viewer;
-  if(viewerRoot){active.observer=new this.host.MutationObserver(active.redraw);active.observer.observe(viewerRoot,{childList:true,subtree:true});}
+  if(viewerRoot){
+   active.observer=new this.host.MutationObserver(records=>{
+    if(records.some(r=>r.target.closest?.('.textLayer')||r.type==='attributes'&&r.target.matches?.('.page')||[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&(n.matches?.('.page,.textLayer')||n.querySelector?.('.textLayer')))))active.redraw();
+   });
+   active.observer.observe(viewerRoot,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
+  }
   draw();
  },
  async focusReadingPosition(match) {
@@ -264,8 +286,8 @@ var PaperVoiceTranslation = {
  },
  clearSentenceHighlight() {
   const active=this.sentenceHighlight;this.sentenceHighlight=null;if(!active)return;
-  if(active.win){active.win.removeEventListener('scroll',active.redraw,true);active.win.removeEventListener('resize',active.redraw);if(active.timer)this.host.clearTimeout(active.timer);}
-  active.observer?.disconnect();active.markers.forEach(marker=>marker.remove());
+  if(active.win){active.win.removeEventListener('resize',active.redraw);if(active.raf!==undefined)active.win.cancelAnimationFrame(active.raf);}
+  active.observer?.disconnect();active.layer?.remove();active.markers.forEach(marker=>marker.remove());
  },
  showTranslation(reader,unit,text,source='') {
   if(!this.get('translation',false))return;
