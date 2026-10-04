@@ -124,10 +124,9 @@ var PaperVoiceUI = {
      <div id="pv-settings-appearance" data-settings-pane="appearance" role="tabpanel" aria-labelledby="pv-tab-appearance" hidden>
        <div class="pv-theme-browser" data-field="themeBrowser">
         <div class="pv-theme-choices" data-field="themeChoices" role="group" aria-label="窗口主题">${controller.themes.map(themeTile).join('')}</div>
-        <button type="button" class="pv-theme-more" data-action="themeMore" aria-label="全部主题" aria-expanded="false" aria-controls="pv-theme-picker"><span aria-hidden="true">…</span></button>
         <div id="pv-theme-picker" class="pv-theme-popover" data-field="themePicker" role="dialog" aria-label="全部主题" hidden><div class="pv-theme-choices" data-field="allThemes" role="group" aria-label="窗口主题">${controller.themes.map(themeTile).join('')}</div></div>
        </div>
-       <div class="pv-background-row"><button data-action="importBackground" title="自动裁切 · 文字保护蒙版 · 仅存本机">导入图片</button><button data-field="customBackground" data-action="customBackground" aria-pressed="false" hidden>我的图片</button><button data-field="removeBackground" data-action="removeBackground" hidden>移除</button><span class="pv-theme-hint" data-field="themeHint" role="status"></span></div>
+       <div class="pv-background-row"><button data-action="importBackground" title="自动裁切 · 文字保护蒙版 · 仅存本机">导入图片</button><button data-field="customBackground" data-action="customBackground" aria-pressed="false" hidden>我的图片</button><button data-field="removeBackground" data-action="removeBackground" hidden>移除</button><span class="pv-theme-hint" data-field="themeHint" role="status"></span><button type="button" class="pv-theme-more" data-action="themeMore" aria-label="全部主题" aria-expanded="false" aria-controls="pv-theme-picker"><span aria-hidden="true">…</span></button></div>
        <div class="pv-setting-row pv-transparency-row"><label for="pv-transparency">透明度</label><input id="pv-transparency" data-field="transparency" type="range" min="0" max="40" step="1" aria-label="窗口透明度"/><span data-field="transparencyLabel">12%</span></div>
        <div class="pv-setting-row"><label for="pv-caption-placement">译文位置</label><select id="pv-caption-placement" data-field="captionPlacement" aria-label="译文位置"><option value="below">原文下方</option><option value="above">原文上方</option></select></div>
        <div class="pv-setting-row"><label for="pv-language">界面语言</label><select id="pv-language" data-field="language" aria-label="Interface language / 界面语言"><option value="auto">跟随系统</option><option value="zh">简体中文</option><option value="en">English</option><option value="ja">日本語</option><option value="fr">Français</option><option value="de">Deutsch</option></select></div>
@@ -209,7 +208,7 @@ var PaperVoiceUI = {
    const index=Math.max(0,themeButtons.findIndex(b=>b.dataset.themeChoice===controller.theme().id)),start=Math.floor(index/5)*5;
    themeButtons.forEach((b,i)=>{b.hidden=i<start||i>=start+5;});
   };
-  const closeThemes=(focus=false)=>{themesOpen=false;themeBrowser.dataset.expanded='false';themeChoices.inert=false;themeMore.setAttribute('aria-expanded','false');visible(themePicker,false);if(focus){themeMore.focus();doc.defaultView.requestAnimationFrame(()=>{if(!themesOpen&&themeMore.isConnected&&!find('settingsPage').hidden)themeMore.focus();});}};
+  const closeThemes=(focus=false)=>{themesOpen=false;themeBrowser.dataset.expanded='false';themeChoices.inert=false;themeMore.setAttribute('aria-expanded','false');visible(themePicker,false);if(focus){const restore=()=>{if(!themesOpen&&themeMore.isConnected&&!find('settingsPage').hidden)themeMore.focus();};themeMore.focus();const fade=themePicker._pvFade;if(fade)fade.finished.then(()=>doc.defaultView.requestAnimationFrame(restore),()=>{});else doc.defaultView.requestAnimationFrame(restore);}};
   root._pvCloseThemePicker=closeThemes;
   themeMore.onclick=()=>{
    if(themesOpen){closeThemes();return;}
@@ -226,8 +225,8 @@ var PaperVoiceUI = {
     buttons.forEach((x,k)=>x.tabIndex=k===j?0:-1);buttons[j].focus();
    };
   }
-  const closeThemesOutside=e=>{if(themesOpen&&!themeBrowser.contains(e.target))closeThemes();};
-  const themeEscape=e=>{if(themesOpen&&e.key==='Escape'&&themeBrowser.contains(e.target)){e.preventDefault();e.stopImmediatePropagation();closeThemes(true);}};
+  const closeThemesOutside=e=>{if(themesOpen&&!themeBrowser.contains(e.target)&&!themeMore.contains(e.target))closeThemes();};
+  const themeEscape=e=>{if(themesOpen&&e.key==='Escape'&&(themeBrowser.contains(e.target)||themeMore.contains(e.target))){e.preventDefault();e.stopImmediatePropagation();closeThemes(true);}};
   doc.defaultView.addEventListener('keydown',themeEscape,true);
   doc.addEventListener('pointerdown',closeThemesOutside,true);doc.addEventListener('focusin',closeThemesOutside);
   action('importBackground').onclick=async()=>{action('importBackground').disabled=true;try{await controller.chooseThemeImage();find('themeHint').textContent=controller.t(controller.get('themeImageEnabled',false)?'背景已保存':'');}catch(e){find('themeHint').textContent=String(e.message||e);find('themeHint').title=String(e.message||e);}finally{action('importBackground').disabled=false;}};

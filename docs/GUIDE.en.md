@@ -220,7 +220,7 @@ Open **Settings → Style**.
 
 | To change… | Use… |
 |---|---|
-| **Colors** | Horizon is the default. Five previews appear in one row; select … to see all themes, then choose one to close the picker |
+| **Colors** | Horizon is the default. Five previews appear in one row; select … at the right of the Import image row to see all themes, then choose one to close the picker |
 | **Your background** | Import image accepts PNG, JPG and WebP files stored only on your computer. Use My image to return to it, or Remove to delete it |
 | **Caption position** | Below text by default, or above it. Caption width follows the actual local text area and leaves the active source visible |
 | **Transparency** | Move the slider; higher values make the background more transparent while text and controls remain clear |
