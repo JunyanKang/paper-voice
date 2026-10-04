@@ -119,8 +119,8 @@
 .pv-shell[data-theme] button:focus-visible,.pv-shell[data-theme] input:focus-visible,.pv-shell[data-theme] select:focus-visible{outline:none}
 .pv-tooltip{position:fixed;z-index:30;box-sizing:border-box;max-width:230px;padding:6px 9px;border:1px solid var(--pv-soft);border-radius:8px;background:var(--pv-glass,var(--pv-paper));backdrop-filter:blur(18px);color:var(--pv-muted);box-shadow:0 3px 12px #172c3d14;font:400 10px/1.45 system-ui,sans-serif;text-align:center;text-wrap:balance;overflow-wrap:anywhere;pointer-events:none;text-shadow:none}
 
-/* Every gesture is a twelve-frame performance in a fixed viewport. */
-.pv-mascot-interaction,.pv-shell[data-interaction-set] .pv-mascot-interaction{inset:auto;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;background-size:400% 300%;background-repeat:no-repeat;animation:none!important;transform:none!important;translate:none!important;transition:none!important}
+/* Every gesture is a twenty-four-frame performance in a fixed viewport. */
+.pv-mascot-interaction,.pv-shell[data-interaction-set] .pv-mascot-interaction{inset:auto;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;background-size:600% 400%;background-repeat:no-repeat;animation:none!important;transform:none!important;translate:none!important;transition:none!important}
 .pv-shell[data-interaction] .pv-mascot-interaction{opacity:1}
 .pv-shell{bottom:40px}
 /* Four typography roles: brand, actions, body, supporting text. */
@@ -172,3 +172,12 @@
 
 /* The source preview keeps its fixed footprint while exposing the complete text. */
 .pv-preview{display:block;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;overscroll-behavior:contain;-webkit-line-clamp:unset;overflow-wrap:anywhere;cursor:text}.pv-preview::-webkit-scrollbar{display:none}
+
+/* Keep all pages the same size; update/account links belong to Voice only. */
+[data-settings-pane=voice]{height:100%;display:flex;flex-direction:column}
+[data-settings-pane=voice] .pv-updater{margin-top:auto}
+.pv-panel .pv-mode-note{height:22px;margin-top:4px}
+.pv-panel .pv-context-row{margin-top:4px}
+.pv-panel .pv-preview{height:auto;flex:1;min-height:84px;margin:6px 0 8px}
+.pv-panel .pv-transport{margin-top:14px;margin-bottom:14px}
+.pv-panel .pv-header{margin-bottom:14px}

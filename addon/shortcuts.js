@@ -4,6 +4,7 @@ var PaperVoiceShortcuts = (() => {
   {id:'pause',label:'暂停／继续',group:'playback',key:'Space'},
   {id:'stop',label:'停止朗读',group:'playback',key:'Escape'},
   {id:'translation',label:'显示／隐藏译文',group:'playback',key:'Alt+KeyT'},
+  {id:'readTranslation',label:'原文／译文朗读',group:'playback',key:'Alt+KeyR'},
   {id:'previousSentence',label:'上一句',group:'sentence',key:'ArrowUp'},
   {id:'replaySentence',label:'重读当前句',group:'sentence',key:'ArrowLeft'},
   {id:'nextSentence',label:'下一句',group:'sentence',key:'ArrowDown'},

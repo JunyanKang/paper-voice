@@ -233,7 +233,7 @@ Translation font and size are under **Settings → Translate**.
 
 Speech expands common measurements, decimal points and scientific scripts: `per mm²` becomes “per square millimeter” and `0.5` becomes “zero point five.” Chemical formulas and variable indices are handled separately. PDF text and highlights stay unchanged.
 
-The mascot uses five gestures in each of its idle and reading sets: page turning, a somersault, sitting cross-legged, stretching, picking up a microphone and giving a thumbs-up. It keeps the final pose. After about 30 minutes of active reading, a brief remove-and-replace-headphones gesture takes priority without pausing audio. Interactions respect the system’s Reduce Motion setting.
+The mascot can somersault, sit cross-legged, stretch, pick up a microphone or give a thumbs-up. It can also inspect with a magnifying glass, write a note, launch a paper plane, sip tea or bow. Page turning appears only when the PDF changes pages. It keeps the final pose. After about 30 minutes of active reading, a brief remove-and-replace-headphones gesture takes priority without pausing audio. Interactions respect the system’s Reduce Motion setting.
 
 ## Keyboard shortcuts
 
@@ -248,6 +248,7 @@ Use these in the **PDF reading area while playing or paused**. Keys keep their n
 | Replay current sentence | ← | ← |
 | Replay current paragraph | → | → |
 | Show / hide translation | Option + T | Alt + T |
+| Original / translated audio | Option + R | Alt + R |
 
 Start with three: **Space to pause, ↓ for the next sentence, ← to hear this sentence again**.
 
@@ -263,7 +264,7 @@ Open **Settings → Keys**, click a key on the right, then press your preferred 
 
 ### How do I update?
 
-Enable **Auto-update** at the bottom of Settings for Zotero to check periodically, or select **Check → Install update**. Downloads and updates require access to GitHub.
+Enable **Auto-update** under **Settings → Voice** for Zotero to check periodically, or select **Check → Install update**. Downloads and updates require access to GitHub.
 
 - **Upgrading from 1.2.5 or earlier:** download the latest complete package and run the installer to reinstall offline voices once.
 - **Already installed a complete package from 1.2.6 or later:** update only the `.xpi` plugin. No voice download is needed.

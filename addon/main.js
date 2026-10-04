@@ -81,6 +81,7 @@ var PaperVoice = {
         if(action==='pause')this.togglePause();
         else if(action==='stop')this.stop();
         else if(action==='translation')this.toggleTranslation();
+        else if(action==='readTranslation')this.setReadTranslation(!this.get('readTranslation',false));
         else if(this.currentUnit){
           const navigation={previousSentence:[-1,'sentence'],replaySentence:[0,'sentence'],nextSentence:[1,'sentence'],previousParagraph:[-1,'paragraph'],replayParagraph:[0,'paragraph'],nextParagraph:[1,'paragraph']}[action];
           if(navigation)this.navigateScope(navigation[0],reader,navigation[1]);
@@ -440,7 +441,7 @@ var PaperVoice = {
       const preview=find('preview'),text=this.currentSentence||this.lastText||'选择一段文字，留一点时间给耳朵。';
       if(preview.textContent!==text){preview.textContent=text;preview.scrollTop=0;}
       find('progressBar').style.width=(this.readProgress?100*this.readProgress.current/this.readProgress.total:0)+'%';
-      if(action('quickReadTranslation')){action('quickReadTranslation').setAttribute('aria-checked',String(this.get('readTranslation',false)));action('quickReadTranslation').disabled=!this.translationVoiceLanguage();action('quickReadTranslation').title=this.translationVoiceLanguage()?(this.get('readTranslation',false)?'只读译文 · 点击切回原文':'朗读原文 · 点击切换译文'):'该译文语种暂无离线声音';}
+      if(action('quickReadTranslation')){action('quickReadTranslation').setAttribute('aria-checked',String(this.get('readTranslation',false)));action('quickReadTranslation').setAttribute('aria-keyshortcuts',PaperVoiceShortcuts.aria(this.shortcutBindings().readTranslation));action('quickReadTranslation').disabled=!this.translationVoiceLanguage();action('quickReadTranslation').title=this.translationVoiceLanguage()?(this.get('readTranslation',false)?'只读译文 · 点击切回原文':'朗读原文 · 点击切换译文'):'该译文语种暂无离线声音';}
       if(!active)closeAudioPopover?.();
       action('quickTranslate').setAttribute('aria-pressed',String(this.get('translation',false)));
       const language=this.translationLanguage();

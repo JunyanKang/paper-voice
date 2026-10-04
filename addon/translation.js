@@ -284,31 +284,35 @@ var PaperVoiceTranslation = {
    const pdfWindow=reader._internalReader._primaryView._iframeWindow;
    c=this.caption={box,frame,original,reader,pdfWindow,inline:true,timer:null};
    frame.parentElement.append(box);
-   // Scroll/zoom generates many intermediate geometries. Fade out at the old
-   // position and anchor once after settling, instead of flipping above/below
-   // or chasing partial text layers during the animation.
-   if(pdfWindow.matchMedia?.('(prefers-reduced-motion: reduce)').matches)box.style.transition='none';
-   c.layout=()=>{
-    c.moving=true;box.style.opacity='0';box.style.pointerEvents='none';
-    if(c.timer!==null)this.host.clearTimeout(c.timer);
-    c.timer=this.host.setTimeout(()=>{c.timer=null;c.moving=false;if(this.caption!==c)return;this.positionTranslation(c);box.style.opacity='1';box.style.pointerEvents='';},160);
+   // Keep the caption visible while geometry changes. All events in one
+   // rendering frame share one measurement; unrelated annotation/UI mutations
+   // must not restart the appearance transition.
+   box.style.visibility='hidden';box.style.opacity='0';
+   c.layout=event=>{
+    if(event?.target&&box.contains(event.target))return;
+    if(c.raf!==undefined)return;
+    c.raf=pdfWindow.requestAnimationFrame(()=>{c.raf=undefined;if(this.caption===c)this.positionTranslation(c);});
    };
    pdfWindow.addEventListener('scroll',c.layout,true);pdfWindow.addEventListener('resize',c.layout);
-   // PDF.js rebuilds its text layer asynchronously after viewport/zoom changes.
    const viewerRoot=pdfWindow.PDFViewerApplication?.pdfViewer?.viewer;
-   if(viewerRoot){c.observer=new this.host.MutationObserver(c.layout);c.observer.observe(viewerRoot,{childList:true,subtree:true});}
+   if(viewerRoot){
+    c.observer=new this.host.MutationObserver(records=>{
+     if(records.some(r=>r.target.closest?.('.textLayer')||[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&(n.matches?.('.page,.textLayer')||n.querySelector?.('.textLayer')))))c.layout();
+    });
+    c.observer.observe(viewerRoot,{childList:true,subtree:true});
+   }
    c.layout();
   }
   if(c.unit&&c.unit!==unit)c.layout();
   c.box.lang=this.get('translationTarget','zh-Hans');c.box.setAttribute('aria-label',(this.t?.('显示译文')||'显示译文')+' · '+(this.translationLanguage?.().label||c.box.lang));
-  c.unit=unit;c.box.textContent=source?text:(this.t?.(text)||text);c.box.title=this.t?.(source||'显示译文')||(source||'显示译文');c.box.dataset.provider=source;
+  c.unit=unit;const content=source?text:(this.t?.(text)||text);if(c.box.textContent!==content)c.box.textContent=content;c.box.title=this.t?.(source||'显示译文')||(source||'显示译文');c.box.dataset.provider=source;
   this.positionTranslation(c);
  },
  positionTranslation(c) {
   if(this.caption!==c)return;
-  if(c.moving)return;
   const {box,frame,reader}=c,match=this.findSentence(reader,c.unit);
-  if(!match){box.style.visibility='hidden';return;}
+  if(!match){if(!c.missingSince)c.missingSince=Date.now();if(!c.positioned||Date.now()-c.missingSince>250)box.style.visibility='hidden';else if(c.timer===null)c.timer=this.host.setTimeout(()=>{c.timer=null;c.layout();},260);return;}
+  c.missingSince=null;
   const fr=frame.getBoundingClientRect(),parent=frame.parentElement.getBoundingClientRect();
   const blocks=this.readingBlocks(match);
   // Prefer the leading visible part of this spoken chunk. In a two-column
@@ -316,7 +320,7 @@ var PaperVoiceTranslation = {
   const block=blocks.find(part=>part.rects.some(r=>r.bottom>0&&r.top<fr.height&&r.right>0&&r.left<fr.width));
   if(!block){box.style.visibility='hidden';return;}
   const column=this.readingColumn(match,block);
-  box.style.visibility='visible';
+  box.style.visibility='visible';box.style.opacity='1';c.positioned=true;
   // Follow the current source directly. Covering subsequent unread text is intentional;
   // the original PDF viewport keeps its full width and height.
   const left=Math.max(12,column.left),right=Math.min(fr.width-12,column.right);
@@ -339,7 +343,7 @@ var PaperVoiceTranslation = {
  hideTranslation() {
   const c=this.caption;if(!c)return;this.caption=null;
   c.pdfWindow.removeEventListener('scroll',c.layout,true);c.pdfWindow.removeEventListener('resize',c.layout);
-  if(c.timer!==null)this.host.clearTimeout(c.timer);c.observer?.disconnect();
+  if(c.timer!==null)this.host.clearTimeout(c.timer);if(c.raf!==undefined)c.pdfWindow.cancelAnimationFrame(c.raf);c.observer?.disconnect();
   c.box.style.opacity='0';c.box.style.pointerEvents='none';
   if(this.dead||c.pdfWindow.matchMedia?.('(prefers-reduced-motion: reduce)').matches)c.box.remove();
   else this.host.setTimeout(()=>c.box.remove(),160);
