@@ -347,7 +347,9 @@ var PaperVoiceTranslation = {
   // the original PDF viewport keeps its full width and height.
   const left=Math.max(12,column.left),right=Math.min(fr.width-12,column.right);
   const width=Math.max(1,right-left);
-  box.style.width=width+'px';box.style.maxHeight=Math.max(56,fr.height*.55)+'px';
+  // Short captions hug their text; the detected source column remains the
+  // wrapping limit for longer translations and larger user-selected fonts.
+  box.style.width='max-content';box.style.maxWidth=width+'px';box.style.maxHeight=Math.max(56,fr.height*.55)+'px';
   const height=box.getBoundingClientRect().height;
   let top=block.bottom+8;c.inline=true;box.dataset.placement='below-source';
   if(this.get('captionPlacement','below')==='above'){

@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Paper Voice · 论文听读",
-  "version": "1.3.6",
+  "version": "1.3.7",
   "description": "PDF 划选即读、全文连读、循环精听，英语、中文、日语、法语离线朗读与多语言译文显示。",
   "author": "Junyan Kang",
   "applications": {
