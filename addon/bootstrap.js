@@ -9,6 +9,7 @@ async function startup({ rootURI, version }, reason) {
   Services.scriptloader.loadSubScript(rootURI + 'fonts.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'panel-style.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'companion.js', PaperVoiceScope);
+  Services.scriptloader.loadSubScript(rootURI + 'dock-motion.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'panel.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'selection-popup.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'translation.js', PaperVoiceScope);
