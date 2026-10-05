@@ -14,7 +14,7 @@ var PaperVoiceDockMotion = {
   // Travel begins while the sheet is still slender. The leading edge opens
   // first and the neck releases last, avoiding a large rigid block at the icon.
   const spread=this.smooth((p-.22-edge*.23)/(.62-edge*.07));
-  const neck=Math.min(24/width,.12),scale=neck+(1-neck)*spread;
+  const neck=Math.min(5/width,.025),scale=neck+(1-neck)*spread;
   return {center:anchor.x+(width/2-anchor.x)*spread,y:anchor.y+(v*height-anchor.y)*rise,scale};
  },
  mesh(panel,orb) {
@@ -75,8 +75,9 @@ var PaperVoiceDockMotion = {
    const tex=gl.getAttribLocation(program,'a_uv');gl.enableVertexAttribArray(tex);gl.vertexAttribPointer(tex,2,gl.FLOAT,false,0,0);
    indices=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,order,gl.STATIC_DRAW);
    panel.parentElement.append(canvas);
-   return {canvas,anchor,draw:p=>{
+   return {canvas,anchor,draw:(p,grip)=>{
     if(disposed)return;
+    if(grip){anchor.x=grip.x-b.x;anchor.y=grip.y-b.y;}
     for(let i=0;i<=rows;i++){
      const v=(-pad+(b.height+pad*2)*i/rows)/b.height,row=this.row(p,v,b.width,b.height,anchor);
      const x=b.x+row.center-left,y=b.y+row.y-top,half=(b.width/2+pad)*row.scale;
@@ -89,17 +90,18 @@ var PaperVoiceDockMotion = {
  },
  create(panel,orb,fit) {
   const win=panel.ownerDocument.defaultView,query=win.matchMedia('(prefers-reduced-motion: reduce)');
-  let rendering=null,frame=0,progress=0,velocity=0,target=false,last=0,fallback=null,disposed=false;
+  let rendering=null,frame=0,progress=0,velocity=0,target=false,last=0,fallback=null,fallbackBox=null,disposed=false,companion=null;
+  const notify=(moving)=>companion?.(Math.max(0,Math.min(1,progress)),moving,target);
   const paint=()=>{
    // Never fade two translucent surfaces over one another. Keep one fully
    // rendered surface until its geometry matches the live panel exactly.
-   rendering.draw(Math.max(0,Math.min(1,progress)));
+   const grip=notify(true);rendering.draw(Math.max(0,Math.min(1,progress)),grip);
   };
   const settle=show=>{
    win.cancelAnimationFrame(frame);frame=0;fallback?.cancel();fallback=null;rendering?.destroy();rendering=null;
    progress=show?1:0;velocity=0;panel.hidden=!show;panel.inert=!show;panel.style.pointerEvents=show?'':'none';
    panel.style.visibility='';panel.style.willChange='';panel.style.transformOrigin='';panel.dataset.pvVisible=String(show);
-   delete panel.dataset.dockMotion;delete panel.dataset.dockRenderer;
+   delete panel.dataset.dockMotion;delete panel.dataset.dockRenderer;notify(false);
   };
   const tick=now=>{
    if(disposed)return;
@@ -122,7 +124,7 @@ var PaperVoiceDockMotion = {
    if(query.matches){settle(visible);if(visible)fit();return;}
    const wasHidden=panel.hidden;panel.hidden=false;panel.dataset.pvVisible=String(visible);panel.inert=true;panel.style.pointerEvents='none';
    panel.dataset.dockMotion=visible?'opening':'closing';
-   if(rendering)return;
+   if(rendering){notify(true);return;}
    if(!fallback){
     fit();
     try {
@@ -133,12 +135,13 @@ var PaperVoiceDockMotion = {
      frame=win.requestAnimationFrame(tick);return;
     }catch(_){rendering?.destroy();rendering=null;panel.style.visibility='';/* Older graphics drivers retain a gentle, reversible DOM path. */}
     const b=panel.getBoundingClientRect(),o=orb.getBoundingClientRect(),base=panel.style.transform||'translate(0px,0px)';
-    panel.style.transformOrigin=`${o.x+o.width/2-b.x}px ${o.y+o.height/2-b.y}px`;panel.style.willChange='transform,opacity';
+    fallbackBox=b;panel.style.transformOrigin=`${o.x+o.width/2-b.x}px ${o.y+o.height/2-b.y}px`;panel.style.willChange='transform,opacity';
     if(!panel.animate){settle(visible);return;}
     fallback=panel.animate([{transform:base+' scale(.001,0)'},{transform:base+' scale(1)'}],{duration:680,easing:'cubic-bezier(.2,.75,.16,1)',fill:'both'});
     fallback.pause();fallback.currentTime=wasHidden?0:680;
    }
-   panel.dataset.dockRenderer='fallback';const animation=fallback;animation.playbackRate=visible?1:-1.12;animation.play();
+   panel.dataset.dockRenderer='fallback';const animation=fallback;
+   const follow=()=>{if(fallback!==animation||disposed)return;progress=animation.effect.getComputedTiming().progress??Number(target);const grip=notify(true);if(grip&&fallbackBox)panel.style.transformOrigin=`${grip.x-fallbackBox.x}px ${grip.y-fallbackBox.y}px`;frame=win.requestAnimationFrame(follow);};win.cancelAnimationFrame(frame);follow();animation.playbackRate=visible?1:-1.12;animation.play();
    animation.finished.then(()=>{if(fallback===animation)settle(target);},()=>{});
   };
   const refit=()=>{if(rendering||fallback)settle(target);if(!panel.hidden)fit();};
@@ -146,6 +149,6 @@ var PaperVoiceDockMotion = {
   const background=()=>{if(panel.ownerDocument.hidden&&(rendering||fallback))settle(target);};
   win.addEventListener('resize',refit);query.addEventListener('change',reduced);panel.ownerDocument.addEventListener('visibilitychange',background);
   panel._pvDockVisibility=show;
-  return {refit,finish(){if(rendering||fallback)settle(target);},dispose(){disposed=true;settle(false);delete panel._pvDockVisibility;win.removeEventListener('resize',refit);query.removeEventListener('change',reduced);panel.ownerDocument.removeEventListener('visibilitychange',background);}};
+  return {refit,setCompanion(listener){companion=listener;},finish(){if(rendering||fallback)settle(target);},dispose(){disposed=true;settle(false);delete panel._pvDockVisibility;win.removeEventListener('resize',refit);query.removeEventListener('change',reduced);panel.ownerDocument.removeEventListener('visibilitychange',background);}};
  }
 };

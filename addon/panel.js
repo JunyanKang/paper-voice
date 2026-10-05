@@ -334,15 +334,17 @@ var PaperVoiceUI = {
   let nextInteraction=Date.now()+controller.companionIntervalMs(),readingSince=null,readingElapsed=0,lastBreakAt=0;
   const gestureQueues={ready:[],reading:[]},lastGestures={ready:null,reading:null},sprite=find('mascotInteraction');
   const player=PaperVoiceCompanion.player(sprite,controller.assetURI,()=>{root.dataset.resting='true';});
-  const finishInteraction=()=>{player.finish();if(root.hasAttribute('data-interaction')){root.dataset.resting='true';if(!sprite.style.backgroundImage)root.removeAttribute('data-interaction');}};
+  let dockGesture=false,dockPose=false;
+  player.preload('dock-present');
+  const finishInteraction=()=>{if(dockGesture||dockPose)return;player.finish();if(root.hasAttribute('data-interaction')){root.dataset.resting='true';if(!sprite.style.backgroundImage)root.removeAttribute('data-interaction');}};
   const companionState=()=>['playing','paused'].includes(controller.state)?'reading':'ready';
   const syncCompanionPose=()=>{
    const now=Date.now();if(controller.state==='playing'){if(readingSince===null)readingSince=now;}else{if(readingSince!==null)readingElapsed+=now-readingSince;readingSince=null;if(!['paused','loading'].includes(controller.state)){readingElapsed=0;lastBreakAt=0;}}
-   const state=companionState();if(root.dataset.interactionSet===state)return;finishInteraction();if(lastGestures[state]){root.dataset.interactionSet=state;root.dataset.interaction=lastGestures[state];root.dataset.resting='true';player.still(lastGestures[state]);}else{root.removeAttribute('data-interaction');root.removeAttribute('data-interaction-set');root.removeAttribute('data-resting');}
+   const state=companionState();if(dockGesture||root.dataset.interactionSet===state)return;dockPose=false;finishInteraction();if(lastGestures[state]){root.dataset.interactionSet=state;root.dataset.interaction=lastGestures[state];root.dataset.resting='true';player.still(lastGestures[state]);}else{root.removeAttribute('data-interaction');root.removeAttribute('data-interaction-set');root.removeAttribute('data-resting');}
   };
   const resetCompanionSchedule=()=>{nextInteraction=Date.now()+controller.companionIntervalMs();};
   const playCompanion=forced=>{
-   finishInteraction();
+   if(dockGesture)return;dockPose=false;finishInteraction();
    if(doc.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
    const state=companionState();
    if(!gestureQueues[state].length){
@@ -351,6 +353,15 @@ var PaperVoiceUI = {
    const index=forced||gestureQueues[state].shift();lastGestures[state]=index;
    root.dataset.interactionSet=state;root.dataset.interaction=index;root.removeAttribute('data-resting');player.play(index);
   };
+  dockMotion.setCompanion((progress,moving)=>{
+   const enabled=controller.get('companionInteractions',true)&&!doc.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches;
+   if(!enabled){if(dockGesture||dockPose){dockGesture=dockPose=false;root.removeAttribute('data-interaction');root.removeAttribute('data-resting');}return;}
+   if(!moving&&!dockGesture)return;
+   if(!player.seek('dock-present',progress)){dockGesture=false;return;}
+   dockGesture=moving;dockPose=true;root.dataset.interactionSet=companionState();root.dataset.interaction='dock-present';
+   if(moving)root.removeAttribute('data-resting');else{root.dataset.resting='true';resetCompanionSchedule();}
+   const hand=PaperVoiceCompanion.hand(progress),bounds=sprite.getBoundingClientRect();return {x:bounds.left+bounds.width*hand.x,y:bounds.top+bounds.height*hand.y};
+  });
   let pageEvents=null,lastPage=null,pageAnimationTimer=null;
   const onPageChanged=({pageNumber})=>{
    if(!Number.isInteger(pageNumber)||pageNumber===lastPage)return;

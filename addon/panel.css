@@ -222,3 +222,6 @@
 .pv-shell[data-theme] .pv-background-row .pv-theme-more:focus{outline:none!important;box-shadow:none!important;background:transparent}
 .pv-shell[data-theme] .pv-background-row .pv-theme-more:hover,.pv-shell[data-theme] .pv-background-row .pv-theme-more:focus-visible{color:var(--pv-accent)}
 .pv-theme-more>span{display:block;width:3px;height:3px;border-radius:50%;background:currentColor;box-shadow:-5px 0 currentColor,5px 0 currentColor;font-size:0}
+
+/* The hand stays in front of the five-pixel window neck during release/return. */
+.pv-shell[data-interaction="dock-present"] .pv-orb{z-index:21}
