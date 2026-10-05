@@ -70,7 +70,7 @@ var PaperVoice = {
         }
       };
       const key = e => {
-        const transport=e.target.closest?.('[data-action="primary"],[data-action="previous"],[data-action="next"],[data-action="stop"],[data-action="quickPause"],[data-action="quickMode"],[data-action="quickStop"],[data-action="quickTranslate"],[data-action="orb"]');
+        const transport=e.target.closest?.('[data-action="primary"],[data-action="previous"],[data-action="next"],[data-action="quickPause"],[data-action="quickMode"],[data-action="quickStop"],[data-action="quickTranslate"],[data-action="orb"]');
         if(e.isComposing||(!transport&&e.target.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"],button,[role="button"],[role="menu"],[role="listbox"],[role="combobox"],[role="tree"],[role="slider"],.pv-panel,[data-field="playbackTools"]')))return;
         const active=this.currentReader===reader&&['playing','paused','loading'].includes(this.state);
         if(!active)return;
@@ -484,8 +484,7 @@ var PaperVoice = {
         action(name).setAttribute('aria-label',(delta<0?'上一':'下一')+(mode==='sentence'?'句':'段'));
         action(name).title=action(name).getAttribute('aria-label');
       }
-      action('stop').disabled=!active;
-      for(const [name,id] of [['primary','pause'],['quickPause','pause'],['stop','stop'],['quickStop','stop']])action(name).setAttribute('aria-keyshortcuts',PaperVoiceShortcuts.aria(this.shortcutBindings()[id]));
+      for(const [name,id] of [['primary','pause'],['quickPause','pause'],['quickStop','stop']])action(name).setAttribute('aria-keyshortcuts',PaperVoiceShortcuts.aria(this.shortcutBindings()[id]));
       this.localize(root);
     }
     this.updateUpdateControls?.();

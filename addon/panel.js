@@ -90,7 +90,7 @@ var PaperVoiceUI = {
     <div class="pv-context-row" data-field="documentRow" hidden><span>起点</span><select data-field="documentStart" aria-label="全文朗读起点"><option value="begin">首页</option><option value="current">当前页</option><option value="resume">上次位置</option><option value="selection">选定句</option></select></div>
     <div class="pv-preview" data-field="preview" tabindex="0" role="region" aria-label="原文预览">选择一段文字，留一点时间给耳朵。</div>
     <div class="pv-progress-track"><div data-field="progressBar"></div></div><div class="pv-status" data-field="status" role="status" aria-live="polite"></div>
-    <div class="pv-transport"><button class="pv-icon-button" data-action="previous" aria-label="上一句" title="上一句">${icon('chevron-left')}</button><button class="pv-primary" data-action="primary">${icon('play')}<span data-field="primaryLabel">开始朗读</span></button><button class="pv-icon-button" data-action="next" aria-label="下一句" title="下一句">${icon('chevron-right')}</button><button class="pv-icon-button pv-stop" data-action="stop" aria-label="停止朗读" title="停止 · Esc">${icon('square')}</button></div>
+    <div class="pv-transport"><button class="pv-icon-button" data-action="previous" aria-label="上一句" title="上一句">${icon('chevron-left')}</button><button class="pv-primary" data-action="primary">${icon('play')}<span data-field="primaryLabel">开始朗读</span></button><button class="pv-icon-button" data-action="next" aria-label="下一句" title="下一句">${icon('chevron-right')}</button></div>
     <footer class="pv-footer"><button data-action="voiceSettings" data-field="voiceSummary">美音 · Heart</button><span>免费离线朗读</span></footer>
    </div>
    <div data-field="settingsPage" hidden>
@@ -323,7 +323,7 @@ var PaperVoiceUI = {
   action('checkUpdate').onclick=()=>controller.updateState==='available'?controller.installUpdate():controller.checkForUpdates();
   find('autoUpdate').onchange=e=>controller.setAutoUpdate(e.target.checked);
   action('primary').onclick=()=>controller.primary(reader);action('previous').onclick=()=>controller.stepSentence(-1,reader);action('next').onclick=()=>controller.stepSentence(1,reader);
-  action('stop').onclick=action('quickStop').onclick=()=>controller.stop();action('quickPause').onclick=()=>controller.primary(reader);
+  action('quickStop').onclick=()=>controller.stop();action('quickPause').onclick=()=>controller.primary(reader);
   for(const [name,path] of Object.entries({help:'/blob/main/docs/GUIDE.md',feedback:'/issues',privacy:'/blob/main/PRIVACY.md'}))action(name).onclick=()=>Zotero.launchURL('https://github.com/JunyanKang/paper-voice'+(name==='help'&&controller.language?.()!=='zh'?'/blob/main/docs/GUIDE.en.md':path));
   action('sample').onclick=()=>controller.speak(PaperVoiceCore.speechLanguages.find(x=>x.id===controller.settingsVoiceLanguage()).sample,reader,true);
   let drag=null,moved=false;
