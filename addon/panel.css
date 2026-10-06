@@ -225,3 +225,11 @@
 
 /* The hand stays in front of the five-pixel window neck during release/return. */
 .pv-shell[data-interaction="dock-present"] .pv-orb{z-index:21}
+
+/* Quiet, one-time update announcement; never blocks the mascot or playback. */
+.pv-mini{position:relative}.pv-update-badge{position:absolute!important;right:-1px;bottom:44px;z-index:22;width:18px;height:18px;padding:3px!important;border-radius:50%;background:var(--pv-accent)!important;color:var(--pv-primary-ink)!important;box-shadow:0 0 0 2px var(--pv-paper),0 2px 6px #10243124}.pv-update-badge .pv-icon{width:12px;height:12px;filter:brightness(0) invert(1)}
+.pv-update-badge[data-fresh=true]{animation:pv-update-arrive .7s cubic-bezier(.2,.8,.25,1) both}@keyframes pv-update-arrive{0%{opacity:0;transform:translateY(5px) scale(.65)}65%{opacity:1;transform:translateY(-1px) scale(1.1)}100%{opacity:1;transform:none}}
+.pv-update-notice{position:absolute;right:0;bottom:72px;z-index:24;width:260px;max-width:calc(100vw - 36px);padding:12px;border-radius:14px;background:var(--pv-glass);color:var(--pv-ink);outline:1px solid var(--pv-glass-line);outline-offset:-1px;box-shadow:var(--pv-small-shadow);backdrop-filter:blur(18px);font:400 11px/1.5 system-ui,sans-serif}
+.pv-update-notice-heading{display:flex;align-items:center;gap:7px}.pv-update-notice-heading strong{font-weight:500;color:var(--pv-accent)}.pv-update-notice-heading button{margin-left:auto;width:20px;height:20px;padding:3px}.pv-update-notice-heading .pv-icon{width:13px;height:13px}.pv-update-notice-actions{display:flex;justify-content:space-between;gap:10px;margin-top:10px}.pv-update-notice-actions button{font:500 11px/1.5 system-ui,sans-serif;padding:5px 8px;border-radius:8px;white-space:nowrap;text-align:center}.pv-update-notice-actions button:last-child{background:var(--pv-accent);color:var(--pv-primary-ink)}
+.pv-update-row select,.pv-update-row .pv-select{width:64px;min-width:64px;max-width:64px;flex:none}.pv-update-row .pv-select-trigger{font-size:10px;padding:2px 0}.pv-update-row{gap:6px}
+@media(prefers-reduced-motion:reduce){.pv-update-badge{animation:none!important}}

@@ -987,6 +987,14 @@ var PaperVoiceI18n = (() => {
  Object.assign(catalogs.ja,{"角色互动": "しぐさ"});
  Object.assign(catalogs.fr,{"译文": "Traduire", "外观": "Style", "角色互动": "Compagnon"});
  Object.assign(catalogs.de,{"外观": "Stil", "角色互动": "Begleiter"});
+ Object.assign(catalogs.en,{"读取正文…": "Reading PDF…", "启动声音…": "Starting voice…", "生成语音…": "Generating audio…", "翻译中…": "Translating…", "正在启动声音…": "Starting voice…", "正在生成语音…": "Generating audio…", "正在准备译文…": "Translating…"});
+ Object.assign(catalogs.ja,{"读取正文…": "本文を読込中…", "启动声音…": "音声を起動中…", "生成语音…": "音声を生成中…", "翻译中…": "翻訳中…", "正在启动声音…": "音声を起動中…", "正在生成语音…": "音声を生成中…", "正在准备译文…": "翻訳中…"});
+ Object.assign(catalogs.fr,{"读取正文…": "Lecture du PDF…", "启动声音…": "Démarrage audio…", "生成语音…": "Création audio…", "翻译中…": "Traduction…", "正在启动声音…": "Démarrage audio…", "正在生成语音…": "Création audio…", "正在准备译文…": "Traduction…"});
+ Object.assign(catalogs.de,{"读取正文…": "PDF wird geladen…", "启动声音…": "Stimme startet…", "生成语音…": "Audio wird erstellt…", "翻译中…": "Übersetzung…", "正在启动声音…": "Stimme startet…", "正在生成语音…": "Audio wird erstellt…", "正在准备译文…": "Übersetzung…"});
+ Object.assign(catalogs.en,{"自动检查": "Auto-check", "检查周期": "Check interval", "1天": "1 day", "1周": "1 week", "1月": "1 month", "定期检查": "Scheduled", "发现新版本": "Update available", "忽略此版本": "Skip this version", "已忽略此版本": "Version skipped", "自动检查已开启 · 安装前会提醒": "Automatic checks on · You choose when to install", "自动检查已关闭 · 可随时手动检查": "Automatic checks off · Check manually anytime"});
+ Object.assign(catalogs.ja,{"自动检查": "自動確認", "检查周期": "確認間隔", "1天": "1日", "1周": "1週", "1月": "1月", "定期检查": "定期確認", "发现新版本": "新バージョン", "忽略此版本": "この版をスキップ", "已忽略此版本": "スキップ済み", "自动检查已开启 · 安装前会提醒": "自動確認オン・インストール前に通知", "自动检查已关闭 · 可随时手动检查": "自動確認オフ・手動確認できます"});
+ Object.assign(catalogs.fr,{"自动检查": "Vérif. auto", "检查周期": "Fréquence", "1天": "1 jour", "1周": "1 sem.", "1月": "1 mois", "定期检查": "Planifié", "发现新版本": "Mise à jour", "忽略此版本": "Ignorer cette version", "已忽略此版本": "Version ignorée", "自动检查已开启 · 安装前会提醒": "Vérification auto · Installation sur demande", "自动检查已关闭 · 可随时手动检查": "Vérification auto désactivée"});
+ Object.assign(catalogs.de,{"自动检查": "Auto-Prüfung", "检查周期": "Prüfintervall", "1天": "1 Tag", "1周": "1 Wo.", "1月": "1 Mon.", "定期检查": "Geplant", "发现新版本": "Update verfügbar", "忽略此版本": "Version überspringen", "已忽略此版本": "Version übersprungen", "自动检查已开启 · 安装前会提醒": "Automatische Prüfung · Installation auf Wunsch", "自动检查已关闭 · 可随时手动检查": "Automatische Prüfung aus"});
  const keys=Object.keys(catalogs.en).sort((a,b)=>b.length-a.length);
  const pattern=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
  const sources=new WeakMap();

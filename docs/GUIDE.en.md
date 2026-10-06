@@ -19,6 +19,9 @@
 9. [Keyboard shortcuts](#keyboard-shortcuts)
 10. [Updates and common questions](#updates-and-common-questions)
 
+
+The main window folds away when you click or select PDF text, annotate, scroll manually, or switch PDFs. It stays open while you use plugin controls or narration scrolls automatically.
+
 ## Your first reading
 
 ### Install the voices and plugin
@@ -272,7 +275,7 @@ Open **Settings → Keys**, click a key on the right, then press your preferred 
 
 ### How do I update?
 
-Enable **Auto-update** under **Settings → Voice** for Zotero to check periodically, or select **Check → Install update**. Downloads and updates require access to GitHub.
+Under **Settings → Voice**, enable **Auto-check** and choose **1 day, 1 week or 1 month** (default: 1 week). Checks run while Zotero is open; an overdue check runs after the next launch. A small badge on the book companion announces a new version. Click it to install or **Skip this version**. Skipped versions stay quiet; a newer version can notify you again. Checks never install automatically. You can also use **Check → Install update** at any time. Downloads and updates require access to GitHub.
 
 - **Upgrading from 1.2.5 or earlier:** download the latest complete package and run the installer to reinstall offline voices once.
 - **Already installed a complete package from 1.2.6 or later:** update only the `.xpi` plugin. No voice download is needed.
