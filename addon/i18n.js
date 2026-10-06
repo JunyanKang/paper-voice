@@ -975,6 +975,10 @@ var PaperVoiceI18n = (() => {
  const themeNames={en:['Sakura','Inkstone','Silver','Aurora','Velvet'],ja:['桜霞','墨竹','銀翼','オーロラ','酒紅'],fr:['Sakura','Encre','Argent','Aurore','Velours'],de:['Sakura','Tusche','Silber','Aurora','Samt']};
  for(const [lang,names] of Object.entries(themeNames))['樱雾','墨竹','银翼','极光','酒绒'].forEach((name,i)=>catalogs[lang][name]=names[i]);
  for(const [lang,label] of Object.entries({en:'Original / translated audio',ja:'原文／訳文の音声',fr:'Audio original / traduit',de:'Original / Übersetzung lesen'}))catalogs[lang]['原文／译文朗读']=label;
+ Object.assign(catalogs.en,{"更改…": "Change…", "恢复自动": "Use auto"});
+ Object.assign(catalogs.ja,{"更改…": "変更…", "恢复自动": "自動に戻す"});
+ Object.assign(catalogs.fr,{"更改…": "Modifier…", "恢复自动": "Auto"});
+ Object.assign(catalogs.de,{"更改…": "Ändern…", "恢复自动": "Automatisch"});
  Object.assign(catalogs.en,{"声音位置": "Voice folder", "选择声音文件夹": "Choose voice folder", "自动识别": "Auto-detect", "自定义": "Custom", "恢复自动识别": "Reset auto-detection", "文件夹内没有完整的离线声音": "This folder does not contain complete offline voices", "声音位置已保存，下次开始朗读生效": "Voice folder saved for the next reading session"});
  Object.assign(catalogs.ja,{"声音位置": "音声の場所", "选择声音文件夹": "音声フォルダーを選択", "自动识别": "自動検出", "自定义": "カスタム", "恢复自动识别": "自動検出に戻す", "文件夹内没有完整的离线声音": "完全な音声ファイルがありません", "声音位置已保存，下次开始朗读生效": "次の読み上げから適用します"});
  Object.assign(catalogs.fr,{"声音位置": "Dossier vocal", "选择声音文件夹": "Choisir le dossier vocal", "自动识别": "Automatique", "自定义": "Personnalisé", "恢复自动识别": "Détection auto", "文件夹内没有完整的离线声音": "Dossier vocal incomplet", "声音位置已保存，下次开始朗读生效": "Dossier enregistré pour la prochaine lecture"});

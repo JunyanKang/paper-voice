@@ -127,7 +127,7 @@ Open **Settings → Voice**.
 
 The installer downloads independent offline voices that generate speech on your computer. They do not depend on system voices and require no subscription or API key.
 
-**Voice folder** detects the installer's saved location by default. Use the folder button to choose manually, or reset to restore automatic discovery. Changes apply when you next start reading. Keep external drives connected. [Voice folder details →](INSTALL.en.md#voice-folder)
+**Voice folder** detects the installer's saved location by default. The actual path appears below. **Change…** opens the current folder; **Use auto** appears after a manual choice to restore automatic discovery. Changes apply when you next start reading. Keep external drives connected. [Voice folder details →](INSTALL.en.md#voice-folder)
 
 ## See or hear a translation
 

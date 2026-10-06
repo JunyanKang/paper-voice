@@ -373,7 +373,7 @@ var PaperVoice = {
         const select=find('voice');select.replaceChildren();
         for(const v of PaperVoiceCore.voices.filter(v=>v.language===this.settingsVoiceLanguage())){const option=root.ownerDocument.createElement('option');option.value=v.id;option.textContent=v.label;select.append(option);}
       }
-      find('engineLocation').textContent=this.get('enginePath','')?this.t('自定义'):this.t('自动识别');find('engineLocation').title=this.engineRoot();action('resetEngineFolder').disabled=!this.get('enginePath','');
+      const enginePath=this.engineRoot(),location=find('engineLocation'),home=Services.dirsvc.get('Home',Components.interfaces.nsIFile).path;location.textContent=(enginePath.startsWith(home+'/')||enginePath.startsWith(home+'\\'))?'~'+enginePath.slice(home.length):enginePath;location.removeAttribute('title');delete location.dataset.pvTooltip;action('resetEngineFolder').hidden=!this.get('enginePath','');
       find('voice').value=this.settingsVoice();find('auto').checked=this.get('auto',true);
       find('rate').value=this.get('rate',1);find('rateLabel').textContent=`${Number(this.get('rate',1)).toFixed(2)}×`;
       find('documentRow').hidden=mode!=='document';find('documentStart').value=this.get('documentStart','begin');
@@ -641,10 +641,22 @@ var PaperVoice = {
     try{const file=Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsIFile);file.initWithPath(PathUtils.join(base,'paper-voice-location.json'));if(file.exists()&&file.fileSize<16384){const entry=JSON.parse(Zotero.File.getContents(file));if(entry.schema===1&&typeof entry.root==='string'&&PathUtils.isAbsolute(entry.root))return entry.root;}}catch(_){}
     return PathUtils.join(base,'paper-voice-engine');
   },
+  enginePickerDirectory() {
+    // Start where the voices actually live (including the installer's custom
+    // location), falling back to an existing parent on first installation.
+    for(const path of [this.engineRoot(),this.engineLocationBase()]) {
+      try {
+        let file=Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsIFile);file.initWithPath(path);
+        while(file){if(file.exists()&&file.isDirectory())return file;file=file.parent;}
+      }catch(_){}
+    }
+    return Services.dirsvc.get('Home',Components.interfaces.nsIFile);
+  },
   async chooseEngineFolder() {
     if(this.choosingEngineFolder)return;this.choosingEngineFolder=true;
     try{const picker=Components.classes['@mozilla.org/filepicker;1'].createInstance(Components.interfaces.nsIFilePicker);
       picker.init(this.host.browsingContext,this.t('选择声音文件夹'),picker.modeGetFolder);
+      picker.displayDirectory=this.enginePickerDirectory();
       const result=await new Promise(resolve=>picker.open(resolve));if(result!==picker.returnOK)return;
       let path=picker.file.path;
       if(await IOUtils.exists(PathUtils.join(path,'paper-voice-engine','worker.py')))path=PathUtils.join(path,'paper-voice-engine');

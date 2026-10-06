@@ -1,5 +1,13 @@
 # 更新记录
 
+## 1.4.3 · 2026-10-06
+
+- 声音位置显示实际路径，以「更改…」替代含义不清的图标组合；仅在手动指定位置后显示「恢复自动」。
+- 文件夹选择器从实际声音目录打开，支持默认目录及安装器保存的自定义目录；目录失效时回退到可用上级。
+- 同步五种界面语言与中英文使用指南、安装说明和截图。
+
+Voice settings now show the actual folder with a clear Change action. The picker opens the active voice location, falling back to an existing parent when unavailable. Use auto appears only after a manual choice. Includes updated localized controls and bilingual guides.
+
 ## 1.4.2 · 2026-10-06
 
 - 划词翻译与 Zotero 原生弹窗统一宽度，避免不同电脑上内容越出背景边界。

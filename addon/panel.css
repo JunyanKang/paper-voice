@@ -242,3 +242,11 @@
 @media(prefers-reduced-motion:reduce){.pv-update-badge{animation:none!important}}
 
 .pv-engine-location{display:flex;align-items:center;gap:7px;margin:3px 0;font:400 11px/1.5 system-ui;min-height:25px}.pv-engine-location [data-field=engineLocation]{margin-left:auto;color:var(--pv-muted)}.pv-engine-location button{display:flex;align-items:center;justify-content:center;width:24px;height:24px;padding:4px;border-radius:7px}.pv-engine-location .pv-icon{width:15px;height:15px}.pv-engine-location button:hover{background:var(--pv-soft)}
+
+/* A real path and a named action replace the ambiguous detection/icon cluster. */
+.pv-engine-location{display:block;margin:3px 0;min-width:0}
+.pv-engine-heading{display:flex;align-items:center;gap:10px;min-height:24px}
+.pv-engine-heading>span{margin-right:auto}
+.pv-engine-location .pv-engine-heading button{width:auto;height:24px;padding:0 4px;font:400 11px/1.5 system-ui,sans-serif;color:var(--pv-accent);white-space:nowrap}
+.pv-engine-location [data-field=engineLocation]{margin:0;max-width:100%;overflow:auto;scrollbar-width:none;white-space:nowrap;font:400 10px/16px system-ui,sans-serif;color:var(--pv-muted);direction:ltr;text-align:left;user-select:text}
+.pv-engine-path::-webkit-scrollbar{display:none}
