@@ -24,7 +24,7 @@ with tempfile.TemporaryDirectory(prefix='voice-native-') as temp:
   result=t/'result.json';args=[str(installer),'--zotero-action',operation,'--profile-base',str(t),'--profile',str(profile),'--xpi',str(xpi),'--backup-dir',str(t/'backup'),'--result',str(result)]
   p=subprocess.run(args,capture_output=True,timeout=40);assert (p.returncode==0)==ok,(p.returncode,result.read_text(errors='replace'));return json.loads(result.read_text(encoding='utf-8-sig')) if ok else None
  assert call('stage')['state']=='pending'
- log=open(base/'zotero-native.log','w',encoding='utf-8');proc=subprocess.Popen([str(binary),'-no-remote','-profile',str(profile),'-ZoteroDebugText'],stdout=log,stderr=subprocess.STDOUT)
+ log=open(base/'zotero-native.log','w',encoding='utf-8');proc=subprocess.Popen([str(binary),*(['-wait-for-browser'] if win else []),'-no-remote','-profile',str(profile),'-ZoteroDebugText'],stdout=log,stderr=subprocess.STDOUT)
  try:
   deadline=time.monotonic()+180;metadata=None
   while time.monotonic()<deadline:
@@ -36,9 +36,13 @@ with tempfile.TemporaryDirectory(prefix='voice-native-') as temp:
   assert metadata.get('userDisabled') is True and metadata.get('active') is False,metadata
   assert call('status')['state']=='disabled';checks.append('official Zotero discovers XPI; default security requires first activation')
   call('stage',False);checks.append('running Zotero native profile lock blocks replacement')
+  if win:
+   print('Application INI candidates:',[str(p.relative_to(app)) for p in app.rglob('application.ini')],flush=True)
+   subprocess.run(['powershell','-NoProfile','-Command','(Get-Item -LiteralPath '+chr(39)+str(binary).replace(chr(39),chr(39)*2)+chr(39)+').VersionInfo | Format-List ProductName,ProductVersion'],check=True)
   detection=call('discover');assert detection['profiles'][0]['name']=='QA';assert detection['applications'],detection;checks.append('official application detected and identity/version validated')
  finally:
-  proc.terminate()
+  if win:subprocess.run(['taskkill','/PID',str(proc.pid),'/T','/F'],capture_output=True)
+  else:proc.terminate()
   try:proc.wait(timeout=30)
   except subprocess.TimeoutExpired:proc.kill();proc.wait(timeout=10)
   log.close()

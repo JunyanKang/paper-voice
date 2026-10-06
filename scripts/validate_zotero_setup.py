@@ -32,8 +32,8 @@ with tempfile.TemporaryDirectory(prefix='voice-profiles-') as temp:
  for active,disabled,incompatible,expected in [(False,False,False,'pending'),(False,True,False,'disabled'),(False,False,True,'incompatible'),(True,False,False,'installed')]:
   (profile/'extensions.json').write_text(json.dumps({'addons':[dict(id=addon,version=version,active=active,userDisabled=disabled,appDisabled=incompatible)]}));assert call('status')['state']==expected
  checks.append('pending, disabled, incompatible and active distinguished by exact-version metadata')
- target.write_bytes(b'old package');(profile/'extensions.json').write_text(json.dumps({'addons':[dict(id=addon,version='99.0.0')]}));call('stage',ok=False);assert target.read_bytes()==b'old package'
- (profile/'extensions.json').write_text(json.dumps({'addons':[dict(id=addon,version='1.0.0',userDisabled=True)]}));db=(profile/'extensions.json').read_bytes();call('stage');assert next((t/'backups').glob('*.xpi')).read_bytes()==b'old package';assert (profile/'extensions.json').read_bytes()==db
+ target.write_bytes(b'old package');(profile/'addonStartup.json.lz4').write_bytes(b'generated cache');(profile/'extensions.json').write_text(json.dumps({'addons':[dict(id=addon,version='99.0.0')]}));call('stage',ok=False);assert target.read_bytes()==b'old package'
+ (profile/'extensions.json').write_text(json.dumps({'addons':[dict(id=addon,version='1.0.0',userDisabled=True)]}));db=(profile/'extensions.json').read_bytes();call('stage');assert next((t/'backups').glob('*.xpi')).read_bytes()==b'old package';assert (profile/'extensions.json').read_bytes()==db;assert not (profile/'addonStartup.json.lz4').exists();assert next((t/'backups').glob('*-addonStartup.json.lz4')).read_bytes()==b'generated cache'
  assert prefs.read_bytes()==before and unrelated.read_bytes()==b'keep' and (profile/'zotero.sqlite').read_bytes()==b'untouched library sentinel';checks.append('newer version protected; replacement backed up; metadata/preferences/library/other plugins unchanged')
  if not win:
   target.unlink();target.symlink_to(xpi);call('stage',ok=False);target.unlink();checks.append('symlink target rejected')

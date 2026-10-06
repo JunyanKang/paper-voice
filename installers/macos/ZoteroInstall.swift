@@ -83,6 +83,9 @@ enum ZoteroInstall {
   let temp=extensions.appendingPathComponent(".paper-voice-"+UUID().uuidString);defer{try? files.removeItem(at:temp)}
   try files.copyItem(at:xpi,to:temp)
   guard try hash(temp)==digest else{throw error("插件校验失败 / Plugin verification failed")}
+  // Zotero may otherwise reuse cached manifest/version data after an offline update.
+  let startup=profile.appendingPathComponent("addonStartup.json.lz4");try regular(startup)
+  if files.fileExists(atPath:startup.path){try files.createDirectory(at:backups,withIntermediateDirectories:true);try files.copyItem(at:startup,to:backups.appendingPathComponent(UUID().uuidString+"-addonStartup.json.lz4"));try files.removeItem(at:startup)}
   // rename is atomic on the same volume; unrelated profile metadata is untouched.
   guard rename(temp.path,target.path)==0 else{throw error("无法写入插件 / Cannot write plugin")}
   guard try hash(target)==digest else{throw error("插件校验失败 / Plugin verification failed")}
