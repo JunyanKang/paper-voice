@@ -1,5 +1,14 @@
 # 更新记录
 
+## 1.4.1 · 2026-10-06
+
+- 安装器将 XPI 保存至用户可见的「下载/Paper Voice」，内部缓存与交付文件分离。
+- 更新检查直接访问发布域名，减少一次跨域跳转；失败时重试并保留原检查周期，提示区分检查与安装失败。
+- 不再覆盖 Zotero 原生自动更新策略，保留用户在插件管理器中的选择。
+- 同步中英文安装说明与界面截图。
+
+The installer now saves the XPI in Downloads/Paper Voice. Update checks use the direct publishing address, retry transient failures and preserve Zotero’s native update policy.
+
 
 ## 1.4.0 · 2026-10-06
 

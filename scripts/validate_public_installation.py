@@ -5,9 +5,9 @@ r=Path(__file__).resolve().parents[1];base=r/'.build/online-installers';config=j
 exe=r/'dist'/f"Paper-Voice-{config['version']}-Windows.exe" if windows else base/'Paper Voice Installer.app/Contents/MacOS/Paper Voice Installer'
 with tempfile.TemporaryDirectory(prefix='voice-public-') as folder:
  t=Path(folder);dest=t/'voices/paper-voice-engine';pointer=t/'settings/location.json';result=t/'result.txt'
- process=subprocess.run([str(exe),'--quiet','--destination',str(dest),'--pointer',str(pointer),'--download-dir',str(t/'cache'),'--result',str(result)],capture_output=True,text=True,timeout=1200)
+ process=subprocess.run([str(exe),'--quiet','--destination',str(dest),'--pointer',str(pointer),'--download-dir',str(t/'cache'),'--result',str(result),'--plugin-dir',str(t/'Downloads/Paper Voice')],capture_output=True,text=True,timeout=1200)
  assert process.returncode==0, result.read_text(errors='replace') if result.exists() else process.stderr
  assert json.loads(pointer.read_text())['root']==str(dest.resolve())
  xpi=t/'cache'/config['plugin']['name'];assert hashlib.sha256(xpi.read_bytes()).hexdigest()==config['plugin']['sha256']
- assert (dest/'worker.py').exists()
+ assert (dest/'worker.py').exists();assert (t/'Downloads/Paper Voice'/config['plugin']['name']).read_bytes()==xpi.read_bytes()
  print('Public HTTPS download, hash verification and full voice setup passed on',sys.platform)

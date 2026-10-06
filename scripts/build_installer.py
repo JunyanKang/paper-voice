@@ -4,7 +4,7 @@ import hashlib,json,os,plistlib,shutil,struct,subprocess,sys,time
 ROOT=Path(__file__).resolve().parents[1];version=json.loads((ROOT/'package.json').read_text())['version'];out=ROOT/'.build/online-installers';out.mkdir(parents=True,exist_ok=True)
 platform='macOS-arm64' if sys.platform=='darwin' else 'Windows-x64'
 xpi=ROOT/'dist/Paper Voice'/f'paper-voice-{version}.xpi'
-config={'version':version,'plugin':{'name':xpi.name,'url':f'https://junyankang.github.io/paper-voice/v{version}/{xpi.name}','bytes':xpi.stat().st_size,'sha256':hashlib.sha256(xpi.read_bytes()).hexdigest()},'runtime':json.loads((ROOT/'installers'/f'runtime-{platform}.json').read_text())}
+config={'version':version,'plugin':{'name':xpi.name,'url':f'https://kanglab.cool/paper-voice/v{version}/{xpi.name}','bytes':xpi.stat().st_size,'sha256':hashlib.sha256(xpi.read_bytes()).hexdigest()},'runtime':json.loads((ROOT/'installers'/f'runtime-{platform}.json').read_text())}
 (out/'installer.json').write_text(json.dumps(config,ensure_ascii=False,separators=(',',':'))+'\n')
 if sys.platform=='darwin':
  app=out/'Paper Voice Installer.app';resources=app/'Contents/Resources';binary=app/'Contents/MacOS/Paper Voice Installer';resources.mkdir(parents=True,exist_ok=True);binary.parent.mkdir(parents=True,exist_ok=True)

@@ -8,12 +8,12 @@ with tempfile.TemporaryDirectory(prefix='voice-安装 test-') as scratch:
   try:os.link(source,assets/source.name)
   except OSError:shutil.copyfile(source,assets/source.name)
  def run(*extra,ok=True,package=assets):
-  args=[str(exe),'--quiet','--destination',str(dest),'--pointer',str(pointer),'--download-dir',str(cache),'--result',str(temp/'result.txt')]
+  args=[str(exe),'--quiet','--destination',str(dest),'--pointer',str(pointer),'--download-dir',str(cache),'--result',str(temp/'result.txt'),'--plugin-dir',str(temp/'下载/Paper Voice')]
   if package:args+=['--package-dir',str(package)]
   p=subprocess.run(args+list(extra),capture_output=True,text=True,timeout=480)
   detail=(temp/'result.txt').read_text(errors='replace') if (temp/'result.txt').exists() else p.stderr
   assert (p.returncode==0)==ok,(p.returncode,detail,p.stdout)
- run('--plugin-only');assert (cache/config['plugin']['name']).exists() and not pointer.exists();checks.append('plugin-only does not alter voices or path')
+ run('--plugin-only');exported=temp/'下载/Paper Voice'/config['plugin']['name'];assert hashlib.sha256(exported.read_bytes()).hexdigest()==config['plugin']['sha256'];stamp=exported.stat().st_mtime_ns;run('--plugin-only');assert exported.stat().st_mtime_ns==stamp;exported.write_bytes(b'broken');run('--plugin-only');assert hashlib.sha256(exported.read_bytes()).hexdigest()==config['plugin']['sha256'];checks.append('visible plugin export is verified, reused and repaired');assert (cache/config['plugin']['name']).exists() and not pointer.exists();checks.append('plugin-only does not alter voices or path')
  run('--cancel-test',ok=False);assert not dest.exists() and not pointer.exists();checks.append('cancel never activates partial voices')
  run();assert json.loads(pointer.read_text())['root']==str(dest.resolve());checks.append('install to Chinese and space path and publish discovery pointer')
  python=dest/('python/python.exe' if windows else 'python/bin/python3');worker=dest/'worker.py'

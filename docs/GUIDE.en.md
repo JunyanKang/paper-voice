@@ -277,6 +277,8 @@ Open **Settings → Keys**, click a key on the right, then press your preferred 
 
 ### How do I update?
 
+The installer saves its XPI in **Downloads → Paper Voice**. You can also check for updates from Zotero’s own plugin manager. Its automatic-installation choice is independent of the reminder schedule below and is no longer overwritten by Paper Voice. [Native updater settings →](INSTALL.en.md#updating-an-existing-installation)
+
 Under **Settings → Voice**, enable **Auto-check** and choose **1 day, 1 week or 1 month** (default: 1 week). Checks run while Zotero is open; an overdue check runs after the next launch. A small badge on the book companion announces a new version. Click it to install or **Skip this version**. Skipped versions stay quiet; a newer version can notify you again. Checks never install automatically. You can also use **Check → Install update** at any time. Downloads and updates require access to GitHub.
 
 **Upgrading from 1.3.10 or earlier** requires a one-time migration: run the new installer, select **Plugin only**, and install the downloaded XPI in Zotero. Future checks remain available inside the plugin. If your voices come from **1.2.5 or earlier**, choose **Download & install** to update them as well.

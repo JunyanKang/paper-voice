@@ -20,7 +20,9 @@ python3 scripts/stage_distribution.py --preserve-published
 
 The current runtime source is the validated macOS and Windows ZIPs from release **1.3.10**, downloaded into `dist/`. Keep that historical release available. `prepare_downloads.py` extracts licensed runtimes, produces shared voice models plus platform engines, splits them into 32 MiB chunks, and writes SHA256 inventories in `installers/runtime-*.json`. Generated runtime files are not committed.
 
-The **Publish download service** workflow performs this preparation and deploys `.build/download-site/`. It verifies that runtime manifests match the committed copies. Versioned XPIs are recorded in `catalog.json`; subsequent deployments retain older XPI URLs so existing installers remain usable. This deployment currently retains the same versioned voice runtime. If changing the runtime ID, retain the previous runtime chunks as well before publishing a new installer. The staging script enforces a 950 MiB site limit; migrate binary hosting before exceeding it.
+The **Publish download service** workflow performs this preparation and deploys `.build/download-site/`. It verifies that runtime manifests match the committed copies. User-facing XPIs are exported to the system Downloads folder under Paper Voice; download chunks remain in the internal cache. Quiet tests require an explicit `--plugin-dir` to avoid the real Downloads folder.
+
+Versioned XPIs are recorded in `catalog.json`; subsequent deployments retain older XPI URLs so existing installers remain usable. This deployment currently retains the same versioned voice runtime. If changing the runtime ID, retain the previous runtime chunks as well before publishing a new installer. The staging script enforces a 950 MiB site limit; migrate binary hosting before exceeding it.
 
 GitHub Pages uses the account's custom domain redirect. Test the full HTTPS redirect chain, not just the first response. The plugin manifest points to the Pages `updates.json` feed.
 
@@ -39,7 +41,7 @@ Both interfaces share a 640 × 510 layout, the bundled Voice Sans subset, three 
 
 **Validate download installers** builds and runs both platforms. Acceptance checks use disposable paths, including spaces and Chinese characters, and cover plugin-only behavior, cancellation, four-language speech synthesis, reuse, missing or corrupt downloads, repair and cleanup. Artifacts include installers and native screenshots; test reports are workflow artifacts only.
 
-`--quiet`, `--package-dir`, `--destination`, `--pointer`, `--download-dir` and `--screenshot` exist for isolated validation. With no `--package-dir`, the actual HTTPS downloader is exercised. Never point validation at a user's existing voices.
+`--quiet`, `--package-dir`, `--destination`, `--pointer`, `--download-dir`, `--plugin-dir` and `--screenshot` exist for isolated validation. With no `--package-dir`, the actual HTTPS downloader is exercised. Never point validation at a user's existing voices.
 
 ## Publish checklist
 

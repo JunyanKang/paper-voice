@@ -43,7 +43,7 @@ Cancel is available during downloads. Verified chunks are kept for retry, and an
 
 ## 3. Add the plugin to Zotero
 
-Select **Show plugin file** to reveal the downloaded XPI. In Zotero, open:
+The XPI is saved in the visible **Downloads → Paper Voice** folder, outside the hidden cache. Select **Show plugin file** to reveal it. In Zotero, open:
 
 **Tools → Plugins → gear → Install Plugin From File**
 
@@ -74,7 +74,9 @@ Connect an external drive before reading. If you move voices yourself, select th
 - **Voices still come from 1.2.5 or earlier:** choose **Download & install** once to add Chinese, Japanese and French support.
 - **After migration:** keep using **Check → Install update** in the plugin. The daily, weekly and monthly check intervals and Skip this version remain available. Voice locations, preferences and reading progress are independent of plugin updates.
 
-Releases provide DMG and EXE installers only. The installer retrieves the XPI and voices for you. Failed updates leave the installed version usable.
+Releases provide DMG and EXE installers only. The installer retrieves the XPI and voices for you. Failed updates leave the installed version usable. A failed plugin check retries once, then tries again after about 15 minutes without consuming the normal check interval.
+
+**Zotero’s built-in updater also works.** Choose Check for Updates in Tools → Plugins → gear. Background installation follows Paper Voice’s Automatic Updates choice in Zotero; the plugin no longer overrides it. Earlier versions may have switched this off. Choose Default or On in Zotero if you want automatic installation; manual checks still work when it is off. Skip this version hides the plugin’s reminder and does not change Zotero’s installation policy.
 
 ## Installation help
 

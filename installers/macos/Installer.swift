@@ -61,9 +61,20 @@ final class Engine{
   p.environment=ProcessInfo.processInfo.environment.merging(["HF_HUB_OFFLINE":"1","PYTHONNOUSERSITE":"1"]){_,n in n}
   try p.run();let output=pipe.fileHandleForReading.readDataToEndOfFile();p.waitUntilExit();guard p.terminationStatus==0 else{throw fail(String(data:output,encoding:.utf8) ?? "Installation failed")}
  }
+ func exportPlugin(_ source:URL,_ asset:[String:Any])throws->URL{
+  let folder=arg("--plugin-dir").map{URL(fileURLWithPath:$0)} ?? fm.urls(for:.downloadsDirectory,in:.userDomainMask)[0].appendingPathComponent("Paper Voice")
+  try fm.createDirectory(at:folder,withIntermediateDirectories:true)
+  let target=folder.appendingPathComponent(source.lastPathComponent)
+  if valid(target,asset){return target}
+  let temp=folder.appendingPathComponent(".paper-voice-"+UUID().uuidString)
+  defer{try? fm.removeItem(at:temp)}
+  try fm.copyItem(at:source,to:temp)
+  if fm.fileExists(atPath:target.path){_ = try fm.replaceItemAt(target,withItemAt:temp)}else{try fm.moveItem(at:temp,to:target)}
+  return target
+ }
  func install(_ root:URL,_ cache:URL,_ pointer:URL,pluginOnly:Bool=false)throws->URL{
   try fm.createDirectory(at:cache,withIntermediateDirectories:true)
-  let plugin=config["plugin"] as! [String:Any];progress?("plugin",0);let xpi=try fetch(plugin,cache,"plugin",0,(plugin["bytes"] as! NSNumber).doubleValue);progress?("pluginDone",1)
+  let plugin=config["plugin"] as! [String:Any];progress?("plugin",0);let cached=try fetch(plugin,cache,"plugin",0,(plugin["bytes"] as! NSNumber).doubleValue);let xpi=try exportPlugin(cached,plugin);progress?("pluginDone",1)
   if pluginOnly{return xpi}
   guard root.lastPathComponent=="paper-voice-engine" else{throw fail("请选择声音保存文件夹 / Choose a voice folder")}
   try fm.createDirectory(at:root.deletingLastPathComponent(),withIntermediateDirectories:true)
@@ -88,7 +99,7 @@ final class Engine{
  }
 }
 if flag("--quiet"){
- do{guard let c=arg("--download-dir"),let d=arg("--destination"),let p=arg("--pointer") else{throw fail("Explicit test directories required")};let e=Engine();if flag("--cancel-test"){e.progress={phase,v in if ["voices","runtime"].contains(phase)&&v>0{e.cancel()}}};print(try e.install(URL(fileURLWithPath:d),URL(fileURLWithPath:c),URL(fileURLWithPath:p),pluginOnly:flag("--plugin-only")).path);exit(0)}catch{fputs(error.localizedDescription+"\n",stderr);exit(1)}
+ do{guard let c=arg("--download-dir"),let d=arg("--destination"),let p=arg("--pointer"),arg("--plugin-dir") != nil else{throw fail("Explicit test directories required")};let e=Engine();if flag("--cancel-test"){e.progress={phase,v in if ["voices","runtime"].contains(phase)&&v>0{e.cancel()}}};print(try e.install(URL(fileURLWithPath:d),URL(fileURLWithPath:c),URL(fileURLWithPath:p),pluginOnly:flag("--plugin-only")).path);exit(0)}catch{fputs(error.localizedDescription+"\n",stderr);exit(1)}
 }
 let app=NSApplication.shared
 let ink=NSColor(calibratedRed:0.10,green:0.24,blue:0.30,alpha:1),muted=NSColor(calibratedWhite:0.43,alpha:1),accent=NSColor(calibratedRed:0.20,green:0.43,blue:0.62,alpha:1),green=NSColor(calibratedRed:0.18,green:0.47,blue:0.37,alpha:1)
@@ -106,7 +117,7 @@ final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
  func button(_ x:CGFloat,_ y:CGFloat,_ w:CGFloat,_ selector:Selector)->NSButton{let b=NSButton(title:"",target:self,action:selector);b.frame=NSRect(x:x,y:510-y-34,width:w,height:34);b.isBordered=false;b.wantsLayer=true;b.layer?.cornerRadius=9;b.layer?.backgroundColor=NSColor.white.cgColor;b.font=font(11,true);window.contentView!.addSubview(b);return b}
  func refresh(){window.title=t("Paper Voice 安装助手","Paper Voice Installer");heading.stringValue=t("让论文，读给你听。","Make room for listening.");intro.stringValue=t("按需下载。装好声音后，日常听读无需联网。","Download once. Listen offline, every day.")
   let names=[t("Zotero 插件","Zotero plugin"),t("声音引擎","Voice engine"),t("多语言声音","Multilingual voices")]
-  let descriptions=[t("连接 PDF 听读与翻译","Reading controls and translation"),t("为当前电脑准备本地运行环境","Local runtime for this computer"),t("英语 · 中文 · 日语 · 法语","English · Chinese · Japanese · French")]
+  let descriptions=[t("听读与翻译 · 保存至下载/Paper Voice","Reading & translation · Downloads/Paper Voice"),t("为当前电脑准备本地运行环境","Local runtime for this computer"),t("英语 · 中文 · 日语 · 法语","English · Chinese · Japanese · French")]
   let assets=[config["plugin"] as! [String:Any],packages[1],packages[0]]
   for i in 0..<3{titles[i].stringValue=names[i];details[i].stringValue=descriptions[i];badges[i].stringValue=String(format:"%.1f MB",(assets[i]["bytes"] as! NSNumber).doubleValue/1e6)}
   languageMenu.title=language=="zh" ? "English":"简体中文";targetLabel.stringValue=t("声音位置","Voice folder");path.stringValue=root.path.replacingOccurrences(of:fm.homeDirectoryForCurrentUser.path,with:"~");path.toolTip=root.path;browse.title=t("选择文件夹","Browse");help.title=t("帮助","Help");only.title=t("仅更新插件","Plugin only");cancel.title=t("取消","Cancel");action.title=complete ? t("查看插件文件","Show plugin file"):t("下载并安装","Download & install");status.stringValue=t("已有声音会先检查并复用，不重复下载。","Existing voices are checked and reused.")
@@ -138,7 +149,7 @@ final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
  @objc func pluginOnly(){run(true)}
  @objc func start(){if complete,let file=xpi{NSWorkspace.shared.activateFileViewerSelecting([file]);return};run(false)}
  func run(_ pluginOnly:Bool){busy(true);complete=false;let e=Engine();engine=e;e.progress={[weak self] p,v in DispatchQueue.main.async{self?.update(p,v)}};let destination=root,cache=fm.urls(for:.cachesDirectory,in:.userDomainMask)[0].appendingPathComponent("PaperVoiceInstaller"),pointer=location
-  DispatchQueue.global(qos:.userInitiated).async{let result=Result{try e.install(destination,cache,pointer,pluginOnly:pluginOnly)};DispatchQueue.main.async{self.busy(false);switch result{case .success(let file):self.xpi=file;self.complete=true;self.action.title=self.t("查看插件文件","Show plugin file");self.status.stringValue=self.t("下一步：Zotero → 工具 → 插件 → 从文件安装，选择下载好的 XPI。","Next: Zotero → Tools → Plugins → Install From File. Choose the downloaded XPI.");case .failure(let error):self.action.title=self.t("重试","Retry");self.status.stringValue=e.cancelled ? self.t("已取消。原有声音保留，可继续下载。","Cancelled. Existing voices kept; retry to continue."):self.t("未完成：","Not completed: ")+error.localizedDescription;self.status.toolTip=error.localizedDescription};self.engine=nil}}
+  DispatchQueue.global(qos:.userInitiated).async{let result=Result{try e.install(destination,cache,pointer,pluginOnly:pluginOnly)};DispatchQueue.main.async{self.busy(false);switch result{case .success(let file):self.xpi=file;self.complete=true;self.action.title=self.t("查看插件文件","Show plugin file");self.status.stringValue=self.t("下一步：Zotero → 工具 → 插件 → 从文件安装，选择「下载/Paper Voice」中的 XPI。","Next: Zotero → Tools → Plugins → Install From File. Choose the XPI in Downloads/Paper Voice.");case .failure(let error):self.action.title=self.t("重试","Retry");self.status.stringValue=e.cancelled ? self.t("已取消。原有声音保留，可继续下载。","Cancelled. Existing voices kept; retry to continue."):self.t("未完成：","Not completed: ")+error.localizedDescription;self.status.toolTip=error.localizedDescription};self.engine=nil}}
  }
  func applicationShouldTerminate(_ sender:NSApplication)->NSApplication.TerminateReply{working ? .terminateCancel:.terminateNow}
  func windowShouldClose(_ sender:NSWindow)->Bool{!working}

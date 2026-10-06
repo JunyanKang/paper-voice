@@ -999,6 +999,14 @@ var PaperVoiceI18n = (() => {
  Object.assign(catalogs.ja,{"自动检查": "自動確認", "检查周期": "確認間隔", "1天": "1日", "1周": "1週", "1月": "1月", "定期检查": "定期確認", "发现新版本": "新バージョン", "忽略此版本": "この版をスキップ", "已忽略此版本": "スキップ済み", "自动检查已开启 · 安装前会提醒": "自動確認オン・インストール前に通知", "自动检查已关闭 · 可随时手动检查": "自動確認オフ・手動確認できます"});
  Object.assign(catalogs.fr,{"自动检查": "Vérif. auto", "检查周期": "Fréquence", "1天": "1 jour", "1周": "1 sem.", "1月": "1 mois", "定期检查": "Planifié", "发现新版本": "Mise à jour", "忽略此版本": "Ignorer cette version", "已忽略此版本": "Version ignorée", "自动检查已开启 · 安装前会提醒": "Vérification auto · Installation sur demande", "自动检查已关闭 · 可随时手动检查": "Vérification auto désactivée"});
  Object.assign(catalogs.de,{"自动检查": "Auto-Prüfung", "检查周期": "Prüfintervall", "1天": "1 Tag", "1周": "1 Wo.", "1月": "1 Mon.", "定期检查": "Geplant", "发现新版本": "Update verfügbar", "忽略此版本": "Version überspringen", "已忽略此版本": "Version übersprungen", "自动检查已开启 · 安装前会提醒": "Automatische Prüfung · Installation auf Wunsch", "自动检查已关闭 · 可随时手动检查": "Automatische Prüfung aus"});
+ Object.assign(catalogs.en,{"检查失败": "Check failed", "更新清单暂不可用，请稍后重试": "Update information is unavailable. Try again later.", "更新连接超时，请稍后重试": "Update connection timed out. Try again later.", "无法连接更新服务，请稍后重试": "Cannot reach the update service. Try again later."});
+ Object.assign(catalogs.ja,{"检查失败": "確認失敗", "更新清单暂不可用，请稍后重试": "更新情報を取得できません。後でもう一度お試しください。", "更新连接超时，请稍后重试": "更新の接続がタイムアウトしました。後でもう一度お試しください。", "无法连接更新服务，请稍后重试": "更新サービスに接続できません。後でもう一度お試しください。"});
+ Object.assign(catalogs.fr,{"检查失败": "Échec de vérification", "更新清单暂不可用，请稍后重试": "Informations de mise à jour indisponibles. Réessayez plus tard.", "更新连接超时，请稍后重试": "Délai de connexion dépassé. Réessayez plus tard.", "无法连接更新服务，请稍后重试": "Service de mise à jour inaccessible. Réessayez plus tard."});
+ Object.assign(catalogs.de,{"检查失败": "Prüfung fehlgeschlagen", "更新清单暂不可用，请稍后重试": "Update-Informationen nicht verfügbar. Bitte später erneut versuchen.", "更新连接超时，请稍后重试": "Zeitüberschreitung bei der Update-Verbindung. Bitte später erneut versuchen.", "无法连接更新服务，请稍后重试": "Update-Dienst nicht erreichbar. Bitte später erneut versuchen."});
+ Object.assign(catalogs.en,{'Zotero 自动安装已开启':'Automatic installation is enabled in Zotero'});
+ Object.assign(catalogs.ja,{'Zotero 自动安装已开启':'Zotero の自動インストールは有効です'});
+ Object.assign(catalogs.fr,{'Zotero 自动安装已开启':'Installation automatique activée dans Zotero'});
+ Object.assign(catalogs.de,{'Zotero 自动安装已开启':'Automatische Installation in Zotero aktiviert'});
  const keys=Object.keys(catalogs.en).sort((a,b)=>b.length-a.length);
  const pattern=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
  const sources=new WeakMap();
