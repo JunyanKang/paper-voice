@@ -8,6 +8,10 @@ assert hashlib.sha256(a.source.read_bytes()).hexdigest()=='a3041811a78c361b1de50
 out=Path(__file__).resolve().parents[1]/'installers/assets'
 for weight,style in [(400,'Regular'),(600,'SemiBold')]:
  f=instantiateVariableFont(TTFont(a.source),{'wght':weight},inplace=True)
+ # Static faces must not retain variable-axis style names: GDI appends them
+ # to the family while CoreText does not, causing name-based substitution.
+ if 'STAT' in f:del f['STAT']
+ f['name'].names=[n for n in f['name'].names if n.nameID<256 and n.nameID!=25]
  # Separate families avoid GDI/CoreText resolving both faces to the same weight.
  family='Voice Sans' if weight==400 else 'Voice Sans Semibold'
  for record in f['name'].names:
