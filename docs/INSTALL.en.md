@@ -21,6 +21,9 @@ Install **Zotero 10** first. Choose a file under Assets on the [release page](ht
 
 The installer contains the setup interface and download configuration. It downloads voices on first use. Switch between English and Simplified Chinese at the bottom of the window.
 
+<p align="center"><img src="assets/installer-macos-dmg.png" width="640" alt="Mac disk image: open the installer; if blocked, verify its source and follow the three steps."></p>
+<p align="center"><sub>Mac disk image: open the installer; if blocked, verify its source and follow the three steps.</sub></p>
+
 ## 2. Prepare voices
 
 Choose a **Voice folder** and select **Download & install**. The default works without adjustment; another drive is also supported. The installer creates a `paper-voice-engine` folder inside your selected location.
