@@ -37,7 +37,7 @@ Choose a **Voice folder** and select **Download & install**. The default works w
 | Voice engine | Local runtime for this computer |
 | Multilingual voices | English, Chinese, Japanese and French models and dictionaries |
 
-Each item shows its size. Downloads display real percentages and transferred bytes, followed by verification, extraction and a voice check. **Voice setup is complete when the items say Installed.** Complete existing voices are verified and reused; incomplete voices are downloaded again and repaired. A first installation downloads about 530 MB on Mac or 517 MB on Windows; the installer itself is only a few MB.
+Each item shows its size. Downloads display real percentages and transferred bytes, followed by verification, extraction and a voice check. **Voice setup is complete when the items say Installed.** Complete existing voices are verified and reused; incomplete voices are downloaded again and repaired. A first installation downloads about 530 MB on Mac or 517 MB on Windows. The installer includes its own fonts for English and Chinese; no font installation is needed.
 
 <p align="center"><img src="assets/installer-macos-progress-en.png" width="640" alt="Mac download progress showing verified items and a voice download"></p>
 <p align="center"><sub>Progress preview. Both platforms share the same information order and controls.</sub></p>
