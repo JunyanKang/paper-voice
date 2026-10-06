@@ -26,12 +26,12 @@ The main window folds away when you click or select PDF text, annotate, scroll m
 
 ### Install the voices and plugin
 
-Choose a complete package for your computer on the [download page](../README.en.md#download-and-install), extract it, and open the installer. Select **Install voices**. Once **Voices ready** appears, open **Tools → Plugins → gear → Install Plugin From File** in Zotero and select the included `.xpi`.
+Download the Mac DMG or Windows EXE from the [download page](../README.en.md#download-and-install). Choose a voice folder and select **Download & install**. Once voices are ready, select **Show plugin file**. In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and choose the downloaded `.xpi`.
 
-<p align="center"><img src="assets/installer-macos-en.png" width="560" alt="Mac installer: install offline voices first, then add the plugin to Zotero"></p>
-<p align="center"><sub>Choose English or Chinese in the installer. The completion status appears beside the first step.</sub></p>
+<p align="center"><img src="assets/installer-macos-en.png" width="640" alt="Installer showing the plugin, voice engine, multilingual voices and destination"></p>
+<p align="center"><sub>Complete existing voices are reused. Plugin only skips voices; language controls remain at the bottom.</sub></p>
 
-On Windows, keep the `Resources` folder beside the installer. See [Installation help](INSTALL.en.md) for detailed steps, system prompts and uninstall instructions.
+Initial downloads need internet access; daily listening can work offline. See [Installation](INSTALL.en.md) for paths, progress, migration and troubleshooting.
 
 ### Select a passage
 
@@ -125,7 +125,9 @@ Open **Settings → Voice**.
 3. **Speed:** Adjust the slider. Start reading again to use a newly selected voice or speed.
 4. **Preview voice:** Hear a short sample before making your choice.
 
-The complete package includes offline voices that generate speech on your computer. They do not depend on your system's built-in voices, and require no subscription or API key.
+The installer downloads independent offline voices that generate speech on your computer. They do not depend on system voices and require no subscription or API key.
+
+**Voice folder** detects the installer's saved location by default. Use the folder button to choose manually, or reset to restore automatic discovery. Changes apply when you next start reading. Keep external drives connected. [Voice folder details →](INSTALL.en.md#voice-folder)
 
 ## See or hear a translation
 
@@ -277,10 +279,9 @@ Open **Settings → Keys**, click a key on the right, then press your preferred 
 
 Under **Settings → Voice**, enable **Auto-check** and choose **1 day, 1 week or 1 month** (default: 1 week). Checks run while Zotero is open; an overdue check runs after the next launch. A small badge on the book companion announces a new version. Click it to install or **Skip this version**. Skipped versions stay quiet; a newer version can notify you again. Checks never install automatically. You can also use **Check → Install update** at any time. Downloads and updates require access to GitHub.
 
-- **Upgrading from 1.2.5 or earlier:** download the latest complete package and run the installer to reinstall offline voices once.
-- **Already installed a complete package from 1.2.6 or later:** update only the `.xpi` plugin. No voice download is needed.
+**Upgrading from 1.3.10 or earlier** requires a one-time migration: run the new installer, select **Plugin only**, and install the downloaded XPI in Zotero. Future checks remain available inside the plugin. If your voices come from **1.2.5 or earlier**, choose **Download & install** to update them as well.
 
-You can also download the `.xpi` from [Releases](https://github.com/JunyanKang/paper-voice/releases/latest) and install it through Zotero's plugin manager. The `updates.json` file is for automatic updates; you do not need to download it.
+Releases provide two platform installers; they retrieve the XPI and voices. Updates preserve voice paths, preferences and reading progress. [Full upgrade instructions →](INSTALL.en.md#updating-an-existing-installation)
 
 ### Selecting text produces no sound
 

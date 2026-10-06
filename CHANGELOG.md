@@ -1,5 +1,16 @@
 # 更新记录
 
+
+## 1.4.0 · 2026-10-06
+
+- 轻量 Mac DMG / Windows EXE 安装器，按需下载插件、声音引擎与多语言声音。
+- 中英文统一界面、实际下载进度、自定义声音路径、校验复用、取消与失败重试。
+- 插件增加声音位置自动识别、人工选择及恢复自动识别；保留插件内检查更新、忽略版本与阅读进度。
+- 更新通道迁移到 GitHub Pages。1.3.10 及更早版本需用安装器「仅更新插件」迁移一次；1.2.5 及更早声音需更新。
+- 更新双语安装指南、使用指南与原生界面截图。
+
+Small native download installers now prepare the plugin and offline voices on demand. Both platforms share bilingual controls, verified progress, reusable downloads and custom voice locations. In-plugin updates and saved progress remain available after the one-time update-channel migration described in the installation guide.
+
 ## 1.3.10 · 2026-10-06
 
 - 准备朗读时显示旋转箭头、动态省略号和分阶段进度；读取 PDF 显示实际页数进度。

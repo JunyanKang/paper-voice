@@ -8,9 +8,11 @@
 
 ## Platforms
 
-Paper Voice targets Zotero 10. Complete voice packages are provided for Apple Silicon Macs running macOS 14 or later and Intel/AMD x64 Windows computers. Validated complete packages are not currently provided for Intel Macs, Windows ARM, Linux or earlier Zotero versions.
+Paper Voice targets Zotero 10. Download installers are provided for Apple Silicon Macs running macOS 14 or later and Intel/AMD x64 Windows computers. Validated installers are not currently provided for Intel Macs, Windows ARM, Linux or earlier Zotero versions.
 
 Mac native checks use Zotero 10.0.3 beta. Windows automation uses Windows Server 2022 x64 and official Zotero 10.0.3 beta, covering media decoding, playback timing, pause and completion events. Physical Windows speakers and headphones have not been checked on recipient hardware.
+
+The new installers have passed automated checks on macOS and Windows for custom paths, actual four-language speech synthesis, reuse, cancellation, corrupt-download rejection and repair.
 
 The Mac installer uses a local signature rather than Apple Developer ID notarization. The Windows installer is not Authenticode-signed. See [installation help](INSTALL.en.md#installation-help) for system prompts.
 
@@ -37,9 +39,9 @@ These free public services may impose limits, change or become unavailable. Goog
 
 Machine translation helps with reading but is not a professionally reviewed translation. Check technical terms and complex qualifications against the original. A compatible Translate for Zotero installation can provide its public translation API; Paper Voice also works independently.
 
-Downloads and updates are hosted on GitHub. Update requests do not include paper content, and failed updates keep the existing plugin. Speech synthesis works offline after installation.
+Installers are hosted on GitHub Releases; plugins, voices and update metadata are hosted on GitHub Pages. Update requests do not include paper content, and failed updates keep the existing plugin. Speech synthesis works offline after installation.
 
-Complete packages include Misaki and offline Chinese/Japanese dictionaries, including UniDic-lite. See the [upgrade guide](GUIDE.en.md#how-do-i-update) to check whether your voice pack needs replacing. Reading language is detected locally by default and can also be selected manually. Russian remains available for translation only. Technical terms, polyphonic characters and mixed-language text may need pronunciation checks.
+The installer downloads Misaki and offline Chinese/Japanese dictionaries, including UniDic-lite. See the [upgrade guide](GUIDE.en.md#how-do-i-update) to check whether your voice pack needs replacing. Reading language is detected locally by default and can also be selected manually. Russian remains available for translation only. Technical terms, polyphonic characters and mixed-language text may need pronunciation checks.
 
 ## Optional LLM APIs
 

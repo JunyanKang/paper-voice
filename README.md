@@ -66,23 +66,25 @@
 
 ## 下载与安装
 
-适用于 **Zotero 10**。首次使用，请在发布页的 **Assets** 中下载对应系统的完整 ZIP 包，内含插件、离线声音与安装助手。
+适用于 **Zotero 10**。下载轻量安装器，按需获取插件与离线声音，无需另装 Python。
 
-**[下载 Windows 完整包 →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
-Intel / AMD 64 位电脑 · 选择文件名带 `Windows-x64` 的 ZIP
+**[Windows 安装器 · EXE →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
+Intel / AMD 64 位电脑
 
-**[下载 Mac 完整包 →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
-Apple 芯片（M 系列），macOS 14 或更新版本 · 选择文件名带 `macOS-arm64` 的 ZIP
+**[Mac 安装器 · DMG →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
+Apple 芯片（M 系列）· macOS 14 或更新版本
 
-1. **安装声音。** 完整解压 ZIP，打开安装助手，点击「安装声音」，等待「声音已就绪」。
-2. **添加插件。** Zotero → 工具 → 插件 → 齿轮 → 从文件安装插件，选择包内 `.xpi`。
-3. **开始听读。** 打开可以选中文字的 PDF，划选正文；点击书页精灵调整阅读模式、声音与翻译。
+1. **准备声音。** 打开安装器，选择声音保存位置，点击「下载并安装」。已有完整声音会自动复用。
+2. **添加插件。** 点击「查看插件文件」，在 Zotero → 工具 → 插件 → 从文件安装插件，选择下载好的 `.xpi`。
+3. **开始听读。** 打开可选中文字的 PDF，划选正文；点击书页精灵调整模式、声音与翻译。
 
-声音与运行环境都已包含在完整包中，无需另装 Python。扫描版 PDF 需先完成文字识别。
+<p align="center"><img src="docs/assets/installer-macos.png" width="640" alt="轻量安装器：三个下载项目、声音路径与底部操作区"></p>
 
-**[打开图文使用指南 →](docs/GUIDE.md)** · [安装帮助](docs/INSTALL.md) · [其他平台与兼容性](docs/COMPATIBILITY.md)
+首次下载需要联网，声音装好后可离线听读。扫描版 PDF 需先完成文字识别。
 
-已有用户可在插件设置中检查更新，或安装最新 `.xpi`；是否需要更换声音包，请看[升级指南](docs/GUIDE.md#怎样更新)。
+**[图文使用指南 →](docs/GUIDE.md)** · [安装与升级](docs/INSTALL.md) · [平台兼容性](docs/COMPATIBILITY.md)
+
+已有用户请先查看[升级说明](docs/INSTALL.md#更新已有插件)。安装器提供「仅更新插件」；完成迁移后，仍可在插件设置中检查更新。
 
 ## 免费与隐私
 

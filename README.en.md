@@ -66,23 +66,25 @@ Choose from 10 themes, import a background, adjust transparency, and use fonts i
 
 ## Download and install
 
-For **Zotero 10**. On your first installation, choose the complete ZIP package for your system under **Assets** on the release page. It includes the plugin, offline voices and installer.
+For **Zotero 10**. A small installer downloads the plugin and offline voices as needed. No separate Python setup is required.
 
-**[Download for Windows →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
-Intel / AMD 64-bit computers · Choose the ZIP with `Windows-x64` in its name
+**[Windows installer · EXE →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
+Intel / AMD 64-bit computers
 
-**[Download for Mac →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
-Apple Silicon (M series), macOS 14 or later · Choose the ZIP with `macOS-arm64` in its name
+**[Mac installer · DMG →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
+Apple Silicon (M series) · macOS 14 or later
 
-1. **Install voices.** Extract the entire ZIP, open the installer, and select Install voices. Wait for Voices ready.
-2. **Add the plugin.** In Zotero, go to Tools → Plugins → gear → Install Plugin From File, then select the included `.xpi`.
-3. **Start listening.** Open a PDF with selectable text and select a passage. Click the book mascot to adjust the mode, voice and translation.
+1. **Prepare voices.** Open the installer, choose a voice folder, and select **Download & install**. Complete existing voices are reused.
+2. **Add the plugin.** Select **Show plugin file**, then use Zotero → Tools → Plugins → Install Plugin From File to open the downloaded `.xpi`.
+3. **Start listening.** Open a PDF with selectable text and select a passage. Click the book companion to adjust your mode, voice and translation.
 
-The package includes the voices and their runtime; no separate Python installation is needed. Scanned PDFs need text recognition first.
+<p align="center"><img src="docs/assets/installer-macos-en.png" width="640" alt="Small installer with three download items, a voice folder and aligned controls"></p>
 
-**[Open the illustrated guide →](docs/GUIDE.en.md)** · [Installation help](docs/INSTALL.en.md) · [Other platforms and compatibility](docs/COMPATIBILITY.en.md)
+Initial downloads need internet access. Speech works offline once voices are installed. Scanned PDFs need text recognition first.
 
-Already using Paper Voice? Check for updates in Settings or install the latest `.xpi`. See the [upgrade guide](docs/GUIDE.en.md#how-do-i-update) to check whether your voice pack needs replacing.
+**[Illustrated guide →](docs/GUIDE.en.md)** · [Installation and upgrades](docs/INSTALL.en.md) · [Platform support](docs/COMPATIBILITY.en.md)
+
+Existing user? Read the [upgrade instructions](docs/INSTALL.en.md#updating-an-existing-installation). Use **Plugin only** to migrate; subsequent plugin updates remain available in Settings.
 
 ## Cost and privacy
 

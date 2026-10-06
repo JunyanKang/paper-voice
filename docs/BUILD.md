@@ -1,66 +1,56 @@
-<h1 align="center">构建 Paper Voice</h1>
+# Build and release
 
-<p align="center"><a href="../README.md">产品首页</a> · <a href="../README.en.md">English overview</a> · <a href="GUIDE.md">使用指南</a></p>
+Paper Voice publishes two user-facing assets: a macOS DMG and a Windows EXE. The plugin, update feed and verified voice chunks are served separately through GitHub Pages.
 
-本页供需要自行构建的开发者使用。一般用户请从 [Releases](https://github.com/JunyanKang/paper-voice/releases/latest) 下载。
-
-## Zotero 插件
-
-需要 Python 3.12+。运行：
+## Plugin
 
 ```sh
 python3 scripts/build.py
 python3 scripts/release_metadata.py
 ```
 
-产物位于 `dist/Paper Voice/`。XPI 仅收录 `addon/`；更新清单包含实际 XPI 的 SHA512 和 Zotero 兼容范围。
+The XPI includes only `addon/`. ZIP timestamps and permissions are normalized so separate platform builds produce identical bytes. `release_metadata.py` checks the manifest and writes the actual SHA512 into `updates.json`.
 
-## 图形安装助手
-
-```sh
-python3 scripts/build_installer.py
-```
-
-- macOS：需要 Xcode Command Line Tools，以 Swift / AppKit 构建 Apple Silicon 应用。
-- Windows x64：使用 .NET Framework 编译器构建 WinForms 应用，运行权限为当前用户。
-
-安装助手源代码位于 `installers/`。Apple Developer ID 公证和 Windows Authenticode 签名需要发布者自己的证书；当前构建不声称具备这些签名。
-
-## 离线语音环境
-
-Mac 构建需要已有的便携 Python 与模型目录：
-
-```text
-PORTABLE_SOURCE_DIR/
-  runtime/python/
-  models/tts/kokoro-v1.0.onnx
-  models/tts/voices-v1.0.bin
-```
+## Download service
 
 ```sh
-python3 scripts/build_engine.py PORTABLE_SOURCE_DIR
+python3 scripts/prepare_downloads.py
+python3 scripts/stage_distribution.py --preserve-published
 ```
 
-Python 来自 [Astral python-build-standalone](https://github.com/astral-sh/python-build-standalone/releases/tag/20260924) 的 CPython 3.12.14 aarch64-apple-darwin install_only。依赖版本见 `engine/requirements-runtime.txt`。运行目录必须可搬移，不得依赖构建机的 Homebrew 路径。
+The current runtime source is the validated macOS and Windows ZIPs from release **1.3.10**, downloaded into `dist/`. Keep that historical release available. `prepare_downloads.py` extracts licensed runtimes, produces shared voice models plus platform engines, splits them into 32 MiB chunks, and writes SHA256 inventories in `installers/runtime-*.json`. Generated runtime files are not committed.
 
-Windows 使用 `python scripts/build_windows.py`，构建 CPython 3.12.10 embedded x64 和对应依赖。模型与许可源使用脚本中固定哈希的历史归档，不能直接替换该归档内容。
+The **Publish download service** workflow performs this preparation and deploys `.build/download-site/`. It verifies that runtime manifests match the committed copies. Versioned XPIs are recorded in `catalog.json`; subsequent deployments retain older XPI URLs so existing installers remain usable. This deployment currently retains the same versioned voice runtime. If changing the runtime ID, retain the previous runtime chunks as well before publishing a new installer. The staging script enforces a 950 MiB site limit; migrate binary hosting before exceeding it.
 
-模型来源：[Kokoro ONNX models](https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0)。
+GitHub Pages uses the account's custom domain redirect. Test the full HTTPS redirect chain, not just the first response. The plugin manifest points to the Pages `updates.json` feed.
 
-| 文件 | SHA256 |
-|---|---|
-| kokoro-v1.0.onnx | `beb0d1848dee9a49da392cc3df26958d46cfa35d321edf434f52949153f0df3a` |
-| voices-v1.0.bin | `bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d` |
+## Native installers
 
-保留 Python、依赖、模型及 voicebank 的许可；eSpeak NG、phonemizer、libsndfile 对应源码与构建入口随依赖许可一起提供。
-
-## 分发
+After building the XPI, run on each target platform:
 
 ```sh
-python3 scripts/package_release.py
-python3 scripts/package_release.py --platform Windows-x64
+python scripts/build_installer.py
+python scripts/validate_installation.py
 ```
 
-分别在原生安装助手和对应运行环境已准备好的目录中执行。Mac 声音资源内置于 `.app`，Windows 保留与 `.exe` 同目录的 `Resources`。交付包仅包含安装助手、插件、入门指南及运行所需资源，不包含项目测试资料。
+Mac builds require Xcode command line tools on Apple Silicon. Windows builds use the .NET Framework compiler and WinForms. The output is `dist/Paper-Voice-<version>-macOS.dmg` or `dist/Paper-Voice-<version>-Windows.exe`. The installers contain only their UI, fonts, configuration, licenses and installation helper; no voice runtime or XPI is embedded.
 
-发布附件固定为：通用 XPI、两个平台的完整 ZIP、`updates.json`。插件通过 Zotero 原生更新机制从 GitHub 获取新版本；声音包独立于插件更新。
+Both interfaces share a 640 × 510 layout, the bundled Voice Sans subset, three download rows and fixed footer positions. Help and language occupy the left group; Plugin only / Cancel and the primary action occupy the right group. Source lives in `installers/macos/Installer.swift` and `installers/windows/Installer.cs`. Font licenses are in `installers/assets/`.
+
+**Validate download installers** builds and runs both platforms. Acceptance checks use disposable paths, including spaces and Chinese characters, and cover plugin-only behavior, cancellation, four-language speech synthesis, reuse, missing or corrupt downloads, repair and cleanup. Artifacts include installers and native screenshots; test reports are workflow artifacts only.
+
+`--quiet`, `--package-dir`, `--destination`, `--pointer`, `--download-dir` and `--screenshot` exist for isolated validation. With no `--package-dir`, the actual HTTPS downloader is exercised. Never point validation at a user's existing voices.
+
+## Publish checklist
+
+1. Set the same version in `package.json` and `addon/manifest.json`; update the changelog and bilingual product documents.
+2. Build and deploy the download service. Download the public XPI and compare it with the embedded installer hash and public update hash.
+3. Validate native installers on both platforms, inspect screenshots, and test the plugin in an isolated Zotero profile. Exercise manual/automatic voice paths and the updater.
+4. Create a release containing **only the DMG and EXE** as uploaded assets. Download both public assets and compare their hashes. GitHub's automatic source archive links are separate from uploaded assets.
+5. Do not publish test profiles, test reports, voice chunks, XPI or update JSON as current release attachments.
+
+Old clients through **1.3.10** use the previous Releases update URL. Because the new release contains only installers, these users must run the new installer once with **Plugin only** and install its XPI to migrate. Voices from **1.2.5 or earlier** require a full voice update. Future plugin updates preserve the configured voice location and reading progress.
+
+`scripts/package_release.py` and **Restore release bundles** are historical pre-1.4 tooling. The ZIP packager refuses current versions. Rebuilding a historical package should use its historical checkout.
+
+Developer ID notarization and Authenticode signing require the publisher's own certificates. Current builds do not claim these signatures.
