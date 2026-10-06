@@ -1,6 +1,11 @@
 name: Validate download installers
 on:
   workflow_dispatch:
+    inputs:
+      verify_public:
+        description: Test the deployed download service with a full native install
+        type: boolean
+        default: false
   workflow_call:
 permissions:
   contents: read
@@ -32,6 +37,9 @@ jobs:
       - run: python scripts/release_metadata.py
       - run: python scripts/build_installer.py
       - run: python scripts/validate_installation.py
+      - name: Verify public HTTPS installation
+        if: ${{ inputs.verify_public == true }}
+        run: python scripts/validate_public_installation.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
