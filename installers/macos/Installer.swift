@@ -113,12 +113,24 @@ let registeredFonts:[CGFont] = ["VoiceSans-Regular","VoiceSans-SemiBold"].map { 
  return cg
 }
 func font(_ size:CGFloat,_ bold:Bool=false)->NSFont{NSFont(name:bold ? "VoiceSans-SemiBold":"VoiceSans-Regular",size:size)!}
+// Match Windows grayscale antialiasing without CoreText's extra stem darkening.
+final class VoiceLabel:NSTextField {
+ override func draw(_ dirtyRect:NSRect){
+  NSGraphicsContext.saveGraphicsState()
+  NSGraphicsContext.current?.cgContext.setShouldSmoothFonts(false)
+  super.draw(dirtyRect)
+  NSGraphicsContext.restoreGraphicsState()
+ }
+}
 final class VoiceButton:NSButton {
  var primary=false,hover=false
  override func updateTrackingAreas(){super.updateTrackingAreas();for t in trackingAreas{removeTrackingArea(t)};addTrackingArea(NSTrackingArea(rect:bounds,options:[.mouseEnteredAndExited,.activeInKeyWindow],owner:self,userInfo:nil))}
  override func mouseEntered(with event:NSEvent){hover=true;needsDisplay=true}
  override func mouseExited(with event:NSEvent){hover=false;needsDisplay=true}
  override func draw(_ dirtyRect:NSRect){
+  NSGraphicsContext.saveGraphicsState()
+  defer { NSGraphicsContext.restoreGraphicsState() }
+  NSGraphicsContext.current?.cgContext.setShouldSmoothFonts(false)
   let fill = !isEnabled ? color("disabled") : color(primary ? (hover ? "primaryHover":"accent"):(hover ? "hover":"button"))
   fill.setFill();NSBezierPath(roundedRect:bounds,xRadius:9,yRadius:9).fill()
   if window?.firstResponder === self{accent.withAlphaComponent(0.6).setStroke();let ring=NSBezierPath(roundedRect:bounds.insetBy(dx:2,dy:2),xRadius:7,yRadius:7);ring.lineWidth=1;ring.stroke()}
@@ -136,7 +148,7 @@ final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
  var titles:[NSTextField]=[],details:[NSTextField]=[],bars:[Track]=[],badges:[NSTextField]=[]
  var language=arg("--lang") ?? ((Locale.preferredLanguages.first ?? "").hasPrefix("zh") ? "zh":"en"),working=false,complete=false,root=arg("--preview-path").map{URL(fileURLWithPath:$0)} ?? defaultRoot(),engine:Engine?,xpi:URL?,started=Date(),currentPhase=""
  func t(_ cn:String,_ en:String)->String{language=="zh" ? cn:en}
- func label(_ text:String,_ size:CGFloat,_ bold:Bool,_ x:CGFloat,_ y:CGFloat,_ w:CGFloat,_ h:CGFloat)->NSTextField{let l=NSTextField(wrappingLabelWithString:text);l.frame=NSRect(x:x,y:510-y-h,width:w,height:h);l.font=font(size,bold);l.textColor=ink;window.contentView!.addSubview(l);return l}
+ func label(_ text:String,_ size:CGFloat,_ bold:Bool,_ x:CGFloat,_ y:CGFloat,_ w:CGFloat,_ h:CGFloat)->NSTextField{let l=VoiceLabel(wrappingLabelWithString:text);l.frame=NSRect(x:x,y:510-y-h,width:w,height:h);l.font=font(size,bold);l.textColor=ink;window.contentView!.addSubview(l);return l}
  func button(_ x:CGFloat,_ y:CGFloat,_ w:CGFloat,_ selector:Selector)->NSButton{let b=VoiceButton(title:"",target:self,action:selector);b.frame=NSRect(x:x,y:510-y-34,width:w,height:34);b.isBordered=false;b.wantsLayer=true;b.layer?.cornerRadius=9;b.layer?.backgroundColor=NSColor.white.cgColor;b.font=font(11,true);window.contentView!.addSubview(b);return b}
  func refresh(){window.title=t("Paper Voice 安装助手","Paper Voice Installer");heading.stringValue=t("让论文，读给你听。","Make room for listening.");intro.stringValue=t("按需下载。装好声音后，日常听读无需联网。","Download once. Listen offline, every day.")
   let names=[t("Zotero 插件","Zotero plugin"),t("声音引擎","Voice engine"),t("多语言声音","Multilingual voices")]
