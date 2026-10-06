@@ -61,6 +61,11 @@ enum ZoteroInstall {
   if addon["userDisabled"] as? Bool==true || addon["softDisabled"] as? Bool==true{return "disabled"}
   return addon["active"] as? Bool==true ? "installed":"pending"
  }
+ static func refreshStartupCache(_ profile:URL,_ backups:URL)throws {
+  // Zotero may otherwise reuse cached manifest/version data after an offline update.
+  let startup=profile.appendingPathComponent("addonStartup.json.lz4");try regular(startup)
+  if files.fileExists(atPath:startup.path){try files.createDirectory(at:backups,withIntermediateDirectories:true);try files.copyItem(at:startup,to:backups.appendingPathComponent(UUID().uuidString+"-addonStartup.json.lz4"));try files.removeItem(at:startup)}
+ }
  static func stage(_ xpi:URL,_ profile:URL,_ version:String,_ digest:String,_ backups:URL)throws->String {
   guard validProfile(profile) else{throw error("请选择 Zotero 配置目录 / Choose a Zotero profile")}
   guard try hash(xpi)==digest else{throw error("插件校验失败 / Plugin verification failed")}
@@ -74,7 +79,7 @@ enum ZoteroInstall {
   let target=extensions.appendingPathComponent(addonID+".xpi");try regular(target)
   guard !files.fileExists(atPath:extensions.appendingPathComponent(addonID).path) else{throw error("检测到开发版插件，请手动安装 / Development copy found: install manually")}
   if files.fileExists(atPath:target.path) {
-   if try hash(target)==digest{return status(profile,version,digest)}
+   if try hash(target)==digest{let state=status(profile,version,digest);if state=="pending"{try refreshStartupCache(profile,backups)};return state}
    if let data=try? Data(contentsOf:profile.appendingPathComponent("extensions.json")),let db=(try? JSONSerialization.jsonObject(with:data)) as? [String:Any],let addons=db["addons"] as? [[String:Any]],let addon=addons.first(where:{$0["id"] as? String==addonID}),let installed=addon["version"] as? String,installed.compare(version,options:.numeric) == .orderedDescending{throw error("已安装更新版本 / A newer version is installed")}
    try files.createDirectory(at:backups,withIntermediateDirectories:true)
    let backup=backups.appendingPathComponent(UUID().uuidString+".xpi");try files.copyItem(at:target,to:backup)
@@ -83,9 +88,7 @@ enum ZoteroInstall {
   let temp=extensions.appendingPathComponent(".paper-voice-"+UUID().uuidString);defer{try? files.removeItem(at:temp)}
   try files.copyItem(at:xpi,to:temp)
   guard try hash(temp)==digest else{throw error("插件校验失败 / Plugin verification failed")}
-  // Zotero may otherwise reuse cached manifest/version data after an offline update.
-  let startup=profile.appendingPathComponent("addonStartup.json.lz4");try regular(startup)
-  if files.fileExists(atPath:startup.path){try files.createDirectory(at:backups,withIntermediateDirectories:true);try files.copyItem(at:startup,to:backups.appendingPathComponent(UUID().uuidString+"-addonStartup.json.lz4"));try files.removeItem(at:startup)}
+  try refreshStartupCache(profile,backups)
   // rename is atomic on the same volume; unrelated profile metadata is untouched.
   guard rename(temp.path,target.path)==0 else{throw error("无法写入插件 / Cannot write plugin")}
   guard try hash(target)==digest else{throw error("插件校验失败 / Plugin verification failed")}

@@ -217,6 +217,7 @@ final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
   pluginTimer=Timer.scheduledTimer(withTimeInterval:1,repeats:true){[weak self] _ in guard let self=self,self.complete else{return};if !self.didStage{if self.zoteroApp==nil{self.zoteroApp=ZoteroInstall.applications().first};if self.zoteroProfile==nil{let profiles=ZoteroInstall.profiles(ZoteroInstall.profileBase);if profiles.count==1{self.zoteroProfile=profiles[0]}}};if self.pluginState=="running" && !ZoteroInstall.running(){self.continuePlugin()};if self.didStage,let profile=self.zoteroProfile{let asset=config["plugin"] as! [String:Any];self.pluginState=ZoteroInstall.status(profile.path,config["version"] as! String,asset["sha256"] as! String);self.refreshPluginUI()}}
  }
  func refreshPluginUI(){
+  only.isHidden=zoteroApp != nil && zoteroProfile != nil && pluginState != "error"
   targetLabel.stringValue="Zotero";path.stringValue=zoteroProfile?.name ?? t("选择用户配置","Select a profile");path.toolTip=zoteroProfile?.path.path;browse.title=t("选择配置","Profile");only.title=t("手动安装","Manual install")
   if zoteroApp==nil{action.title=t("选择 Zotero","Locate Zotero");status.stringValue=t("未找到 Zotero 10。请选择应用，或先安装并打开一次。","Zotero 10 not found. Locate it, or install and open it once.");return}
   if zoteroProfile==nil{action.title=t("选择配置","Select profile");status.stringValue=t("请选择要安装的用户配置；首次使用请先打开 Zotero 一次。","Choose a profile. First-time users: open Zotero once.");return}
