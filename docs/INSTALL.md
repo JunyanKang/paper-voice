@@ -81,7 +81,7 @@
 ## 安装遇到问题
 
 **系统提示无法验证开发者或发行者**<br>
-当前安装器未使用 Apple Developer ID 公证或 Windows Authenticode 证书。确认来自本项目 GitHub Releases 后，可在 macOS「系统设置 → 隐私与安全性」查看允许打开选项，或在 Windows 安全提示中核对来源。无需关闭全局系统保护。
+当前安装器未使用 Apple Developer ID 公证或 Windows Authenticode 证书。在 Mac 上，先尝试打开安装助手一次；若被拦截，再到 **系统设置 → 隐私与安全性 → 仍要打开**。仅在确认安装器来自 [Paper Voice 官方发布页](https://github.com/JunyanKang/paper-voice/releases) 时允许运行。在 Windows 安全提示中也请先核对来源。无需关闭全局系统保护。
 
 **Windows 提示缺少 DLL**<br>
 安装 [Microsoft Visual C++ x64 运行库](https://aka.ms/vs/17/release/vc_redist.x64.exe)，再运行安装器。

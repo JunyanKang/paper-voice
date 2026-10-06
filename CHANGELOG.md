@@ -1,5 +1,14 @@
 # 更新记录
 
+## 1.4.2 · 2026-10-06
+
+- 划词翻译与 Zotero 原生弹窗统一宽度，避免不同电脑上内容越出背景边界。
+- 阅读导航浮层先完成尺寸与位置计算再渐显，修正嵌套背景的绘制层级。
+- Mac DMG 加入双语首次打开说明、系统设置路径及官方来源提示。
+- 包含 1.4.1 的更新检查修复与可见插件保存位置。
+
+Selection translations now stay within the native popup. Navigation popovers finish layout before fading in. The Mac disk image includes bilingual opening instructions and official-source verification. Includes the update and Downloads-folder fixes from 1.4.1.
+
 ## 1.4.1 · 2026-10-06
 
 - 安装器将 XPI 保存至用户可见的「下载/Paper Voice」，内部缓存与交付文件分离。

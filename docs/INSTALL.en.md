@@ -81,7 +81,7 @@ Releases provide DMG and EXE installers only. The installer retrieves the XPI an
 ## Installation help
 
 **The system cannot verify the developer or publisher**<br>
-The installer is not Apple Developer ID notarized or Windows Authenticode signed. Verify that it came from this project's GitHub Releases. On macOS, check the app-specific option in System Settings → Privacy & Security; on Windows, review the source in the security prompt. Do not disable system-wide protections.
+The installer is not Apple Developer ID notarized or Windows Authenticode signed. On Mac, first try opening the installer once. If macOS blocks it, go to **System Settings → Privacy & Security → Open Anyway**. Allow it only after verifying that it came from the [official Paper Voice release page](https://github.com/JunyanKang/paper-voice/releases). On Windows, also verify the source in the security prompt. Do not disable system-wide protections.
 
 **Windows reports a missing DLL**<br>
 Install the [Microsoft Visual C++ x64 runtime](https://aka.ms/vs/17/release/vc_redist.x64.exe), then reopen the installer.

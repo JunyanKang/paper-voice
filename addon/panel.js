@@ -286,12 +286,18 @@ var PaperVoiceUI = {
   const openNavigation=()=>{
    doc.defaultView.clearTimeout(closeTimer);
    if(controller.get('mode','selection')==='selection'||!controller.currentUnit||!['playing','paused','loading'].includes(controller.state))return;
-   closeAudioPopover();visible(navigation,true);action('quickPause').setAttribute('aria-expanded','true');
+   closeAudioPopover();const alreadyOpen=!navigation.hidden&&navigation.dataset.pvVisible==='true';
+   if(!alreadyOpen){navigation._pvFade?.cancel();navigation._pvFade=null;}
+   // Complete geometry before creating the first composited animation frame.
+   navigation.style.visibility='hidden';navigation.hidden=false;
+   action('quickPause').setAttribute('aria-expanded','true');
    navigation.style.left='0px';navigation.dataset.side='above';
    const anchor=tools.getBoundingClientRect(),bar=find('quick').getBoundingClientRect(),win=doc.defaultView;
-   navigation.style.width=bar.width+'px';navigation.style.left=(Math.max(8,Math.min(bar.left,win.innerWidth-bar.width-8))-anchor.left)+'px';
+   const width=Math.min(win.innerWidth-16,Math.max(find('quick').offsetWidth,184));
+   navigation.style.width=width+'px';navigation.style.left=(Math.max(8,Math.min(bar.right-width,win.innerWidth-width-8))-anchor.left)+'px';
    const box=navigation.getBoundingClientRect();
    if(box.top<8)navigation.dataset.side='below';
+   navigation.style.visibility='';if(!alreadyOpen){navigation.hidden=true;visible(navigation,true);}
   };
   const leaveNavigation=()=>{doc.defaultView.clearTimeout(closeTimer);closeTimer=doc.defaultView.setTimeout(()=>{if(!hovering&&!(tools.contains(doc.activeElement)&&doc.activeElement.matches(':focus-visible')))closeNavigation();},300);};
   tools.addEventListener('pointerenter',()=>{hovering=true;openNavigation();});tools.addEventListener('pointerleave',()=>{hovering=false;leaveNavigation();});

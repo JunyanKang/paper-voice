@@ -17,11 +17,32 @@ if sys.platform=='darwin':
   b=(iconset/name).read_bytes();chunks+=kind.encode()+struct.pack('>I',len(b)+8)+b
  (resources/'PaperVoice.icns').write_bytes(b'icns'+struct.pack('>I',len(chunks)+8)+chunks)
  for source in [out/'installer.json',ROOT/'addon/assets/mascot.png',ROOT/'installers/commit_runtime.py',ROOT/'LICENSE',*sorted((ROOT/'installers/assets').glob('*'))]:shutil.copyfile(source,resources/source.name)
+ background=resources/'DMGBackground.png';renderer=out/'render-dmg-background'
+ subprocess.run(['xcrun','swiftc','-O','-module-cache-path',str(out/'swift-cache'),'-framework','Cocoa',str(ROOT/'installers/macos/DMGBackground.swift'),'-o',str(renderer)],check=True)
+ subprocess.run([str(renderer),str(background)],check=True)
  info={'CFBundleIdentifier':'io.github.junyankang.paper-voice.installer','CFBundleName':'Paper Voice Installer','CFBundleDisplayName':'Paper Voice 安装助手','CFBundleExecutable':binary.name,'CFBundleVersion':version,'CFBundleShortVersionString':version,'CFBundlePackageType':'APPL','CFBundleIconFile':'PaperVoice','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True};(app/'Contents/Info.plist').write_bytes(plistlib.dumps(info));subprocess.run(['codesign','--force','--sign','-',str(app)],check=True)
- stage=out/'dmg-root';stage.mkdir(exist_ok=True);dest=stage/app.name
- if dest.exists():shutil.rmtree(dest)
- shutil.copytree(app,dest);target=ROOT/'dist'/f'Paper-Voice-{version}-macOS.dmg'
- subprocess.run(['hdiutil','create','-ov','-format','UDZO','-volname','Paper Voice','-srcfolder',str(stage),str(target)],check=True)
+ import dmgbuild
+ from ds_store import DSStore
+ from mac_alias import Alias
+ mounted={}
+ def configure_background(event):
+  if event.get('command')=='hdiutil::attach' and event['type']=='command::finished':
+   mounted['path']=next(Path(e['mount-point']) for e in event['output']['system-entities'] if e.get('mount-point'))
+  if event.get('operation')=='dsstore::create' and event['type']=='operation::finished':
+   mount=mounted['path']
+   # Keep artwork inside the signed app, so even Show Hidden Files adds no
+   # loose image icon to the installation window.
+   with DSStore.open(str(mount/'.DS_Store'),'r+') as store:
+    view=store['.']['icvp'];view['backgroundType']=2
+    view['backgroundImageAlias']=Alias.for_file(str(mount/app.name/'Contents/Resources/DMGBackground.png')).to_bytes()
+    store['.']['icvp']=view
+ target=ROOT/'dist'/f'Paper-Voice-{version}-macOS.dmg'
+ dmgbuild.build_dmg(str(target),'Paper Voice',settings={
+  'files':[str(app)],'background':'#edf4f8','format':'UDZO',
+  'window_rect':((160,80),(720,580)),'icon_locations':{app.name:(360,188)},
+  'icon_size':88,'text_size':13,'show_toolbar':False,'show_status_bar':False,
+  'show_sidebar':False,'show_tab_view':False,'default_view':'icon-view',
+  'include_icon_view_settings':True,'include_list_view_settings':False},callback=configure_background)
  for attempt in range(3):
   verified=subprocess.run(['hdiutil','verify',str(target)],capture_output=True,text=True)
   if verified.returncode==0:break

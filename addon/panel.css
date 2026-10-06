@@ -210,6 +210,13 @@
 .pv-shell[data-theme] .pv-panel{box-shadow:var(--pv-glass-shadow),inset 0 1px 0 var(--pv-rim-light)}
 .pv-shell[data-theme] .pv-panel::before,.pv-shell[data-theme] .pv-quick::before,.pv-shell[data-theme] .pv-nav-card::before,.pv-shell[data-theme] .pv-audio-toggle::before,.pv-caption[data-theme]::before{box-shadow:inset 0 1px 0 var(--pv-rim-light)}
 
+/* Keep nested hover backgrounds inside their own compositing layer. Negative
+   layers can be clipped during the first opacity frame in Gecko/WebRender. */
+.pv-shell[data-theme] .pv-nav-card{overflow:hidden}
+.pv-shell[data-theme] .pv-nav-card::before{z-index:0}
+.pv-nav-card>.pv-nav-row{position:relative;z-index:1;min-width:0}
+.pv-nav-row>span{overflow:hidden;text-overflow:ellipsis}
+
 /* Labels are part of each swatch; keyboard focus remains inside its bounds. */
 .pv-theme-name{position:absolute;left:1px;right:1px;bottom:5px;text-align:center;font:400 10px/14px system-ui,sans-serif;color:var(--pv-swatch-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pv-theme-browser[data-expanded=true]>[data-field=themeChoices]{visibility:hidden}

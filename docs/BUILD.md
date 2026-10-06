@@ -31,6 +31,7 @@ GitHub Pages uses the account's custom domain redirect. Test the full HTTPS redi
 After building the XPI, run on each target platform:
 
 ```sh
+# macOS only: python -m pip install dmgbuild==1.6.7
 python scripts/build_installer.py
 python scripts/validate_installation.py
 ```

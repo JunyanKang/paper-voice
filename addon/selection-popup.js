@@ -15,6 +15,10 @@ var PaperVoiceSelectionUI = {
   const style=doc.createElement('style');style.textContent=`
    /* Zotero owns transform for anchoring; entry animation must never override it. */
    .selection-popup:has(.pv-selection-card):not([class*="page-popup-"]){visibility:hidden}
+   /* Own the shared outer width before Zotero measures its anchor. Some Reader
+      versions and other extensions otherwise leave the native 196px width. */
+   .selection-popup:has(.pv-selection-card){box-sizing:border-box!important;width:296px!important;min-width:0!important;max-width:calc(100% - 16px)!important;padding:8px!important}
+   .selection-popup:has(.pv-selection-card)>.custom-sections,.selection-popup:has(.pv-selection-card) .section:has(.pv-selection-card){box-sizing:border-box;width:100%;min-width:0;max-width:100%}
    .selection-popup[data-pv-selection]{color:var(--pv-ink);background:var(--pv-glass);border:0;outline:1px solid var(--pv-glass-line);outline-offset:-1px;border-radius:15px;box-shadow:var(--pv-small-shadow),inset 0 1px 0 var(--pv-rim-light);backdrop-filter:blur(18px);animation:pv-selection-enter .16s ease-out}
    .selection-popup[data-pv-selection]>.tool-toggle{background:var(--pv-soft)}
    .selection-popup[data-pv-selection]>.tool-toggle>button{color:var(--pv-muted)}
@@ -23,12 +27,12 @@ var PaperVoiceSelectionUI = {
    /* Hide only the duplicate source field from Translate for Zotero in this card. */
    .selection-popup[data-pv-selection-translation=true] .zoteropdftranslate-popup-textarea[id$="-text"]{display:none!important}
    .selection-popup[data-pv-selection-translation=true] .custom-sections>.section:has(.zoteropdftranslate-popup-textarea[id$="-text"]){border-top:0;padding:0;margin:0}
-   .pv-selection-card{box-sizing:border-box;width:280px;max-width:calc(100vw - 64px);padding:5px 9px 7px;color:var(--pv-ink);background:color-mix(in srgb,var(--pv-paper) 88%,transparent);border-radius:12px;font:12px/1.45 system-ui,sans-serif;text-align:start}
+   .pv-selection-card{box-sizing:border-box;width:100%;min-width:0;max-width:100%;padding:5px 9px 7px;color:var(--pv-ink);background:color-mix(in srgb,var(--pv-paper) 88%,transparent);border-radius:12px;font:12px/1.45 system-ui,sans-serif;text-align:start}
    .pv-selection-card *{box-sizing:border-box}.pv-selection-card [hidden]{display:none!important}
-   .pv-selection-heading{display:flex;align-items:center;gap:5px;height:22px;margin:0 0 3px;color:var(--pv-muted);font-size:10px;font-weight:500;letter-spacing:0}
+   .pv-selection-heading{display:flex;flex-wrap:wrap;align-items:center;gap:5px;min-height:22px;margin:0 0 3px;color:var(--pv-muted);font-size:10px;font-weight:500;letter-spacing:0}
    .pv-selection-symbol{width:15px;height:15px;flex:none;background:var(--pv-accent);mask:var(--pv-selection-translate-icon) center/contain no-repeat}
    .pv-selection-card[data-translation-state=loading] .pv-selection-symbol{animation:pv-selection-breathe 1.3s ease-in-out infinite}
-   .pv-selection-heading>span:nth-child(2){flex:1}
+   .pv-selection-heading>span:nth-child(2){flex:1;min-width:0;overflow-wrap:anywhere}
    .pv-selection-scopes{display:flex;gap:1px;padding:2px;border-radius:8px;background:color-mix(in srgb,var(--pv-ink) 5%,transparent)}
    .pv-selection-scopes button{appearance:none;border:0;border-radius:6px;background:transparent;color:var(--pv-muted);padding:2px 4px;font:500 10px/14px system-ui,sans-serif;cursor:pointer;transition:background .18s ease,color .18s ease,box-shadow .18s ease}
    .pv-selection-scopes button:hover{color:var(--pv-ink)}.pv-selection-scopes button[aria-pressed=true]{color:var(--pv-accent);background:var(--pv-paper);box-shadow:0 1px 3px #172c3d12}
