@@ -1,94 +1,79 @@
 using System;
-using System.Diagnostics;
-using System.Drawing;
-using System.Globalization;
 using System.IO;
+using System.IO.Compression;
+using System.Net;
+using System.Net.Http;
+using System.Linq;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Drawing;
 using System.Windows.Forms;
-
-class Installer : Form {
-    static readonly string Root = AppDomain.CurrentDomain.BaseDirectory;
-    Label status;
-    Button action;
-    ProgressBar progress;
-    bool working, complete;
-    bool english = !CultureInfo.CurrentUICulture.Name.StartsWith("zh");
-    Label heading, description, stepOne, stepTwo, readyLabel;
-    LinkLabel help;
-    ComboBox language;
-    string Tr(string zh, string en) {return english ? en : zh;}
-    void RefreshLanguage() {
-        Text=Tr("Paper Voice 安装助手","Paper Voice Installer");
-        heading.Text=Tr("让论文，读给你听。","Listen. Understand. Explore.");
-        heading.Font=new Font("Microsoft YaHei UI",english?18:23,FontStyle.Bold);
-        description.Text=Tr("自然声音，本地运行。\n英语、中文、日语、法语，随时听读。","Natural voices. Right on your computer.\nEnglish, Chinese, Japanese and French.");
-        stepOne.Text=Tr("01  安装离线声音","01  Set up offline voices");
-        stepTwo.Text=Tr("02  在 Zotero 中添加下载包里的 .xpi 插件","02  Add the included .xpi plugin to Zotero");
-        readyLabel.Text=Tr("✓ 声音已就绪","✓ Voices ready");readyLabel.Visible=complete;
-        stepTwo.ForeColor=complete?Color.FromArgb(18,64,71):Color.DimGray;
-        stepTwo.Font=new Font("Microsoft YaHei UI",10,complete?FontStyle.Bold:FontStyle.Regular);
-        help.Text=Tr("安装帮助","Help");
-        action.Text=complete?Tr("完成","Done"):Tr("安装声音","Install voices");
-        status.Text=complete?Tr("下一步：打开 Zotero → 工具 → 插件 → 齿轮 → 从文件安装，选择下载包里的 .xpi 文件。","Next: In Zotero: Tools → Plugins → gear → Install Plugin From File. Choose the included .xpi."):Tr("无需账户，无需联网下载，不需要管理员密码。","No account, extra downloads or administrator password needed.");
-    }
-    static Tuple<int,string> Install(bool english) {
-        string resources = Path.Combine(Root,"Resources");
-        string python = Path.Combine(resources,"engine","python","python.exe");
-        if (!File.Exists(python) || !File.Exists(Path.Combine(resources,"install_engine.py")))
-            return Tuple.Create(1,english?"Installation files are missing. Extract the complete ZIP and keep the Resources folder beside this installer.":"安装文件不完整。请先完整解压 ZIP，并保留 Resources 文件夹。");
-        try {
-            var info = new ProcessStartInfo(python,"-E -s -B -X utf8 \""+Path.Combine(resources,"install_engine.py")+"\" --lang "+(english?"en":"zh"));
-            info.UseShellExecute=false; info.CreateNoWindow=true; info.RedirectStandardOutput=true; info.RedirectStandardError=true;
-            info.StandardOutputEncoding=System.Text.Encoding.UTF8; info.StandardErrorEncoding=System.Text.Encoding.UTF8;
-            using (var process=Process.Start(info)) {
-                var stdout=process.StandardOutput.ReadToEndAsync(); var stderr=process.StandardError.ReadToEndAsync();
-                process.WaitForExit(); Task.WaitAll(stdout,stderr);
-                return Tuple.Create(process.ExitCode,stdout.Result+stderr.Result);
-            }
-        } catch(Exception e) {return Tuple.Create(1,e.Message);}
-    }
-    Label TextAt(string value,float size,FontStyle style,int x,int y,int width,int height,Color color) {
-        var label=new Label{Text=value,Font=new Font("Microsoft YaHei UI",size,style),Location=new Point(x,y),Size=new Size(width,height),ForeColor=color};
-        Controls.Add(label);return label;
-    }
-    Installer() {
-        Text="Paper Voice 安装助手";ClientSize=new Size(600,440);FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;
-        StartPosition=FormStartPosition.CenterScreen;BackColor=Color.FromArgb(249,247,242);AutoScaleMode=AutoScaleMode.Dpi;
-        var teal=Color.FromArgb(18,64,71);
-        using(var s=typeof(Installer).Assembly.GetManifestResourceStream("mascot.png")) {
-            var picture=new PictureBox{Image=new Bitmap(s),SizeMode=PictureBoxSizeMode.Zoom,Location=new Point(425,42),Size=new Size(140,165)};Controls.Add(picture);
-        }
-        Icon=System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
-        TextAt("PAPER VOICE  /  FOR ZOTERO",9,FontStyle.Bold,40,38,380,24,teal);
-        heading=TextAt("让论文，读给你听。",23,FontStyle.Bold,36,92,395,50,teal);
-        description=TextAt("自然声音，本地运行。\n英语、中文、日语、法语，随时听读。",11,FontStyle.Regular,40,158,370,58,Color.DimGray);
-        stepOne=TextAt("01  安装离线声音",12,FontStyle.Bold,40,240,255,28,teal);
-        readyLabel=TextAt("",9,FontStyle.Regular,300,244,260,24,Color.FromArgb(46,110,82));readyLabel.Visible=false;
-        stepTwo=TextAt("02  在 Zotero 中添加下载包里的 .xpi 插件",10,FontStyle.Regular,40,275,520,25,Color.DimGray);
-        status=TextAt("无需账户，无需联网下载，不需要管理员密码。",9,FontStyle.Regular,40,316,520,48,Color.DimGray);
-        progress=new ProgressBar{Location=new Point(40,367),Size=new Size(520,4),Style=ProgressBarStyle.Marquee,Visible=false};Controls.Add(progress);
-        action=new Button{Text="安装声音",Location=new Point(410,385),Size=new Size(150,36),FlatStyle=FlatStyle.Flat,BackColor=teal,ForeColor=Color.White};
-        action.FlatAppearance.BorderSize=0;action.Click+=Start;Controls.Add(action);AcceptButton=action;
-        help=new LinkLabel{Text="安装帮助",Location=new Point(40,396),AutoSize=true,LinkColor=teal};help.LinkClicked+=(s,e)=>Process.Start("https://github.com/JunyanKang/paper-voice/blob/main/docs/"+(english?"INSTALL.en.md":"INSTALL.md"));Controls.Add(help);
-        language=new ComboBox{Location=new Point(140,390),Size=new Size(120,28),DropDownStyle=ComboBoxStyle.DropDownList,AccessibleName="Language / 语言"};
-        language.Items.AddRange(new object[]{"简体中文","English"});language.SelectedIndex=english?1:0;
-        language.SelectedIndexChanged+=(s,e)=>{english=language.SelectedIndex==1;RefreshLanguage();};Controls.Add(language);RefreshLanguage();
-        FormClosing+=(s,e)=>{if(working)e.Cancel=true;};
-    }
-    async void Start(object sender,EventArgs e) {
-        if(complete){Close();return;}
-        working=true;action.Enabled=false;language.Enabled=false;action.Text=Tr("正在安装…","Installing…");progress.Visible=true;status.Text=Tr("正在配置本地声音，请稍候。你的文献和批注不会改变。","Setting up voices. Your papers and annotations stay unchanged.");
-        var result=await Task.Run(()=>Install(english));
-        working=false;action.Enabled=true;language.Enabled=true;progress.Visible=false;
-        if(result.Item1==0){complete=true;RefreshLanguage();}
-        else {action.Text=Tr("重试安装","Try again");status.Text=Tr("安装未完成，原有声音保持不变。","Installation did not finish. Your existing voices are unchanged.");MessageBox.Show(this,result.Item2,Tr("暂时无法完成安装","Unable to complete installation"),MessageBoxButtons.OK,MessageBoxIcon.Warning);}
-    }
-    [STAThread] static int Main(string[] args) {
-        if(Array.IndexOf(args,"/quiet")>=0) {
-            var result=Install(Array.IndexOf(args,"/english")>=0);
-            if(args.Length>1)File.WriteAllText(args[1],result.Item2);
-            return result.Item1;
-        }
-        Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);Application.Run(new Installer());return 0;
-    }
+using System.Web.Script.Serialization;
+using System.Diagnostics;
+internal static class Setup {
+ internal static JavaScriptSerializer JSON=new JavaScriptSerializer {MaxJsonLength=4000000};
+ internal static Dictionary<string,object> Config=Parse(Resource("installer.json")),Runtime=(Dictionary<string,object>)Config["runtime"];
+ internal static List<Dictionary<string,object>> Packages=Rows(Runtime["packages"]);
+ internal static string AppData=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"Zotero","Zotero"),Pointer=Path.Combine(AppData,"paper-voice-location.json");
+ internal static string Arg(string k){var a=Environment.GetCommandLineArgs();int i=Array.IndexOf(a,k);return i>=0&&i+1<a.Length?a[i+1]:null;}
+ internal static bool Flag(string k){return Environment.GetCommandLineArgs().Contains(k);}
+ internal static Dictionary<string,object> Parse(string s){return JSON.Deserialize<Dictionary<string,object>>(s);}
+ internal static List<Dictionary<string,object>> Rows(object v){return ((IEnumerable)v).Cast<object>().Select(x=>(Dictionary<string,object>)x).ToList();}
+ internal static string Resource(string n){using(var s=new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(n)))return s.ReadToEnd();}
+ internal static string Hash(string path){using(var f=File.OpenRead(path))using(var h=SHA256.Create())return BitConverter.ToString(h.ComputeHash(f)).Replace("-","").ToLowerInvariant();}
+ internal static bool Valid(string path,Dictionary<string,object> a){return File.Exists(path)&&new FileInfo(path).Length==Convert.ToInt64(a["bytes"])&&Hash(path)==(string)a["sha256"];}
+ internal static string DefaultRoot(){try{var j=Parse(File.ReadAllText(Pointer));var path=(string)j["root"];if(Path.IsPathRooted(path))return path;}catch(Exception){}return Path.Combine(AppData,"paper-voice-engine");}
+ internal static string Quote(string v){return "\""+v.Replace("\"","\\\"")+"\"";}
+ [STAThread] static int Main(){ServicePointManager.SecurityProtocol=SecurityProtocolType.Tls12;try{if(Flag("--quiet")){if(Arg("--destination")==null||Arg("--download-dir")==null||Arg("--pointer")==null)throw new Exception("Explicit test directories required");using(var e=new Engine()){if(Flag("--cancel-test"))e.Progress=(p,v)=>{if((p=="runtime"||p=="voices")&&v>0)e.Cancel();};var xpi=e.Install(Arg("--destination"),Arg("--download-dir"),Arg("--pointer"),Flag("--plugin-only")).GetAwaiter().GetResult();if(Arg("--result")!=null)File.WriteAllText(Arg("--result"),xpi);return 0;}}Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);Application.Run(new Installer());return 0;}catch(Exception e){if(Arg("--result")!=null)File.WriteAllText(Arg("--result"),e.ToString());return 1;}}
+}
+internal sealed class Engine:IDisposable {
+ readonly CancellationTokenSource stop=new CancellationTokenSource();internal Action<string,double> Progress;internal bool Committing;internal bool Cancelled{get{return stop.IsCancellationRequested;}}internal void Cancel(){if(!Committing)stop.Cancel();}public void Dispose(){stop.Dispose();}
+ void Check(){stop.Token.ThrowIfCancellationRequested();}void Report(string p,double v){Check();if(Progress!=null)Progress(p,v);}
+ void Verify(string root){var files=Setup.Rows(Setup.Runtime["files"]);for(int i=0;i<files.Count;i++){Check();var f=files[i];if(!Setup.Valid(Path.Combine(root,((string)f["name"]).Replace('/',Path.DirectorySeparatorChar)),f))throw new Exception("声音文件不完整 / Incomplete voices");if(i%40==0)Report("verify",(double)i/files.Count);}}
+ async Task<string> Fetch(Dictionary<string,object> a,string cache,string phase,double before,double total){Check();string path=Path.Combine(cache,(string)a["name"]);long size=Convert.ToInt64(a["bytes"]);if(Setup.Valid(path,a)){Report(phase,(before+size)/total);return path;}string temp=Path.Combine(cache,".download-"+Guid.NewGuid().ToString("N"));try{
+  string offline=Setup.Arg("--package-dir");if(offline!=null){File.Copy(Path.Combine(offline,(string)a["name"]),temp);Report(phase,(before+size)/total);}else{
+   var uri=new Uri((string)a["url"]);using(var handler=new HttpClientHandler{AllowAutoRedirect=false})using(var client=new HttpClient(handler)){client.Timeout=TimeSpan.FromMinutes(10);HttpResponseMessage response=null;try{for(int i=0;i<8;i++){if(uri.Scheme!="https")throw new Exception("HTTPS required");response=await client.GetAsync(uri,HttpCompletionOption.ResponseHeadersRead,stop.Token);if((int)response.StatusCode<300||(int)response.StatusCode>=400)break;var next=response.Headers.Location;if(next==null)throw new Exception("Missing redirect");uri=next.IsAbsoluteUri?next:new Uri(uri,next);response.Dispose();response=null;}if(response==null||response.StatusCode!=HttpStatusCode.OK)throw new Exception("下载暂不可用 / Download unavailable");using(var input=await response.Content.ReadAsStreamAsync())using(var output=File.Create(temp)){byte[] b=new byte[65536];long read=0;int count;while((count=await input.ReadAsync(b,0,b.Length,stop.Token))>0){read+=count;if(read>size)throw new Exception("Unexpected file size");await output.WriteAsync(b,0,count,stop.Token);Report(phase,(before+read)/total);}}}finally{if(response!=null)response.Dispose();}}
+  }Check();if(!Setup.Valid(temp,a))throw new Exception("下载校验失败 / Download verification failed");if(File.Exists(path))File.Replace(temp,path,null);else File.Move(temp,path);return path;
+ }finally{if(File.Exists(temp))File.Delete(temp);}}
+ void Extract(string archive,string root){var prefix=Path.GetFullPath(root)+Path.DirectorySeparatorChar;using(var z=ZipFile.OpenRead(archive)){foreach(var entry in z.Entries){Check();var name=entry.FullName.Replace('/',Path.DirectorySeparatorChar);var dest=Path.GetFullPath(Path.Combine(root,name));if(!dest.StartsWith(prefix,StringComparison.OrdinalIgnoreCase)||name.Contains(":"))throw new Exception("Invalid archive path");Directory.CreateDirectory(Path.GetDirectoryName(dest));if(!entry.FullName.EndsWith("/"))entry.ExtractToFile(dest,true);}}}
+ async Task Run(string exe,IEnumerable<string> args){var info=new ProcessStartInfo(exe,string.Join(" ",args.Select(Setup.Quote))){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true,StandardOutputEncoding=Encoding.UTF8,StandardErrorEncoding=Encoding.UTF8};info.EnvironmentVariables["HF_HUB_OFFLINE"]="1";using(var p=Process.Start(info)){var o=p.StandardOutput.ReadToEndAsync();var e=p.StandardError.ReadToEndAsync();await Task.Run(()=>p.WaitForExit());var text=await o+await e;if(p.ExitCode!=0)throw new Exception(text);}}
+ internal async Task<string> Install(string root,string cache,string pointer,bool pluginOnly){Directory.CreateDirectory(cache);var plugin=(Dictionary<string,object>)Setup.Config["plugin"];Report("plugin",0);string xpi=await Fetch(plugin,cache,"plugin",0,Convert.ToDouble(plugin["bytes"]));Report("pluginDone",1);if(pluginOnly)return xpi;
+  root=Path.GetFullPath(root);if(Path.GetFileName(root)!="paper-voice-engine")throw new Exception("Choose a voice folder");Directory.CreateDirectory(Path.GetDirectoryName(root));bool reusable=false;Report("verify",0);try{Verify(root);reusable=true;}catch(Exception){Check();}
+  string work=Path.Combine(Path.GetDirectoryName(root),".paper-voice-setup-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(work);try{
+   if(!reusable){foreach(var a in Setup.Packages.AsEnumerable().Reverse()){string phase=((string)a["name"]).StartsWith("runtime")?"runtime":"voices",archive=Path.Combine(work,(string)a["name"]);double done=0,total=Convert.ToDouble(a["bytes"]);using(var output=File.Create(archive)){foreach(var part in Setup.Rows(a["parts"])){string file=await Fetch(part,cache,phase,done,total);using(var input=File.OpenRead(file))input.CopyTo(output);done+=Convert.ToDouble(part["bytes"]);}}if(!Setup.Valid(archive,a))throw new Exception("Archive verification failed");Report(phase+"Extract",1);Extract(archive,work);File.Delete(archive);Report(phase+"Done",1);}Verify(Path.Combine(work,"engine"));}else Report("reused",1);
+   Check();Committing=true;Report("setup",0);string source=reusable?root:Path.Combine(work,"engine"),script=Path.Combine(work,"commit_runtime.py");File.WriteAllText(script,Setup.Resource("commit_runtime.py"),new UTF8Encoding(false));var args=new List<string>{"-E","-s","-B","-X","utf8",script,"--source",source,"--destination",root,"--pointer",pointer,"--runtime-id",(string)Setup.Runtime["id"]};if(reusable)args.Add("--reuse");await Run(Path.Combine(source,"python","python.exe"),args);Report("ready",1);return xpi;
+  }finally{try{Directory.Delete(work,true);}catch(IOException){}}
+ }
+}
+internal static class Visual {
+ internal static readonly Color Ink=Color.FromArgb(17,75,80),Muted=Color.FromArgb(89,100,102),Green=Color.FromArgb(30,122,92),Paper=Color.FromArgb(244,248,250);
+ static readonly System.Drawing.Text.PrivateFontCollection Fonts=new System.Drawing.Text.PrivateFontCollection();
+ [System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern IntPtr AddFontMemResourceEx(IntPtr p,uint size,IntPtr reserved,ref uint count);
+ static Visual(){foreach(var name in new[]{"VoiceSans-Regular.ttf","VoiceSans-SemiBold.ttf"})using(var s=Assembly.GetExecutingAssembly().GetManifestResourceStream(name)){var bytes=new byte[s.Length];s.Read(bytes,0,bytes.Length);var p=System.Runtime.InteropServices.Marshal.AllocHGlobal(bytes.Length);System.Runtime.InteropServices.Marshal.Copy(bytes,0,p,bytes.Length);Fonts.AddMemoryFont(p,bytes.Length);uint count=0;AddFontMemResourceEx(p,(uint)bytes.Length,IntPtr.Zero,ref count);}}
+ internal static Font Font(float size,FontStyle weight=FontStyle.Regular){return new Font(Fonts.Families[0],size,weight,GraphicsUnit.Pixel);}
+ internal static System.Drawing.Drawing2D.GraphicsPath Round(RectangleF r,float radius){var p=new System.Drawing.Drawing2D.GraphicsPath();float d=radius*2;p.AddArc(r.X,r.Y,d,d,180,90);p.AddArc(r.Right-d,r.Y,d,d,270,90);p.AddArc(r.Right-d,r.Bottom-d,d,d,0,90);p.AddArc(r.X,r.Bottom-d,d,d,90,90);p.CloseFigure();return p;}
+}
+internal sealed class Card:Panel {protected override void OnPaintBackground(PaintEventArgs e){e.Graphics.Clear(Visual.Paper);e.Graphics.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;using(var p=Visual.Round(new RectangleF(0,0,Width,Height),12))using(var b=new SolidBrush(Color.White))e.Graphics.FillPath(b,p);}internal Card(){BackColor=Color.White;Resize+=(s,e)=>{if(Width>0&&Height>0){using(var p=Visual.Round(new RectangleF(0,0,Width,Height),12)){var old=Region;Region=new Region(p);if(old!=null)old.Dispose();}}};}}
+internal sealed class QuietButton:Button {bool hover;internal QuietButton(){SetStyle(ControlStyles.UserPaint|ControlStyles.AllPaintingInWmPaint|ControlStyles.OptimizedDoubleBuffer,true);FlatStyle=FlatStyle.Flat;FlatAppearance.BorderSize=0;MouseEnter+=(s,e)=>{hover=true;Invalidate();};MouseLeave+=(s,e)=>{hover=false;Invalidate();};}protected override void OnPaint(PaintEventArgs e){e.Graphics.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;var bg=Enabled?(hover?ControlPaint.Light(BackColor,.12f):BackColor):Color.FromArgb(228,228,224);using(var p=Visual.Round(new RectangleF(0,0,Width-1,Height-1),8))using(var brush=new SolidBrush(bg))e.Graphics.FillPath(brush,p);TextRenderer.DrawText(e.Graphics,Text,Font,ClientRectangle,Enabled?ForeColor:Visual.Muted,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis|TextFormatFlags.NoPrefix);}}
+internal sealed class ModelCheck:CheckBox {internal ModelCheck(){SetStyle(ControlStyles.UserPaint|ControlStyles.AllPaintingInWmPaint|ControlStyles.OptimizedDoubleBuffer,true);Cursor=Cursors.Hand;}protected override void OnPaint(PaintEventArgs e){e.Graphics.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;float size=18*DeviceDpi/96f,y=(Height-size)/2;using(var p=Visual.Round(new RectangleF(0,y,size,size),5))using(var b=new SolidBrush(Checked?Visual.Ink:Color.FromArgb(232,232,228)))e.Graphics.FillPath(b,p);if(Checked)using(var pen=new Pen(Color.White,2.2f)){e.Graphics.DrawLines(pen,new[]{new PointF(size*.24f,y+size*.51f),new PointF(size*.43f,y+size*.71f),new PointF(size*.78f,y+size*.29f)});}TextRenderer.DrawText(e.Graphics,Text,Font,new Rectangle((int)size+10,0,Width-(int)size-10,Height),Visual.Ink,TextFormatFlags.Left|TextFormatFlags.VerticalCenter|TextFormatFlags.NoPrefix);}}
+internal sealed class Track:Control {double value;internal Color Tint=Visual.Ink;internal double Value{get{return value;}set{this.value=Math.Max(0,Math.Min(1,value));Invalidate();}}internal Track(){SetStyle(ControlStyles.UserPaint|ControlStyles.AllPaintingInWmPaint|ControlStyles.OptimizedDoubleBuffer,true);}protected override void OnPaint(PaintEventArgs e){e.Graphics.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;using(var p=Visual.Round(new RectangleF(0,0,Width,Height),Height/2f))using(var b=new SolidBrush(Color.FromArgb(232,236,232)))e.Graphics.FillPath(b,p);if(value>0)using(var p=Visual.Round(new RectangleF(0,0,Math.Max(Height,(float)(Width*value)),Height),Height/2f))using(var b=new SolidBrush(Tint))e.Graphics.FillPath(b,p);}}
+internal sealed class PathDisplay:Control {internal PathDisplay(){SetStyle(ControlStyles.UserPaint|ControlStyles.AllPaintingInWmPaint|ControlStyles.OptimizedDoubleBuffer,true);}protected override void OnPaint(PaintEventArgs e){TextRenderer.DrawText(e.Graphics,Text,Font,ClientRectangle,Visual.Muted,TextFormatFlags.Left|TextFormatFlags.VerticalCenter|TextFormatFlags.PathEllipsis|TextFormatFlags.SingleLine|TextFormatFlags.NoPrefix);}}
+internal sealed class Installer:Form{
+ bool zh=(Setup.Arg("--lang")??System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)=="zh",busy,complete;string root=Setup.DefaultRoot(),xpi;Engine engine;Label heading,intro,status,target;PathDisplay path;Button action,only,browse,cancel,help;ComboBox language;List<Label> titles=new List<Label>(),details=new List<Label>(),badges=new List<Label>();List<Track> bars=new List<Track>();Color accent=Color.FromArgb(51,110,158);
+ string T(string cn,string en){return zh?cn:en;}
+ Label TextAt(string text,float size,bool bold,int x,int y,int w,int h){var l=new Label{Text=text,Font=Visual.Font(size,bold?FontStyle.Bold:FontStyle.Regular),Location=new Point(x,y),Size=new Size(w,h),ForeColor=Visual.Ink,BackColor=Color.Transparent};Controls.Add(l);return l;}
+ Button ButtonAt(int x,int y,int w,EventHandler click){var b=new QuietButton{Location=new Point(x,y),Size=new Size(w,34),BackColor=Color.White,ForeColor=Visual.Ink,Font=Visual.Font(11,FontStyle.Bold),Cursor=Cursors.Hand};Controls.Add(b);b.Click+=click;return b;}
+ void RefreshText(){Text=T("Paper Voice 安装助手","Paper Voice Installer");heading.Text=T("让论文，读给你听。","Make room for listening.");intro.Text=T("按需下载。装好声音后，日常听读无需联网。","Download once. Listen offline, every day.");string[] names={T("Zotero 插件","Zotero plugin"),T("声音引擎","Voice engine"),T("多语言声音","Multilingual voices")},descs={T("连接 PDF 听读与翻译","Reading controls and translation"),T("为当前电脑准备本地运行环境","Local runtime for this computer"),T("英语 · 中文 · 日语 · 法语","English · Chinese · Japanese · French")};var assets=new[]{(Dictionary<string,object>)Setup.Config["plugin"],Setup.Packages[1],Setup.Packages[0]};for(int i=0;i<3;i++){titles[i].Text=names[i];details[i].Text=descs[i];badges[i].Text=string.Format("{0:F1} MB",Convert.ToDouble(assets[i]["bytes"])/1e6);}target.Text=T("声音位置","Voice folder");path.Text=root.Replace(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"%USERPROFILE%");browse.Text=T("选择文件夹","Browse");help.Text=T("帮助","Help");only.Text=T("仅更新插件","Plugin only");cancel.Text=T("取消","Cancel");action.Text=complete?T("查看插件文件","Show plugin file"):T("下载并安装","Download & install");status.Text=T("已有声音会先检查并复用，不重复下载。","Existing voices are checked and reused.");}
+ internal Installer(){AutoScaleMode=AutoScaleMode.Dpi;ClientSize=new Size(640,510);FormBorderStyle=FormBorderStyle.FixedSingle;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;BackColor=Color.FromArgb(244,248,250);Font=Visual.Font(11);Icon=Icon.ExtractAssociatedIcon(Application.ExecutablePath);TextAt("PAPER VOICE  /  FOR ZOTERO",10,true,30,20,440,18);heading=TextAt("",24,true,30,46,490,42);intro=TextAt("",11,false,32,94,540,24);intro.ForeColor=Visual.Muted;using(var s=Assembly.GetExecutingAssembly().GetManifestResourceStream("mascot.png")){Controls.Add(new PictureBox{Image=new Bitmap(s),Location=new Point(541,23),Size=new Size(72,80),SizeMode=PictureBoxSizeMode.Zoom});}
+ for(int i=0;i<3;i++){int y=135+i*70;var card=new Card{Location=new Point(30,y),Size=new Size(580,62)};Controls.Add(card);var number=TextAt((i+1).ToString("00"),11,true,46,y+12,30,20);number.ForeColor=accent;titles.Add(TextAt("",13,true,82,y+8,360,23));var detail=TextAt("",11,false,82,y+33,455,20);detail.ForeColor=Visual.Muted;details.Add(detail);var badge=TextAt("",10,false,509,y+10,85,20);badge.TextAlign=ContentAlignment.TopRight;badge.ForeColor=Visual.Muted;badges.Add(badge);foreach(var l in new[]{number,titles[i],detail,badge}){l.BackColor=Color.White;l.BringToFront();}var bar=new Track{Location=new Point(82,y+56),Size=new Size(512,3),Tint=accent};Controls.Add(bar);bar.BringToFront();bars.Add(bar);}
+ target=TextAt("",11,true,34,357,85,23);path=new PathDisplay{Location=new Point(120,357),Size=new Size(367,23),Font=Visual.Font(11)};Controls.Add(path);browse=ButtonAt(493,351,117,(s,e)=>{using(var d=new FolderBrowserDialog{SelectedPath=Directory.Exists(root)?root:Path.GetDirectoryName(root)})if(d.ShowDialog()==DialogResult.OK){root=Path.GetFileName(d.SelectedPath)=="paper-voice-engine"?d.SelectedPath:Path.Combine(d.SelectedPath,"paper-voice-engine");complete=false;RefreshText();}});status=TextAt("",11,false,34,394,572,43);status.ForeColor=Visual.Muted;help=ButtonAt(30,458,52,(s,e)=>Process.Start("https://github.com/JunyanKang/paper-voice/blob/main/docs/INSTALL"+(zh?"":".en")+".md"));language=new ComboBox{Location=new Point(91,461),Size=new Size(110,30),DropDownStyle=ComboBoxStyle.DropDownList};language.Items.AddRange(new object[]{"简体中文","English"});language.SelectedIndex=zh?0:1;language.SelectedIndexChanged+=(s,e)=>{zh=language.SelectedIndex==0;RefreshText();};Controls.Add(language);only=ButtonAt(210,458,116,(s,e)=>Start(true));cancel=ButtonAt(331,458,82,(s,e)=>{engine.Cancel();cancel.Enabled=false;status.Text=T("正在取消，已下载文件留待重试。","Cancelling. Verified downloads will be kept.");});cancel.Visible=false;action=ButtonAt(425,458,185,(s,e)=>{if(complete&&xpi!=null){Process.Start("explorer.exe","/select,"+Setup.Quote(xpi));return;}Start(false);});action.BackColor=accent;action.ForeColor=Color.White;AcceptButton=action;RefreshText();FormClosing+=(s,e)=>{if(busy)e.Cancel=true;};Shown+=(s,e)=>{if(Setup.Flag("--progress-preview")){UpdateProgress("pluginDone",1);UpdateProgress("runtimeDone",1);UpdateProgress("voices",.42);}string shot=Setup.Arg("--screenshot");if(shot!=null){var timer=new System.Windows.Forms.Timer{Interval=600};timer.Tick+=(a,b)=>{timer.Stop();using(var bmp=new Bitmap(ClientSize.Width,ClientSize.Height)){using(var full=new Bitmap(Width,Height)){DrawToBitmap(full,new Rectangle(0,0,Width,Height));using(var g=Graphics.FromImage(bmp)){var origin=PointToScreen(Point.Empty);g.DrawImage(full,-(origin.X-Left),-(origin.Y-Top));}}bmp.Save(shot);}timer.Dispose();Close();};timer.Start();}};
+ }
+ void UpdateProgress(string phase,double value){int index=phase.StartsWith("plugin")?0:phase.StartsWith("runtime")?1:2;if(new[]{"plugin","runtime","voices"}.Contains(phase)){bars[index].Value=value;var a=index==0?(Dictionary<string,object>)Setup.Config["plugin"]:Setup.Packages[index==1?1:0];double total=Convert.ToDouble(a["bytes"]);badges[index].Text=string.Format("{0:F0}%",value*100);details[index].Text=T("下载中","Downloading")+string.Format(" · {0:F1} / {1:F1} MB",value*total/1e6,total/1e6);status.Text=T("下载完成后将校验文件并配置声音。","Files are verified before voice setup.");}else if(phase.EndsWith("Done")){bars[index].Value=1;bars[index].Tint=Visual.Green;badges[index].Text=T("✓ 已下载","✓ Ready");details[index].Text=T("文件已校验","Download verified");}else if(phase.EndsWith("Extract")){details[index].Text=T("正在解压…","Unpacking…");}else if(phase=="verify"){status.Text=T("正在检查声音文件…","Checking voice files…")+string.Format(" {0:F0}%",value*100);}else if(phase=="reused"){for(int i=1;i<3;i++){bars[i].Value=1;bars[i].Tint=Visual.Green;badges[i].Text=T("✓ 已有","✓ Found");details[i].Text=T("已校验，跳过下载","Verified · No download needed");}}else if(phase=="setup"){cancel.Enabled=false;status.Text=T("正在验证声音可用性并完成安装…","Checking voices and finishing setup…");}else if(phase=="ready"){for(int i=1;i<3;i++){badges[i].Text=T("✓ 已就绪","✓ Ready");details[i].Text=T("声音已安装，可以离线听读","Installed · Ready for offline listening");}}}
+ void Busy(bool value){busy=value;action.Enabled=only.Enabled=browse.Enabled=language.Enabled=!value;cancel.Visible=value;cancel.Enabled=true;}
+ async void Start(bool pluginOnly){Busy(true);complete=false;engine=new Engine();engine.Progress=(p,v)=>BeginInvoke(new Action(()=>UpdateProgress(p,v)));try{xpi=await Task.Run(()=>engine.Install(root,Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"PaperVoiceInstaller"),Setup.Pointer,pluginOnly));complete=true;action.Text=T("查看插件文件","Show plugin file");status.Text=T("下一步：Zotero → 工具 → 插件 → 从文件安装，选择下载好的 XPI。","Next: Zotero → Tools → Plugins → Install From File. Choose the downloaded XPI.");}catch(Exception e){action.Text=T("重试","Retry");status.Text=engine.Cancelled?T("已取消。原有声音保留，可继续下载。","Cancelled. Existing voices kept; retry to continue."):T("未完成：","Not completed: ")+e.Message;}finally{Busy(false);engine.Dispose();engine=null;}}
 }

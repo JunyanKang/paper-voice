@@ -1,28 +1,31 @@
-"""Build a native, non-elevated graphical voice installer for the host platform."""
+"""Build a small native download assistant; no voice runtime or XPI is embedded."""
 from pathlib import Path
-import json,os,plistlib,shutil,subprocess,sys
-ROOT=Path(__file__).resolve().parents[1]
-version=json.loads((ROOT/'addon/manifest.json').read_text())['version']
+import hashlib,json,os,plistlib,shutil,struct,subprocess,sys
+ROOT=Path(__file__).resolve().parents[1];version=json.loads((ROOT/'package.json').read_text())['version'];out=ROOT/'.build/online-installers';out.mkdir(parents=True,exist_ok=True)
+platform='macOS-arm64' if sys.platform=='darwin' else 'Windows-x64'
+xpi=ROOT/'dist/Paper Voice'/f'paper-voice-{version}.xpi'
+config={'version':version,'plugin':{'name':xpi.name,'url':f'https://junyankang.github.io/paper-voice/v{version}/{xpi.name}','bytes':xpi.stat().st_size,'sha256':hashlib.sha256(xpi.read_bytes()).hexdigest()},'runtime':json.loads((ROOT/'installers'/f'runtime-{platform}.json').read_text())}
+(out/'installer.json').write_text(json.dumps(config,ensure_ascii=False,separators=(',',':'))+'\n')
 if sys.platform=='darwin':
- app=ROOT/'.build/installers/Paper Voice Installer.app';contents=app/'Contents'
- resources=contents/'Resources';binary=contents/'MacOS/Paper Voice Installer'
- binary.parent.mkdir(parents=True,exist_ok=True);resources.mkdir(parents=True,exist_ok=True)
- subprocess.run(['xcrun','swiftc','-O','-target','arm64-apple-macos14.0','-framework','Cocoa',str(ROOT/'installers/macos/Installer.swift'),'-o',str(binary)],check=True)
- iconset=ROOT/'.build/installers/PaperVoice.iconset';iconset.mkdir(exist_ok=True)
+ app=out/'Paper Voice Installer.app';resources=app/'Contents/Resources';binary=app/'Contents/MacOS/Paper Voice Installer';resources.mkdir(parents=True,exist_ok=True);binary.parent.mkdir(parents=True,exist_ok=True)
+ subprocess.run(['xcrun','swiftc','-O','-module-cache-path',str(out/'swift-cache'),'-target','arm64-apple-macos14.0','-framework','Cocoa',str(ROOT/'installers/macos/Installer.swift'),'-o',str(binary)],check=True)
+ iconset=out/'PaperVoice.iconset';iconset.mkdir(exist_ok=True)
  for size in [16,32,128,256,512]:
-  for factor in [1,2]:
-   subprocess.run(['sips','-z',str(size*factor),str(size*factor),str(ROOT/'addon/assets/mascot.png'),'--out',str(iconset/f'icon_{size}x{size}{"@2x" if factor==2 else ""}.png')],check=True,stdout=subprocess.DEVNULL)
- subprocess.run(['iconutil','-c','icns',str(iconset),'-o',str(resources/'PaperVoice.icns')],check=True)
- shutil.copy2(ROOT/'addon/assets/mascot.png',resources/'mascot.png')
- info={'CFBundleIdentifier':'io.github.junyankang.paper-voice.installer','CFBundleName':'Paper Voice Installer','CFBundleDisplayName':'Paper Voice 安装助手','CFBundleExecutable':binary.name,'CFBundleVersion':version,'CFBundleShortVersionString':version,'CFBundlePackageType':'APPL','CFBundleIconFile':'PaperVoice','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True}
- (contents/'Info.plist').write_bytes(plistlib.dumps(info))
- # Sign the app shell. Packaging adds the runtime, then seals the complete bundle.
- subprocess.run(['codesign','--force','--sign','-',str(app)],check=True)
- print(app)
+  for factor in [1,2]:subprocess.run(['sips','-z',str(size*factor),str(size*factor),str(ROOT/'addon/assets/mascot.png'),'--out',str(iconset/f'icon_{size}x{size}{"@2x" if factor==2 else ""}.png')],check=True,stdout=subprocess.DEVNULL)
+ chunks=b''
+ for kind,name in [('icp4','icon_16x16.png'),('icp5','icon_32x32.png'),('icp6','icon_32x32@2x.png'),('ic07','icon_128x128.png'),('ic08','icon_256x256.png'),('ic09','icon_512x512.png'),('ic10','icon_512x512@2x.png')]:
+  b=(iconset/name).read_bytes();chunks+=kind.encode()+struct.pack('>I',len(b)+8)+b
+ (resources/'PaperVoice.icns').write_bytes(b'icns'+struct.pack('>I',len(chunks)+8)+chunks)
+ for source in [out/'installer.json',ROOT/'addon/assets/mascot.png',ROOT/'installers/commit_runtime.py',ROOT/'LICENSE',*sorted((ROOT/'installers/assets').glob('*'))]:shutil.copyfile(source,resources/source.name)
+ info={'CFBundleIdentifier':'io.github.junyankang.paper-voice.installer','CFBundleName':'Paper Voice Installer','CFBundleDisplayName':'Paper Voice 安装助手','CFBundleExecutable':binary.name,'CFBundleVersion':version,'CFBundleShortVersionString':version,'CFBundlePackageType':'APPL','CFBundleIconFile':'PaperVoice','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True};(app/'Contents/Info.plist').write_bytes(plistlib.dumps(info));subprocess.run(['codesign','--force','--sign','-',str(app)],check=True)
+ stage=out/'dmg-root';stage.mkdir(exist_ok=True);dest=stage/app.name
+ if dest.exists():shutil.rmtree(dest)
+ shutil.copytree(app,dest);target=ROOT/'dist'/f'Paper-Voice-{version}-macOS.dmg'
+ subprocess.run(['hdiutil','create','-ov','-format','UDZO','-volname','Paper Voice','-srcfolder',str(stage),str(target)],check=True);subprocess.run(['hdiutil','verify',str(target)],check=True)
 elif sys.platform=='win32':
- out=ROOT/'.build/installers';out.mkdir(parents=True,exist_ok=True)
  subprocess.run(['powershell','-NoProfile','-ExecutionPolicy','Bypass','-File',str(ROOT/'installers/windows/build.ps1'),'-Root',str(ROOT)],check=True)
- csc=Path(os.environ['WINDIR'])/'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
- subprocess.run([str(csc),'/nologo','/target:winexe','/platform:x64','/optimize+','/codepage:65001','/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll','/reference:System.Core.dll',f'/win32icon:{out / "PaperVoice.ico"}',f'/win32manifest:{ROOT / "installers/windows/app.manifest"}',f'/resource:{ROOT / "addon/assets/mascot.png"},mascot.png',f'/out:{out / "Paper Voice Setup.exe"}',str(ROOT/'installers/windows/Installer.cs')],check=True)
- print(out/'Paper Voice Setup.exe')
-else:raise SystemExit('Build installers on macOS arm64 or Windows x64.')
+ csc=Path(os.environ['WINDIR'])/'Microsoft.NET/Framework64/v4.0.30319/csc.exe';target=ROOT/'dist'/f'Paper-Voice-{version}-Windows.exe';target.parent.mkdir(exist_ok=True)
+ subprocess.run([str(csc),'/nologo','/target:winexe','/platform:x64','/optimize+','/codepage:65001',*[f'/reference:{lib}.dll' for lib in ['System.Windows.Forms','System.Drawing','System.Core','System.Net.Http','System.Web.Extensions','System.IO.Compression','System.IO.Compression.FileSystem']],f'/win32icon:{ROOT / ".build/installers/PaperVoice.ico"}',f'/win32manifest:{ROOT / "installers/windows/app.manifest"}',f'/resource:{ROOT / "addon/assets/mascot.png"},mascot.png',f'/resource:{out / "installer.json"},installer.json',f'/resource:{ROOT / "installers/commit_runtime.py"},commit_runtime.py',*[f'/resource:{source},{source.name}' for source in sorted((ROOT/'installers/assets').glob('*'))],f'/out:{target}',str(ROOT/'installers/windows/Installer.cs')],check=True)
+else:raise SystemExit('Build on macOS or Windows')
+assert target.stat().st_size<10*1024*1024
+print(target)

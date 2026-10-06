@@ -102,7 +102,7 @@ var PaperVoiceUI = {
     <div class="pv-setting-row"><label for="pv-rate">语速</label><span data-field="rateLabel"></span></div><input id="pv-rate" class="pv-range" aria-label="朗读语速" data-field="rate" type="range" min="0.6" max="1.6" step="0.05"/>
     <label class="pv-setting-row" data-field="autoRow"><span>划选后自动朗读</span><input type="checkbox" data-field="auto"/></label>
     <button class="pv-sample" data-action="sample">${icon('headphones')}试听当前声音</button>
-<div class="pv-updater"><div class="pv-update-row"><label><input type="checkbox" data-field="autoUpdate"/>自动检查</label><select data-field="updateInterval" aria-label="检查周期"><option value="1">1天</option><option value="7">1周</option><option value="30">1月</option></select><span data-field="updateStatus" class="pv-update-status" role="status">通过 GitHub 获取插件更新</span><button data-action="checkUpdate">检查更新</button></div></div><div class="pv-about"><span data-field="aboutVersion">Junyan Kang</span><button data-action="help">指南</button><button data-action="feedback">反馈</button><button data-action="privacy">隐私</button></div>
+<div class="pv-engine-location"><span>声音位置</span><span data-field="engineLocation"></span><button data-action="chooseEngineFolder" aria-label="选择声音文件夹">${icon('folder')}</button><button data-action="resetEngineFolder" aria-label="恢复自动识别">${icon('rotate-ccw')}</button></div><div class="pv-updater"><div class="pv-update-row"><label><input type="checkbox" data-field="autoUpdate"/>自动检查</label><select data-field="updateInterval" aria-label="检查周期"><option value="1">1天</option><option value="7">1周</option><option value="30">1月</option></select><span data-field="updateStatus" class="pv-update-status" role="status">通过 GitHub 获取插件更新</span><button data-action="checkUpdate">检查更新</button></div></div><div class="pv-about"><span data-field="aboutVersion">Junyan Kang</span><button data-action="help">指南</button><button data-action="feedback">反馈</button><button data-action="privacy">隐私</button></div>
      </div>
      <div id="pv-settings-translation" data-settings-pane="translation" role="tabpanel" aria-labelledby="pv-tab-translation" hidden>
     <label class="pv-setting-row"><span>划词翻译</span><input type="checkbox" data-field="selectionTranslation"/></label>
@@ -320,6 +320,7 @@ var PaperVoiceUI = {
   action('quickReadTranslation').onclick=()=>controller.setReadTranslation(!controller.get('readTranslation',false));
   root.addEventListener('pointerdown',e=>{if(!tools.contains(e.target))closeNavigation();if(!translationTools.contains(e.target))closeAudioPopover();});
   action('quickMode').onclick=()=>controller.cycleMode();
+  action('chooseEngineFolder').onclick=()=>controller.chooseEngineFolder();action('resetEngineFolder').onclick=()=>controller.setEngineFolder('');
   action('checkUpdate').onclick=()=>controller.availableUpdateVersion()?controller.installUpdate():controller.checkForUpdates();
   find('autoUpdate').onchange=e=>controller.setAutoUpdate(e.target.checked);
   find('updateInterval').onchange=e=>controller.setUpdateInterval(e.target.value);

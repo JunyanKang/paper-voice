@@ -373,6 +373,7 @@ var PaperVoice = {
         const select=find('voice');select.replaceChildren();
         for(const v of PaperVoiceCore.voices.filter(v=>v.language===this.settingsVoiceLanguage())){const option=root.ownerDocument.createElement('option');option.value=v.id;option.textContent=v.label;select.append(option);}
       }
+      find('engineLocation').textContent=this.get('enginePath','')?this.t('自定义'):this.t('自动识别');find('engineLocation').title=this.engineRoot();action('resetEngineFolder').disabled=!this.get('enginePath','');
       find('voice').value=this.settingsVoice();find('auto').checked=this.get('auto',true);
       find('rate').value=this.get('rate',1);find('rateLabel').textContent=`${Number(this.get('rate',1)).toFixed(2)}×`;
       find('documentRow').hidden=mode!=='document';find('documentStart').value=this.get('documentStart','begin');
@@ -634,7 +635,26 @@ var PaperVoice = {
   },
   engineRoot() {
     const custom = this.get('enginePath', '');
-    return custom || PathUtils.join(Services.dirsvc.get('UAppData', Components.interfaces.nsIFile).path, 'paper-voice-engine');
+    if(custom)return custom;
+    const base=Services.dirsvc.get('UAppData',Components.interfaces.nsIFile).path;
+    try{const file=Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsIFile);file.initWithPath(PathUtils.join(base,'paper-voice-location.json'));if(file.exists()&&file.fileSize<16384){const entry=JSON.parse(Zotero.File.getContents(file));if(entry.schema===1&&typeof entry.root==='string'&&PathUtils.isAbsolute(entry.root))return entry.root;}}catch(_){}
+    return PathUtils.join(base,'paper-voice-engine');
+  },
+  async chooseEngineFolder() {
+    if(this.choosingEngineFolder)return;this.choosingEngineFolder=true;
+    try{const picker=Components.classes['@mozilla.org/filepicker;1'].createInstance(Components.interfaces.nsIFilePicker);
+      picker.init(this.host.browsingContext,this.t('选择声音文件夹'),picker.modeGetFolder);
+      const result=await new Promise(resolve=>picker.open(resolve));if(result!==picker.returnOK)return;
+      let path=picker.file.path;
+      if(await IOUtils.exists(PathUtils.join(path,'paper-voice-engine','worker.py')))path=PathUtils.join(path,'paper-voice-engine');
+      await this.setEngineFolder(path);
+    }catch(error){this.setStatus(this.t(error.message||String(error)));}finally{this.choosingEngineFolder=false;}
+  },
+  async setEngineFolder(path) {
+    if(path){const required=['worker.py','models/kokoro-v1.0.onnx','models/voices-v1.0.bin',Zotero.isWin?'python/python.exe':'python/bin/python3'];
+      for(const name of required)if(!(await IOUtils.exists(PathUtils.join(path,...name.split('/')))))throw new Error('文件夹内没有完整的离线声音');}
+    this.set('enginePath',path||'');this.engineLocationDirty=true;this.syncSettings();
+    this.setStatus('声音位置已保存，下次开始朗读生效');
   },
   workerEnvironment() {
     const home=Services.dirsvc.get('Home', Components.interfaces.nsIFile).path;
@@ -649,6 +669,7 @@ var PaperVoice = {
     return env;
   },
   async ensureWorker() {
+    if(this.engineLocationDirty&&this.state==='loading'&&!this.processStart){this.engineLocationDirty=false;const previous=this.process;this.process=null;this.rejectPending(new Error('声音位置已更改'));previous?.kill();}
     if (this.processStart) return this.processStart;
     if (this.process) return;
     this.processStart = (async () => {

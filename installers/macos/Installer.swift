@@ -1,137 +1,146 @@
 import Cocoa
+import CryptoKit
+import Foundation
+import CoreText
 
-let app = NSApplication.shared
-let resources = Bundle.main.resourceURL!
-let isQuiet = CommandLine.arguments.contains("--quiet")
-
-func install(_ language: String) -> (Int32, String) {
-    let english = language == "en"
-    let python = resources.appendingPathComponent("engine/python/bin/python3")
-    let script = resources.appendingPathComponent("install_engine.py")
-    guard FileManager.default.fileExists(atPath: python.path), FileManager.default.fileExists(atPath: script.path) else {
-        return (1, english ? "Installation files are missing. Download and extract the complete ZIP again." : "安装文件不完整，请重新下载并完整解压安装包。")
-    }
-    let task = Process(), pipe = Pipe()
-    task.executableURL = python
-    task.arguments = ["-E", "-s", "-B", "-X", "utf8", script.path, "--lang", language]
-    task.environment = ["HOME": ProcessInfo.processInfo.environment["HOME"] ?? NSHomeDirectory(), "PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "LANG": "en_US.UTF-8"]
-    task.standardOutput = pipe; task.standardError = pipe
-    do {
-        try task.run()
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        task.waitUntilExit()
-        return (task.terminationStatus, String(data: data, encoding: .utf8) ?? "")
-    } catch { return (1, (english ? "Unable to start installation: " : "无法启动安装：") + error.localizedDescription) }
+let resources=Bundle.main.resourceURL!,fm=FileManager.default
+func arg(_ name:String)->String?{let a=CommandLine.arguments;guard let i=a.firstIndex(of:name),i+1<a.count else{return nil};return a[i+1]}
+func flag(_ name:String)->Bool{CommandLine.arguments.contains(name)}
+func fail(_ text:String)->NSError{NSError(domain:"PaperVoice",code:1,userInfo:[NSLocalizedDescriptionKey:text])}
+let config=try! JSONSerialization.jsonObject(with:Data(contentsOf:resources.appendingPathComponent("installer.json"))) as! [String:Any]
+let runtime=config["runtime"] as! [String:Any],version=config["version"] as! String
+let packages=runtime["packages"] as! [[String:Any]]
+let appData=fm.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/Zotero")
+let location=appData.appendingPathComponent("paper-voice-location.json")
+func defaultRoot()->URL{if let b=try? Data(contentsOf:location),let j=(try? JSONSerialization.jsonObject(with:b)) as? [String:Any],let s=j["root"] as? String{return URL(fileURLWithPath:s)};return appData.appendingPathComponent("paper-voice-engine")}
+func sha(_ url:URL)throws->String{let f=try FileHandle(forReadingFrom:url);defer{try? f.close()};var h=SHA256();while let b=try f.read(upToCount:1024*1024),!b.isEmpty{h.update(data:b)};return h.finalize().map{String(format:"%02x",$0)}.joined()}
+func valid(_ url:URL,_ asset:[String:Any])->Bool{((try? url.resourceValues(forKeys:[.fileSizeKey]).fileSize)==(asset["bytes"] as! NSNumber).intValue) && (try? sha(url))==asset["sha256"] as? String}
+final class Transfer: NSObject, URLSessionDownloadDelegate {
+ private var task: URLSessionDownloadTask?; private var session: URLSession?; private let done=DispatchSemaphore(value:0)
+ var cancelled=false; var error: Error?;var destination:URL!;var expected:Int64=0;var progress:((Double)->Void)?
+ func cancel(){cancelled=true;task?.cancel()}
+ func download(_ asset:[String:Any],to target:URL) throws {
+  if cancelled{throw fail("已取消 / Cancelled")};destination=target;expected=(asset["bytes"] as! NSNumber).int64Value
+  let cfg=URLSessionConfiguration.ephemeral;cfg.timeoutIntervalForRequest=60;cfg.timeoutIntervalForResource=600
+  session=URLSession(configuration:cfg,delegate:self,delegateQueue:nil);task=session!.downloadTask(with:URL(string:asset["url"] as! String)!);task!.resume();if cancelled{task!.cancel()};done.wait();session?.finishTasksAndInvalidate();session=nil;task=nil
+  if let e=error{throw e};if cancelled{throw fail("已取消 / Cancelled")}
+  let size=(try target.resourceValues(forKeys:[.fileSizeKey])).fileSize ?? 0
+  guard size==expected,try sha(target)==asset["sha256"] as! String else {throw fail("文件校验失败，请重试 / File verification failed")}
+ }
+ func urlSession(_ session: URLSession,downloadTask:URLSessionDownloadTask,didWriteData bytesWritten:Int64,totalBytesWritten:Int64,totalBytesExpectedToWrite:Int64){if totalBytesWritten>expected{error=fail("文件大小不符 / Unexpected file size");downloadTask.cancel()};progress?(min(1,Double(totalBytesWritten)/Double(max(1,expected))))}
+ func urlSession(_ session:URLSession,downloadTask:URLSessionDownloadTask,didFinishDownloadingTo location:URL){do{guard let response=downloadTask.response as? HTTPURLResponse,response.statusCode==200 else{throw fail("下载暂不可用 / Download unavailable")};try FileManager.default.moveItem(at:location,to:destination)}catch{self.error=error}}
+ func urlSession(_ session:URLSession,task:URLSessionTask,didCompleteWithError error:Error?){if self.error==nil{self.error=error};done.signal()}
+ func urlSession(_ session:URLSession,task:URLSessionTask,willPerformHTTPRedirection response:HTTPURLResponse,newRequest request:URLRequest,completionHandler:@escaping(URLRequest?)->Void){completionHandler(request.url?.scheme=="https" ? request:nil)}
 }
-
-if isQuiet {
-    let result = install(CommandLine.arguments.contains("--english") ? "en" : "zh")
-    print(result.1)
-    exit(result.0)
+final class Engine{
+ var cancelled=false,committing=false;var transfer:Transfer?;var progress:((String,Double)->Void)?
+ func cancel(){if !committing{cancelled=true;transfer?.cancel()}}
+ func check()throws{if cancelled{throw fail("已取消 / Cancelled")}}
+ func verify(_ root:URL)throws{
+  let files=runtime["files"] as! [[String:Any]]
+  for (i,f) in files.enumerated(){try check();let path=root.appendingPathComponent(f["name"] as! String)
+   if let link=f["link"] as? String{guard (try? fm.destinationOfSymbolicLink(atPath:path.path))==link else{throw fail("声音文件不完整 / Incomplete voices")}}
+   else if !valid(path,f){throw fail("声音文件不完整 / Incomplete voices")}
+   if i%40==0{progress?("verify",Double(i)/Double(files.count))}
+  }
+ }
+ func fetch(_ a:[String:Any],_ cache:URL,_ phase:String,_ before:Double=0,_ total:Double=1)throws->URL{
+  try check();let path=cache.appendingPathComponent(a["name"] as! String),size=(a["bytes"] as! NSNumber).doubleValue
+  if valid(path,a){progress?(phase,(before+size)/total);return path}
+  let temp=cache.appendingPathComponent(".download-"+UUID().uuidString);defer{try? fm.removeItem(at:temp)}
+  if let local=arg("--package-dir"){
+   try fm.copyItem(at:URL(fileURLWithPath:local).appendingPathComponent(a["name"] as! String),to:temp)
+   guard valid(temp,a) else{throw fail("下载校验失败 / Download verification failed")};progress?(phase,(before+size)/total)
+  }else{
+   let t=Transfer();transfer=t;t.progress={[weak self] v in self?.progress?(phase,(before+v*size)/total)};defer{transfer=nil};try t.download(a,to:temp)
+  }
+  try check();if fm.fileExists(atPath:path.path){try fm.removeItem(at:path)};try fm.moveItem(at:temp,to:path);return path
+ }
+ func task(_ exe:URL,_ args:[String])throws{
+  let p=Process(),pipe=Pipe();p.executableURL=exe;p.arguments=args;p.standardOutput=pipe;p.standardError=pipe
+  p.environment=ProcessInfo.processInfo.environment.merging(["HF_HUB_OFFLINE":"1","PYTHONNOUSERSITE":"1"]){_,n in n}
+  try p.run();let output=pipe.fileHandleForReading.readDataToEndOfFile();p.waitUntilExit();guard p.terminationStatus==0 else{throw fail(String(data:output,encoding:.utf8) ?? "Installation failed")}
+ }
+ func install(_ root:URL,_ cache:URL,_ pointer:URL,pluginOnly:Bool=false)throws->URL{
+  try fm.createDirectory(at:cache,withIntermediateDirectories:true)
+  let plugin=config["plugin"] as! [String:Any];progress?("plugin",0);let xpi=try fetch(plugin,cache,"plugin",0,(plugin["bytes"] as! NSNumber).doubleValue);progress?("pluginDone",1)
+  if pluginOnly{return xpi}
+  guard root.lastPathComponent=="paper-voice-engine" else{throw fail("请选择声音保存文件夹 / Choose a voice folder")}
+  try fm.createDirectory(at:root.deletingLastPathComponent(),withIntermediateDirectories:true)
+  progress?("verify",0);let reusable=(try? verify(root)) != nil;try check()
+  let work=root.deletingLastPathComponent().appendingPathComponent(".paper-voice-setup-"+UUID().uuidString)
+  try fm.createDirectory(at:work,withIntermediateDirectories:true);defer{try? fm.removeItem(at:work)}
+  if !reusable{
+   for a in packages.reversed(){
+    let phase=(a["name"] as! String).hasPrefix("runtime") ? "runtime":"voices",archive=work.appendingPathComponent(a["name"] as! String)
+    fm.createFile(atPath:archive.path,contents:nil);let out=try FileHandle(forWritingTo:archive);var downloaded:Double=0;let total=(a["bytes"] as! NSNumber).doubleValue
+    do{for part in a["parts"] as! [[String:Any]]{let path=try fetch(part,cache,phase,downloaded,total);let input=try FileHandle(forReadingFrom:path);while let bytes=try input.read(upToCount:1024*1024),!bytes.isEmpty{try check();try out.write(contentsOf:bytes)};try input.close();downloaded+=(part["bytes"] as! NSNumber).doubleValue};try out.close()}catch{try? out.close();throw error}
+    guard valid(archive,a) else{throw fail("下载校验失败 / Download verification failed")};try check();progress?(phase+"Extract",1)
+    try task(URL(fileURLWithPath:"/usr/bin/ditto"),["-x","-k",archive.path,work.path]);try fm.removeItem(at:archive);progress?(phase+"Done",1)
+   }
+   try verify(work.appendingPathComponent("engine"))
+  }else{progress?("reused",1)}
+  try check();committing=true;progress?("setup",0)
+  let source=reusable ? root:work.appendingPathComponent("engine")
+  var args=["-E","-s","-B","-X","utf8",resources.appendingPathComponent("commit_runtime.py").path,"--source",source.path,"--destination",root.path,"--pointer",pointer.path,"--runtime-id",runtime["id"] as! String]
+  if reusable{args.append("--reuse")}
+  try task(source.appendingPathComponent("python/bin/python3"),args);progress?("ready",1);return xpi
+ }
 }
-
-final class InstallerDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
-    var window: NSWindow!
-    var status: NSTextField!
-    var action: NSButton!
-    var progress: NSProgressIndicator!
-    var working = false
-    var complete = false
-    var language = (Locale.preferredLanguages.first ?? "en").hasPrefix("zh") ? "zh" : "en"
-    var titleLabel: NSTextField!, descriptionLabel: NSTextField!, stepOne: NSTextField!, stepTwo: NSTextField!, readyLabel: NSTextField!
-    var help: NSButton!, languageMenu: NSPopUpButton!
-    func tr(_ zh: String, _ en: String) -> String { language == "zh" ? zh : en }
-    func refreshLanguage() {
-        window.title = tr("Paper Voice 安装助手", "Paper Voice Installer")
-        titleLabel.stringValue = tr("让论文，读给你听。", "Listen. Understand. Explore.")
-        titleLabel.font = .systemFont(ofSize: language == "zh" ? 29 : 23, weight: .semibold)
-        descriptionLabel.stringValue = tr("自然声音，本地运行。\n英语、中文、日语、法语，随时听读。", "Natural voices. Right on your computer.\nEnglish, Chinese, Japanese and French.")
-        stepOne.stringValue = tr("01  安装离线声音", "01  Set up offline voices")
-        stepTwo.stringValue = tr("02  在 Zotero 中添加同一下载包里的 .xpi 插件", "02  Add the included .xpi plugin to Zotero")
-        readyLabel.stringValue = tr("✓ 声音已就绪", "✓ Voices ready")
-        readyLabel.isHidden = !complete
-        stepTwo.textColor = complete ? NSColor(calibratedRed: 0.07, green: 0.25, blue: 0.28, alpha: 1) : .secondaryLabelColor
-        stepTwo.font = .systemFont(ofSize: 14, weight: complete ? .semibold : .regular)
-        help.title = tr("安装帮助", "Help")
-        action.title = complete ? tr("完成", "Done") : tr("安装声音", "Install voices")
-        status.stringValue = complete ? tr("下一步：打开 Zotero → 工具 → 插件 → 齿轮 → 从文件安装，选择下载包里的 .xpi 文件。", "Next: In Zotero, open Tools → Plugins → gear → Install Plugin From File, then choose the included .xpi.") : tr("无需账户，无需联网下载，不需要管理员密码。", "No account, extra downloads or administrator password needed.")
-    }
-    @objc func changeLanguage() {
-        language = languageMenu.indexOfSelectedItem == 0 ? "zh" : "en"
-        refreshLanguage()
-    }
-
-    func text(_ value: String, _ size: CGFloat, _ weight: NSFont.Weight, _ frame: NSRect, color: NSColor = .labelColor) -> NSTextField {
-        let label = NSTextField(wrappingLabelWithString: value)
-        label.font = .systemFont(ofSize: size, weight: weight)
-        label.textColor = color; label.frame = frame
-        window.contentView!.addSubview(label)
-        return label
-    }
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        app.setActivationPolicy(.regular)
-        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 600, height: 440), styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
-        window.title = "Paper Voice 安装助手"; window.delegate = self
-        window.appearance = NSAppearance(named: .aqua)
-        window.backgroundColor = NSColor(calibratedRed: 0.975, green: 0.97, blue: 0.95, alpha: 1)
-        let image = NSImageView(frame: NSRect(x: 425, y: 225, width: 140, height: 165))
-        image.image = NSImage(contentsOf: resources.appendingPathComponent("mascot.png")); image.imageScaling = .scaleProportionallyUpOrDown
-        window.contentView!.addSubview(image)
-        let teal = NSColor(calibratedRed: 0.07, green: 0.25, blue: 0.28, alpha: 1)
-        _ = text("PAPER VOICE  /  FOR ZOTERO", 11, .semibold, NSRect(x: 40, y: 373, width: 380, height: 18), color: teal)
-        titleLabel = text("让论文，读给你听。", 29, .semibold, NSRect(x: 40, y: 302, width: 390, height: 48), color: teal)
-        descriptionLabel = text("自然声音，本地运行。\n英语、中文、日语、法语，随时听读。", 15, .regular, NSRect(x: 40, y: 235, width: 380, height: 56), color: .secondaryLabelColor)
-        stepOne = text("01  安装离线声音", 16, .semibold, NSRect(x: 40, y: 188, width: 510, height: 25))
-        readyLabel = text("", 12, .medium, NSRect(x: 295, y: 190, width: 265, height: 22), color: NSColor(calibratedRed: 0.18, green: 0.43, blue: 0.32, alpha: 1))
-        readyLabel.isHidden = true
-        stepTwo = text("02  在 Zotero 中添加同一下载包里的 .xpi 插件", 14, .regular, NSRect(x: 40, y: 155, width: 520, height: 24), color: .secondaryLabelColor)
-        status = text("无需账户，无需联网下载，不需要管理员密码。", 12, .regular, NSRect(x: 40, y: 95, width: 520, height: 43), color: .secondaryLabelColor)
-        progress = NSProgressIndicator(frame: NSRect(x: 40, y: 73, width: 520, height: 5))
-        progress.style = .bar; progress.isIndeterminate = true; progress.isHidden = true
-        window.contentView!.addSubview(progress)
-        action = NSButton(title: "安装声音", target: self, action: #selector(start))
-        action.bezelStyle = .rounded; action.controlSize = .large
-        action.frame = NSRect(x: 407, y: 23, width: 155, height: 38)
-        action.keyEquivalent = "\r"; action.contentTintColor = teal
-        window.contentView!.addSubview(action)
-        help = NSButton(title: "安装帮助", target: self, action: #selector(helpPage))
-        help.bezelStyle = .inline; help.frame = NSRect(x: 34, y: 31, width: 80, height: 24)
-        window.contentView!.addSubview(help)
-        languageMenu = NSPopUpButton(frame: NSRect(x: 133, y: 30, width: 126, height: 27), pullsDown: false)
-        languageMenu.addItems(withTitles: ["简体中文", "English"])
-        languageMenu.selectItem(at: language == "zh" ? 0 : 1)
-        languageMenu.target = self; languageMenu.action = #selector(changeLanguage)
-        languageMenu.setAccessibilityLabel("Language / 语言")
-        window.contentView!.addSubview(languageMenu)
-        refreshLanguage()
-        window.center(); window.makeKeyAndOrderFront(nil); app.activate(ignoringOtherApps: true)
-    }
-    @objc func start() {
-        if complete { app.terminate(nil); return }
-        working = true; action.isEnabled = false; languageMenu.isEnabled = false; action.title = tr("正在安装…", "Installing…")
-        status.stringValue = tr("正在配置本地声音，请稍候。你的文献和批注不会改变。", "Setting up voices. Your papers and annotations stay unchanged.")
-        progress.isHidden = false; progress.startAnimation(nil)
-        let selectedLanguage = language
-        DispatchQueue.global(qos: .userInitiated).async {
-            let result = install(selectedLanguage)
-            DispatchQueue.main.async {
-                self.working = false; self.progress.stopAnimation(nil); self.progress.isHidden = true; self.action.isEnabled = true; self.languageMenu.isEnabled = true
-                if result.0 == 0 {
-                    self.complete = true; self.refreshLanguage()
-                } else {
-                    self.action.title = self.tr("重试安装", "Try again"); self.status.stringValue = self.tr("安装未完成，原有声音保持不变。请查看错误详情。", "Installation did not finish. Your existing voices are unchanged.")
-                    let alert = NSAlert(); alert.messageText = self.tr("暂时无法完成安装", "Unable to complete installation")
-                    alert.informativeText = String(result.1.suffix(2200)); alert.alertStyle = .warning
-                    alert.addButton(withTitle: self.tr("好", "OK")); alert.beginSheetModal(for: self.window)
-                }
-            }
-        }
-    }
-    @objc func helpPage() { NSWorkspace.shared.open(URL(string: "https://github.com/JunyanKang/paper-voice/blob/main/docs/" + (language == "en" ? "INSTALL.en.md" : "INSTALL.md"))!) }
-    func windowShouldClose(_ sender: NSWindow) -> Bool { return !working }
-    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply { return working ? .terminateCancel : .terminateNow }
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { return true }
+if flag("--quiet"){
+ do{guard let c=arg("--download-dir"),let d=arg("--destination"),let p=arg("--pointer") else{throw fail("Explicit test directories required")};let e=Engine();if flag("--cancel-test"){e.progress={phase,v in if ["voices","runtime"].contains(phase)&&v>0{e.cancel()}}};print(try e.install(URL(fileURLWithPath:d),URL(fileURLWithPath:c),URL(fileURLWithPath:p),pluginOnly:flag("--plugin-only")).path);exit(0)}catch{fputs(error.localizedDescription+"\n",stderr);exit(1)}
 }
-let delegate = InstallerDelegate()
-app.delegate = delegate
-app.run()
+let app=NSApplication.shared
+let ink=NSColor(calibratedRed:0.10,green:0.24,blue:0.30,alpha:1),muted=NSColor(calibratedWhite:0.43,alpha:1),accent=NSColor(calibratedRed:0.20,green:0.43,blue:0.62,alpha:1),green=NSColor(calibratedRed:0.18,green:0.47,blue:0.37,alpha:1)
+for name in ["VoiceSans-Regular.ttf","VoiceSans-SemiBold.ttf"]{CTFontManagerRegisterFontsForURL(resources.appendingPathComponent(name) as CFURL,.process,nil)}
+func font(_ size:CGFloat,_ bold:Bool=false)->NSFont{NSFont(name:bold ? "VoiceSans-SemiBold":"VoiceSans-Regular",size:size) ?? .systemFont(ofSize:size,weight:bold ? .semibold:.regular)}
+final class Track:NSView{var value:Double=0{didSet{needsDisplay=true}};var tint=accent
+ override func draw(_ rect:NSRect){NSColor(calibratedRed:0.88,green:0.91,blue:0.93,alpha:1).setFill();NSBezierPath(roundedRect:bounds,xRadius:2,yRadius:2).fill();if value>0{tint.setFill();NSBezierPath(roundedRect:NSRect(x:0,y:0,width:bounds.width*min(1,value),height:3),xRadius:2,yRadius:2).fill()}}
+}
+final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
+ var window:NSWindow!,heading:NSTextField!,intro:NSTextField!,path:NSTextField!,status:NSTextField!,targetLabel:NSTextField!,action:NSButton!,only:NSButton!,browse:NSButton!,cancel:NSButton!,help:NSButton!,languageMenu:NSPopUpButton!
+ var titles:[NSTextField]=[],details:[NSTextField]=[],bars:[Track]=[],badges:[NSTextField]=[]
+ var language=arg("--lang") ?? ((Locale.preferredLanguages.first ?? "").hasPrefix("zh") ? "zh":"en"),working=false,complete=false,root=defaultRoot(),engine:Engine?,xpi:URL?,started=Date(),currentPhase=""
+ func t(_ cn:String,_ en:String)->String{language=="zh" ? cn:en}
+ func label(_ text:String,_ size:CGFloat,_ bold:Bool,_ x:CGFloat,_ y:CGFloat,_ w:CGFloat,_ h:CGFloat)->NSTextField{let l=NSTextField(wrappingLabelWithString:text);l.frame=NSRect(x:x,y:510-y-h,width:w,height:h);l.font=font(size,bold);l.textColor=ink;window.contentView!.addSubview(l);return l}
+ func button(_ x:CGFloat,_ y:CGFloat,_ w:CGFloat,_ selector:Selector)->NSButton{let b=NSButton(title:"",target:self,action:selector);b.frame=NSRect(x:x,y:510-y-34,width:w,height:34);b.isBordered=false;b.wantsLayer=true;b.layer?.cornerRadius=9;b.layer?.backgroundColor=NSColor.white.cgColor;b.font=font(11,true);window.contentView!.addSubview(b);return b}
+ func refresh(){window.title=t("Paper Voice 安装助手","Paper Voice Installer");heading.stringValue=t("让论文，读给你听。","Make room for listening.");intro.stringValue=t("按需下载。装好声音后，日常听读无需联网。","Download once. Listen offline, every day.")
+  let names=[t("Zotero 插件","Zotero plugin"),t("声音引擎","Voice engine"),t("多语言声音","Multilingual voices")]
+  let descriptions=[t("连接 PDF 听读与翻译","Reading controls and translation"),t("为当前电脑准备本地运行环境","Local runtime for this computer"),t("英语 · 中文 · 日语 · 法语","English · Chinese · Japanese · French")]
+  let assets=[config["plugin"] as! [String:Any],packages[1],packages[0]]
+  for i in 0..<3{titles[i].stringValue=names[i];details[i].stringValue=descriptions[i];badges[i].stringValue=String(format:"%.1f MB",(assets[i]["bytes"] as! NSNumber).doubleValue/1e6)}
+  targetLabel.stringValue=t("声音位置","Voice folder");path.stringValue=root.path.replacingOccurrences(of:fm.homeDirectoryForCurrentUser.path,with:"~");path.toolTip=root.path;browse.title=t("选择文件夹","Browse");help.title=t("帮助","Help");only.title=t("仅更新插件","Plugin only");cancel.title=t("取消","Cancel");action.title=complete ? t("查看插件文件","Show plugin file"):t("下载并安装","Download & install");status.stringValue=t("已有声音会先检查并复用，不重复下载。","Existing voices are checked and reused.")
+ }
+ func applicationDidFinishLaunching(_ n:Notification){app.setActivationPolicy(.regular);window=NSWindow(contentRect:NSRect(x:0,y:0,width:640,height:510),styleMask:[.titled,.closable,.miniaturizable],backing:.buffered,defer:false);window.delegate=self;window.appearance=NSAppearance(named:.aqua);window.backgroundColor=NSColor(calibratedRed:0.958,green:0.972,blue:0.98,alpha:1);window.contentView!.wantsLayer=true;window.contentView!.layer?.backgroundColor=window.backgroundColor.cgColor
+  _=label("PAPER VOICE  /  FOR ZOTERO",10,true,30,20,440,18);heading=label("",24,true,30,46,490,42);intro=label("",11,false,32,94,540,24);intro.textColor=muted
+  let image=NSImageView(frame:NSRect(x:541,y:407,width:72,height:80));image.image=NSImage(contentsOf:resources.appendingPathComponent("mascot.png"));image.imageScaling = .scaleProportionallyUpOrDown;window.contentView!.addSubview(image)
+  for i in 0..<3{let y=CGFloat(135+i*70),card=NSView(frame:NSRect(x:30,y:510-y-62,width:580,height:62));card.wantsLayer=true;card.layer?.backgroundColor=NSColor.white.cgColor;card.layer?.cornerRadius=12;card.layer?.borderWidth=0.5;card.layer?.borderColor=NSColor(calibratedWhite:0.3,alpha:0.12).cgColor;window.contentView!.addSubview(card);let number=label(String(format:"%02d",i+1),11,true,46,y+12,30,20);number.textColor=accent;titles.append(label("",13,true,82,y+8,360,23));let d=label("",11,false,82,y+33,455,20);d.textColor=muted;details.append(d);let badge=label("",10,false,509,y+10,85,20);badge.alignment = .right;badge.textColor=muted;badges.append(badge);let bar=Track(frame:NSRect(x:82,y:510-y-59,width:512,height:3));window.contentView!.addSubview(bar);bars.append(bar)}
+  targetLabel=label("",11,true,34,357,85,23);path=label("",11,false,120,357,367,23);path.maximumNumberOfLines=1;path.lineBreakMode = .byTruncatingMiddle;path.textColor=muted;browse=button(493,351,117,#selector(choose));status=label("",11,false,34,394,572,43);status.textColor=muted
+  help=button(30,458,52,#selector(openHelp));languageMenu=NSPopUpButton(frame:NSRect(x:91,y:18,width:110,height:30),pullsDown:false);languageMenu.addItems(withTitles:["简体中文","English"]);languageMenu.selectItem(at:language=="zh" ? 0:1);languageMenu.target=self;languageMenu.action=#selector(changeLanguage);window.contentView!.addSubview(languageMenu)
+  only=button(210,458,116,#selector(pluginOnly));cancel=button(331,458,82,#selector(cancelWork));cancel.isHidden=true;action=button(425,458,185,#selector(start));action.layer?.backgroundColor=accent.cgColor;action.contentTintColor = .white;action.keyEquivalent="\r";refresh();window.center();window.makeKeyAndOrderFront(nil);app.activate(ignoringOtherApps:true)
+  if flag("--progress-preview"){update("pluginDone",1);update("runtimeDone",1);update("voices",0.42)}
+  if let shot=arg("--screenshot"){DispatchQueue.main.asyncAfter(deadline:.now()+0.6){let v=self.window.contentView!,r=v.bitmapImageRepForCachingDisplay(in:v.bounds)!;v.cacheDisplay(in:v.bounds,to:r);try? r.representation(using:.png,properties:[:])?.write(to:URL(fileURLWithPath:shot));app.terminate(nil)}}
+ }
+ @objc func changeLanguage(){language=languageMenu.indexOfSelectedItem==0 ? "zh":"en";refresh()}
+ @objc func choose(){let p=NSOpenPanel();p.canChooseDirectories=true;p.canChooseFiles=false;p.canCreateDirectories=true;p.directoryURL=root.deletingLastPathComponent();if p.runModal() == .OK,let url=p.url{root=url.lastPathComponent=="paper-voice-engine" ? url:url.appendingPathComponent("paper-voice-engine");complete=false;refresh()}}
+ @objc func openHelp(){NSWorkspace.shared.open(URL(string:"https://github.com/JunyanKang/paper-voice/blob/main/docs/INSTALL"+(language=="en" ? ".en":"")+".md")!)}
+ @objc func cancelWork(){engine?.cancel();cancel.isEnabled=false;status.stringValue=t("正在取消，已下载文件留待重试。","Cancelling. Verified downloads will be kept.")}
+ func update(_ phase:String,_ value:Double){if currentPhase != phase{currentPhase=phase;started=Date()};let index=phase.hasPrefix("plugin") ? 0:phase.hasPrefix("runtime") ? 1:2
+  if ["plugin","runtime","voices"].contains(phase){bars[index].value=value;let asset=index==0 ? config["plugin"] as! [String:Any]:packages[index==1 ? 1:0],total=(asset["bytes"] as! NSNumber).doubleValue;badges[index].stringValue=String(format:"%.0f%%",value*100);details[index].stringValue=t("下载中","Downloading")+String(format:" · %.1f / %.1f MB",value*total/1e6,total/1e6);status.stringValue=t("下载完成后将校验文件并配置声音。","Files are verified before voice setup.")}
+  else if phase.hasSuffix("Done"){bars[index].value=1;bars[index].tint=green;badges[index].stringValue=t("✓ 已下载","✓ Ready");details[index].stringValue=t("文件已校验","Download verified")}
+  else if phase.hasSuffix("Extract"){details[index].stringValue=t("正在解压…","Unpacking…")}
+  else if phase=="verify"{status.stringValue=t("正在检查声音文件…","Checking voice files…")+String(format:" %.0f%%",value*100)}
+  else if phase=="reused"{for i in 1...2{bars[i].value=1;bars[i].tint=green;badges[i].stringValue=t("✓ 已有","✓ Found");details[i].stringValue=t("已校验，跳过下载","Verified · No download needed")}}
+  else if phase=="setup"{cancel.isEnabled=false;status.stringValue=t("正在验证声音可用性并完成安装…","Checking voices and finishing setup…")}
+  else if phase=="ready"{for i in 1...2{badges[i].stringValue=t("✓ 已就绪","✓ Ready");details[i].stringValue=t("声音已安装，可以离线听读","Installed · Ready for offline listening")}}
+ }
+ func busy(_ b:Bool){working=b;action.isEnabled = !b;only.isEnabled = !b;browse.isEnabled = !b;languageMenu.isEnabled = !b;cancel.isHidden = !b;cancel.isEnabled=true}
+ @objc func pluginOnly(){run(true)}
+ @objc func start(){if complete,let file=xpi{NSWorkspace.shared.activateFileViewerSelecting([file]);return};run(false)}
+ func run(_ pluginOnly:Bool){busy(true);complete=false;let e=Engine();engine=e;e.progress={[weak self] p,v in DispatchQueue.main.async{self?.update(p,v)}};let destination=root,cache=fm.urls(for:.cachesDirectory,in:.userDomainMask)[0].appendingPathComponent("PaperVoiceInstaller"),pointer=location
+  DispatchQueue.global(qos:.userInitiated).async{let result=Result{try e.install(destination,cache,pointer,pluginOnly:pluginOnly)};DispatchQueue.main.async{self.busy(false);switch result{case .success(let file):self.xpi=file;self.complete=true;self.action.title=self.t("查看插件文件","Show plugin file");self.status.stringValue=self.t("下一步：Zotero → 工具 → 插件 → 从文件安装，选择下载好的 XPI。","Next: Zotero → Tools → Plugins → Install From File. Choose the downloaded XPI.");case .failure(let error):self.action.title=self.t("重试","Retry");self.status.stringValue=e.cancelled ? self.t("已取消。原有声音保留，可继续下载。","Cancelled. Existing voices kept; retry to continue."):self.t("未完成：","Not completed: ")+error.localizedDescription;self.status.toolTip=error.localizedDescription};self.engine=nil}}
+ }
+ func windowShouldClose(_ sender:NSWindow)->Bool{!working}
+ func applicationShouldTerminateAfterLastWindowClosed(_ sender:NSApplication)->Bool{true}
+}
+let ui=UI();app.delegate=ui;app.run()
