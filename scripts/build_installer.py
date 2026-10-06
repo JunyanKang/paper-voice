@@ -1,6 +1,6 @@
 """Build a small native download assistant; no voice runtime or XPI is embedded."""
 from pathlib import Path
-import hashlib,json,os,plistlib,shutil,struct,subprocess,sys
+import hashlib,json,os,plistlib,shutil,struct,subprocess,sys,time
 ROOT=Path(__file__).resolve().parents[1];version=json.loads((ROOT/'package.json').read_text())['version'];out=ROOT/'.build/online-installers';out.mkdir(parents=True,exist_ok=True)
 platform='macOS-arm64' if sys.platform=='darwin' else 'Windows-x64'
 xpi=ROOT/'dist/Paper Voice'/f'paper-voice-{version}.xpi'
@@ -21,7 +21,13 @@ if sys.platform=='darwin':
  stage=out/'dmg-root';stage.mkdir(exist_ok=True);dest=stage/app.name
  if dest.exists():shutil.rmtree(dest)
  shutil.copytree(app,dest);target=ROOT/'dist'/f'Paper-Voice-{version}-macOS.dmg'
- subprocess.run(['hdiutil','create','-ov','-format','UDZO','-volname','Paper Voice','-srcfolder',str(stage),str(target)],check=True);subprocess.run(['hdiutil','verify',str(target)],check=True)
+ subprocess.run(['hdiutil','create','-ov','-format','UDZO','-volname','Paper Voice','-srcfolder',str(stage),str(target)],check=True)
+ for attempt in range(3):
+  verified=subprocess.run(['hdiutil','verify',str(target)],capture_output=True,text=True)
+  if verified.returncode==0:break
+  if 'Resource temporarily unavailable' not in verified.stderr or attempt==2:raise RuntimeError(verified.stderr)
+  time.sleep(2)
+ print(verified.stdout)
 elif sys.platform=='win32':
  subprocess.run(['powershell','-NoProfile','-ExecutionPolicy','Bypass','-File',str(ROOT/'installers/windows/build.ps1'),'-Root',str(ROOT)],check=True)
  csc=Path(os.environ['WINDIR'])/'Microsoft.NET/Framework64/v4.0.30319/csc.exe';target=ROOT/'dist'/f'Paper-Voice-{version}-Windows.exe';target.parent.mkdir(exist_ok=True)
