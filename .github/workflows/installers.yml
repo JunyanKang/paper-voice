@@ -2,6 +2,10 @@ name: Validate download installers
 on:
   workflow_dispatch:
     inputs:
+      ui_only:
+        description: Capture native UI without running installation tests
+        type: boolean
+        default: false
       verify_public:
         description: Test the deployed download service with a full native install
         type: boolean
@@ -25,6 +29,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Fetch validated runtime
+        if: ${{ inputs.ui_only != true }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -42,8 +47,11 @@ jobs:
       - run: python scripts/validate_installer_fonts.py
       - run: python scripts/build_installer.py
       - run: python scripts/validate_installation.py
+        if: ${{ inputs.ui_only != true }}
+      - run: python scripts/capture_installer_ui.py
+        if: ${{ inputs.ui_only == true }}
       - name: Verify public HTTPS installation
-        if: ${{ inputs.verify_public == true }}
+        if: ${{ inputs.verify_public == true && inputs.ui_only != true }}
         run: python scripts/validate_public_installation.py
       - uses: actions/upload-artifact@v4
         if: always()
@@ -57,3 +65,4 @@ jobs:
             .build/online-installers/*.png
             .build/online-installers/test-report.json
             .build/online-installers/installer-*.json
+            .build/online-installers/installer-*.error.txt

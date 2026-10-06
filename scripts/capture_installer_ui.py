@@ -6,9 +6,11 @@ exe=r/'dist'/f"Paper-Voice-{config['version']}-Windows.exe" if win else base/'Pa
 for language in ['zh','en']:
  for state in ['idle','progress','complete','error','path']:
   stem=base/f'installer-{sys.platform}-{language}-{state}'
-  args=[str(exe),'--lang',language,'--screenshot',str(stem.with_suffix('.png')),'--visual-report',str(stem.with_suffix('.json')),'--preview-state',state]
+  args=[str(exe),'--lang',language,'--screenshot',str(stem.with_suffix('.png')),'--visual-report',str(stem.with_suffix('.json')),'--preview-state',state,'--result',str(stem.with_suffix('.error.txt'))]
   if state=='path':args+=['--preview-path',r'C:\科研资料\论文听读\声音\paper-voice-engine' if win else '/Volumes/科研资料/论文听读/声音/paper-voice-engine']
-  subprocess.run(args,check=True,timeout=40)
+  result=subprocess.run(args,timeout=40)
+  if result.returncode:
+   error=stem.with_suffix('.error.txt');raise RuntimeError(error.read_text(encoding='utf-8-sig') if error.exists() else f'Installer exited {result.returncode}')
   report=json.loads(stem.with_suffix('.json').read_text(encoding='utf-8'))
   assert all(f['covered'] for f in report['fonts']),report['fonts']
   assert report['width']==640 and report['height']==510,report
