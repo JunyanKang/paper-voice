@@ -47,6 +47,8 @@ jobs:
       - run: python scripts/validate_installer_fonts.py
       - run: python scripts/build_installer.py
       - run: python scripts/validate_zotero_setup.py
+      - run: python scripts/validate_zotero_native_setup.py
+        if: ${{ inputs.ui_only != true }}
       - run: python scripts/validate_installation.py
         if: ${{ inputs.ui_only != true }}
       - run: python scripts/capture_installer_ui.py
