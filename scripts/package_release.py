@@ -1,10 +1,12 @@
-"""Package only the customer-facing installer, plugin, guide and licensed runtime."""
+"""Legacy ZIP packaging, retained for reproducing pre-1.4 releases only."""
 from pathlib import Path
 import argparse,hashlib,json,os,shutil,stat,subprocess,zipfile
 ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'dist'
 parser=argparse.ArgumentParser();parser.add_argument('--platform',choices=['macOS-arm64','Windows-x64'],default='macOS-arm64');args=parser.parse_args()
 windows=args.platform=='Windows-x64';bundle=OUT/('Paper Voice Windows' if windows else 'Paper Voice');engine=bundle/'engine'
 version=json.loads((ROOT/'addon/manifest.json').read_text(encoding='utf-8'))['version'];xpi=OUT/'Paper Voice'/f'paper-voice-{version}.xpi'
+if tuple(map(int, json.loads((ROOT/'package.json').read_text())['version'].split('.'))) >= (1,4,0):
+ raise SystemExit('Use scripts/build_installer.py for DMG/EXE; voice downloads are published separately.')
 manifest=json.loads((engine/'runtime-manifest.json').read_text(encoding='utf-8'));packages={x.lower().replace('_','-') for x in manifest['packages']}
 archive=OUT/f'Paper-Voice-{version}-{args.platform}.zip'
 stage=ROOT/'.build/distribution'/args.platform/'Paper Voice'

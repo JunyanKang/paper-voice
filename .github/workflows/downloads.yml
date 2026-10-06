@@ -24,7 +24,7 @@ jobs:
       - run: git diff --exit-code -- installers/runtime-*.json
       - run: python scripts/build.py
       - run: python scripts/release_metadata.py
-      - run: python scripts/stage_distribution.py
+      - run: python scripts/stage_distribution.py --preserve-published
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

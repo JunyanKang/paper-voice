@@ -6,5 +6,7 @@ out=root/'dist/Paper Voice';out.mkdir(parents=True,exist_ok=True)
 version=json.loads((root/'addon/manifest.json').read_text(encoding="utf-8"))['version']
 with zipfile.ZipFile(out/f'paper-voice-{version}.xpi','w',zipfile.ZIP_DEFLATED) as z:
  for path in sorted((root/'addon').rglob('*')):
-  if path.is_file(): z.write(path,path.relative_to(root/'addon'))
+  if path.is_file():
+   info=zipfile.ZipInfo(path.relative_to(root/'addon').as_posix(),date_time=(2026,1,1,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.create_system=3;info.external_attr=0o100644<<16
+   z.writestr(info,path.read_bytes())
 print(out/f'paper-voice-{version}.xpi')

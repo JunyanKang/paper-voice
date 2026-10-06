@@ -98,7 +98,7 @@ final class Track:NSView{var value:Double=0{didSet{needsDisplay=true}};var tint=
  override func draw(_ rect:NSRect){NSColor(calibratedRed:0.88,green:0.91,blue:0.93,alpha:1).setFill();NSBezierPath(roundedRect:bounds,xRadius:2,yRadius:2).fill();if value>0{tint.setFill();NSBezierPath(roundedRect:NSRect(x:0,y:0,width:bounds.width*min(1,value),height:3),xRadius:2,yRadius:2).fill()}}
 }
 final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
- var window:NSWindow!,heading:NSTextField!,intro:NSTextField!,path:NSTextField!,status:NSTextField!,targetLabel:NSTextField!,action:NSButton!,only:NSButton!,browse:NSButton!,cancel:NSButton!,help:NSButton!,languageMenu:NSPopUpButton!
+ var window:NSWindow!,heading:NSTextField!,intro:NSTextField!,path:NSTextField!,status:NSTextField!,targetLabel:NSTextField!,action:NSButton!,only:NSButton!,browse:NSButton!,cancel:NSButton!,help:NSButton!,languageMenu:NSButton!
  var titles:[NSTextField]=[],details:[NSTextField]=[],bars:[Track]=[],badges:[NSTextField]=[]
  var language=arg("--lang") ?? ((Locale.preferredLanguages.first ?? "").hasPrefix("zh") ? "zh":"en"),working=false,complete=false,root=defaultRoot(),engine:Engine?,xpi:URL?,started=Date(),currentPhase=""
  func t(_ cn:String,_ en:String)->String{language=="zh" ? cn:en}
@@ -109,19 +109,19 @@ final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
   let descriptions=[t("连接 PDF 听读与翻译","Reading controls and translation"),t("为当前电脑准备本地运行环境","Local runtime for this computer"),t("英语 · 中文 · 日语 · 法语","English · Chinese · Japanese · French")]
   let assets=[config["plugin"] as! [String:Any],packages[1],packages[0]]
   for i in 0..<3{titles[i].stringValue=names[i];details[i].stringValue=descriptions[i];badges[i].stringValue=String(format:"%.1f MB",(assets[i]["bytes"] as! NSNumber).doubleValue/1e6)}
-  targetLabel.stringValue=t("声音位置","Voice folder");path.stringValue=root.path.replacingOccurrences(of:fm.homeDirectoryForCurrentUser.path,with:"~");path.toolTip=root.path;browse.title=t("选择文件夹","Browse");help.title=t("帮助","Help");only.title=t("仅更新插件","Plugin only");cancel.title=t("取消","Cancel");action.title=complete ? t("查看插件文件","Show plugin file"):t("下载并安装","Download & install");status.stringValue=t("已有声音会先检查并复用，不重复下载。","Existing voices are checked and reused.")
+  languageMenu.title=language=="zh" ? "English":"简体中文";targetLabel.stringValue=t("声音位置","Voice folder");path.stringValue=root.path.replacingOccurrences(of:fm.homeDirectoryForCurrentUser.path,with:"~");path.toolTip=root.path;browse.title=t("选择文件夹","Browse");help.title=t("帮助","Help");only.title=t("仅更新插件","Plugin only");cancel.title=t("取消","Cancel");action.title=complete ? t("查看插件文件","Show plugin file"):t("下载并安装","Download & install");status.stringValue=t("已有声音会先检查并复用，不重复下载。","Existing voices are checked and reused.")
  }
  func applicationDidFinishLaunching(_ n:Notification){app.setActivationPolicy(.regular);window=NSWindow(contentRect:NSRect(x:0,y:0,width:640,height:510),styleMask:[.titled,.closable,.miniaturizable],backing:.buffered,defer:false);window.delegate=self;window.appearance=NSAppearance(named:.aqua);window.backgroundColor=NSColor(calibratedRed:0.958,green:0.972,blue:0.98,alpha:1);window.contentView!.wantsLayer=true;window.contentView!.layer?.backgroundColor=window.backgroundColor.cgColor
   _=label("PAPER VOICE  /  FOR ZOTERO",10,true,30,20,440,18);heading=label("",24,true,30,46,490,42);intro=label("",11,false,32,94,540,24);intro.textColor=muted
   let image=NSImageView(frame:NSRect(x:541,y:407,width:72,height:80));image.image=NSImage(contentsOf:resources.appendingPathComponent("mascot.png"));image.imageScaling = .scaleProportionallyUpOrDown;window.contentView!.addSubview(image)
   for i in 0..<3{let y=CGFloat(135+i*70),card=NSView(frame:NSRect(x:30,y:510-y-62,width:580,height:62));card.wantsLayer=true;card.layer?.backgroundColor=NSColor.white.cgColor;card.layer?.cornerRadius=12;card.layer?.borderWidth=0.5;card.layer?.borderColor=NSColor(calibratedWhite:0.3,alpha:0.12).cgColor;window.contentView!.addSubview(card);let number=label(String(format:"%02d",i+1),11,true,46,y+12,30,20);number.textColor=accent;titles.append(label("",13,true,82,y+8,360,23));let d=label("",11,false,82,y+33,455,20);d.textColor=muted;details.append(d);let badge=label("",10,false,509,y+10,85,20);badge.alignment = .right;badge.textColor=muted;badges.append(badge);let bar=Track(frame:NSRect(x:82,y:510-y-59,width:512,height:3));window.contentView!.addSubview(bar);bars.append(bar)}
   targetLabel=label("",11,true,34,357,85,23);path=label("",11,false,120,357,367,23);path.maximumNumberOfLines=1;path.lineBreakMode = .byTruncatingMiddle;path.textColor=muted;browse=button(493,351,117,#selector(choose));status=label("",11,false,34,394,572,43);status.textColor=muted
-  help=button(30,458,52,#selector(openHelp));languageMenu=NSPopUpButton(frame:NSRect(x:91,y:18,width:110,height:30),pullsDown:false);languageMenu.addItems(withTitles:["简体中文","English"]);languageMenu.selectItem(at:language=="zh" ? 0:1);languageMenu.target=self;languageMenu.action=#selector(changeLanguage);window.contentView!.addSubview(languageMenu)
-  only=button(210,458,116,#selector(pluginOnly));cancel=button(331,458,82,#selector(cancelWork));cancel.isHidden=true;action=button(425,458,185,#selector(start));action.layer?.backgroundColor=accent.cgColor;action.contentTintColor = .white;action.keyEquivalent="\r";refresh();window.center();window.makeKeyAndOrderFront(nil);app.activate(ignoringOtherApps:true)
+  help=button(30,458,52,#selector(openHelp));languageMenu=button(91,458,110,#selector(changeLanguage));
+  only=button(301,458,116,#selector(pluginOnly));cancel=button(301,458,116,#selector(cancelWork));cancel.isHidden=true;action=button(425,458,185,#selector(start));action.layer?.backgroundColor=accent.cgColor;action.contentTintColor = .white;action.keyEquivalent="\r";refresh();window.center();window.makeKeyAndOrderFront(nil);app.activate(ignoringOtherApps:true)
   if flag("--progress-preview"){update("pluginDone",1);update("runtimeDone",1);update("voices",0.42)}
   if let shot=arg("--screenshot"){DispatchQueue.main.asyncAfter(deadline:.now()+0.6){let v=self.window.contentView!,r=v.bitmapImageRepForCachingDisplay(in:v.bounds)!;v.cacheDisplay(in:v.bounds,to:r);try? r.representation(using:.png,properties:[:])?.write(to:URL(fileURLWithPath:shot));app.terminate(nil)}}
  }
- @objc func changeLanguage(){language=languageMenu.indexOfSelectedItem==0 ? "zh":"en";refresh()}
+ @objc func changeLanguage(){language=language=="zh" ? "en":"zh";refresh()}
  @objc func choose(){let p=NSOpenPanel();p.canChooseDirectories=true;p.canChooseFiles=false;p.canCreateDirectories=true;p.directoryURL=root.deletingLastPathComponent();if p.runModal() == .OK,let url=p.url{root=url.lastPathComponent=="paper-voice-engine" ? url:url.appendingPathComponent("paper-voice-engine");complete=false;refresh()}}
  @objc func openHelp(){NSWorkspace.shared.open(URL(string:"https://github.com/JunyanKang/paper-voice/blob/main/docs/INSTALL"+(language=="en" ? ".en":"")+".md")!)}
  @objc func cancelWork(){engine?.cancel();cancel.isEnabled=false;status.stringValue=t("正在取消，已下载文件留待重试。","Cancelling. Verified downloads will be kept.")}
@@ -134,12 +134,13 @@ final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
   else if phase=="setup"{cancel.isEnabled=false;status.stringValue=t("正在验证声音可用性并完成安装…","Checking voices and finishing setup…")}
   else if phase=="ready"{for i in 1...2{badges[i].stringValue=t("✓ 已就绪","✓ Ready");details[i].stringValue=t("声音已安装，可以离线听读","Installed · Ready for offline listening")}}
  }
- func busy(_ b:Bool){working=b;action.isEnabled = !b;only.isEnabled = !b;browse.isEnabled = !b;languageMenu.isEnabled = !b;cancel.isHidden = !b;cancel.isEnabled=true}
+ func busy(_ b:Bool){working=b;action.isEnabled = !b;only.isEnabled = !b;browse.isEnabled = !b;languageMenu.isEnabled = !b;cancel.isHidden = !b;only.isHidden=b;cancel.isEnabled=true}
  @objc func pluginOnly(){run(true)}
  @objc func start(){if complete,let file=xpi{NSWorkspace.shared.activateFileViewerSelecting([file]);return};run(false)}
  func run(_ pluginOnly:Bool){busy(true);complete=false;let e=Engine();engine=e;e.progress={[weak self] p,v in DispatchQueue.main.async{self?.update(p,v)}};let destination=root,cache=fm.urls(for:.cachesDirectory,in:.userDomainMask)[0].appendingPathComponent("PaperVoiceInstaller"),pointer=location
   DispatchQueue.global(qos:.userInitiated).async{let result=Result{try e.install(destination,cache,pointer,pluginOnly:pluginOnly)};DispatchQueue.main.async{self.busy(false);switch result{case .success(let file):self.xpi=file;self.complete=true;self.action.title=self.t("查看插件文件","Show plugin file");self.status.stringValue=self.t("下一步：Zotero → 工具 → 插件 → 从文件安装，选择下载好的 XPI。","Next: Zotero → Tools → Plugins → Install From File. Choose the downloaded XPI.");case .failure(let error):self.action.title=self.t("重试","Retry");self.status.stringValue=e.cancelled ? self.t("已取消。原有声音保留，可继续下载。","Cancelled. Existing voices kept; retry to continue."):self.t("未完成：","Not completed: ")+error.localizedDescription;self.status.toolTip=error.localizedDescription};self.engine=nil}}
  }
+ func applicationShouldTerminate(_ sender:NSApplication)->NSApplication.TerminateReply{working ? .terminateCancel:.terminateNow}
  func windowShouldClose(_ sender:NSWindow)->Bool{!working}
  func applicationShouldTerminateAfterLastWindowClosed(_ sender:NSApplication)->Bool{true}
 }

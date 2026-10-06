@@ -32,6 +32,7 @@ with tempfile.TemporaryDirectory(prefix='voice-安装 test-') as scratch:
  # Remove verified cached chunks so recovery must fetch; failure cannot replace the old runtime.
  for f in cache.glob('*.0*'):f.unlink()
  run(ok=False,package=empty);assert worker.read_bytes()==b'broken' and pointer.read_bytes()==oldPointer;checks.append('download failure leaves previous runtime and discovery unchanged')
+ corrupt=temp/'corrupt-assets';corrupt.mkdir();shutil.copyfile(assets/config['plugin']['name'],corrupt/config['plugin']['name']);part=runtime['packages'][1]['parts'][0];(corrupt/part['name']).write_bytes(b'corrupt');run(ok=False,package=corrupt);assert worker.read_bytes()==b'broken' and pointer.read_bytes()==oldPointer;checks.append('corrupt download rejected without activation')
  run();assert hashlib.sha256(worker.read_bytes()).hexdigest()==next(f['sha256'] for f in runtime['files'] if f['name']=='worker.py');checks.append('damaged voices repaired')
  assert not list(dest.parent.glob('.paper-voice-setup-*')) and not list(dest.parent.glob('*.install-*'));checks.append('staging directories cleaned')
  for lang in ['zh','en']:

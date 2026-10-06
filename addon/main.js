@@ -633,10 +633,11 @@ var PaperVoice = {
       return this.runUnits(units,reader,generation,{mode:'document',loops:1});
     }catch(e){if(generation===this.generation)this.setStatus(e.message,'error');}
   },
+  engineLocationBase() {return Services.dirsvc.get('UAppData',Components.interfaces.nsIFile).path;},
   engineRoot() {
     const custom = this.get('enginePath', '');
     if(custom)return custom;
-    const base=Services.dirsvc.get('UAppData',Components.interfaces.nsIFile).path;
+    const base=this.engineLocationBase();
     try{const file=Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsIFile);file.initWithPath(PathUtils.join(base,'paper-voice-location.json'));if(file.exists()&&file.fileSize<16384){const entry=JSON.parse(Zotero.File.getContents(file));if(entry.schema===1&&typeof entry.root==='string'&&PathUtils.isAbsolute(entry.root))return entry.root;}}catch(_){}
     return PathUtils.join(base,'paper-voice-engine');
   },
@@ -719,7 +720,7 @@ var PaperVoice = {
   async synthesize(text, voice, rate, onStage) {
     if(!this.process||this.processStart)onStage?.('正在启动声音…');
     await this.ensureWorker();onStage?.('正在生成语音…');
-    if(this.workerVoices&&!this.workerVoices.includes(voice))throw new Error('请下载最新版完整包，重新安装离线声音以启用多语言朗读。');
+    if(this.workerVoices&&!this.workerVoices.includes(voice))throw new Error('请运行最新版安装助手，更新离线声音以启用多语言朗读。');
     const id = ++this.sequence;
     return new Promise((resolve,reject) => {
       const timer = this.host.setTimeout(() => {
