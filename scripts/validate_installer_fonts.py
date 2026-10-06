@@ -3,7 +3,7 @@ from pathlib import Path
 from fontTools.ttLib import TTFont
 import io,json,zlib
 root=Path(__file__).resolve().parents[1]
-text=''.join(p.read_text(encoding='utf-8') for p in [root/'installers/macos/Installer.swift',root/'installers/windows/Installer.cs',root/'installers/assets/appearance.json'])
+text=''.join(p.read_text(encoding='utf-8') for p in [root/'installers/macos/Installer.swift',root/'installers/windows/Installer.cs',root/'installers/assets/appearance.json',root/'installers/macos/ZoteroInstall.swift',root/'installers/windows/ZoteroInstall.cs'])
 required={ord(c) for c in text if ord(c)>127 and not c.isspace()}
 for style in ['Regular','SemiBold']:
  path=root/'installers/assets'/f'VoiceSans-{style}.ttf.deflate'

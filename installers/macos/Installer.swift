@@ -98,6 +98,16 @@ final class Engine{
   try task(source.appendingPathComponent("python/bin/python3"),args);progress?("ready",1);return xpi
  }
 }
+if let operation=arg("--zotero-action") {
+ do {
+  var result:[String:Any]=[:]
+  if operation=="discover"{let base=URL(fileURLWithPath:arg("--profile-base")!);result=["profiles":ZoteroInstall.profiles(base).map{["name":$0.name,"path":$0.path.path]},"applications":ZoteroInstall.applications().map{$0.path}]}
+  else{let profile=URL(fileURLWithPath:arg("--profile")!),asset=config["plugin"] as! [String:Any],version=config["version"] as! String,digest=asset["sha256"] as! String
+   let state=operation=="stage" ? try ZoteroInstall.stage(URL(fileURLWithPath:arg("--xpi")!),profile,version,digest,URL(fileURLWithPath:arg("--backup-dir")!)):ZoteroInstall.status(profile,version,digest);result=["state":state]
+  }
+  try JSONSerialization.data(withJSONObject:result).write(to:URL(fileURLWithPath:arg("--result")!));exit(0)
+ }catch{if let path=arg("--result"){try? JSONSerialization.data(withJSONObject:["error":error.localizedDescription]).write(to:URL(fileURLWithPath:path))};exit(1)}
+}
 if flag("--quiet"){
  do{guard let c=arg("--download-dir"),let d=arg("--destination"),let p=arg("--pointer"),arg("--plugin-dir") != nil else{throw fail("Explicit test directories required")};let e=Engine();if flag("--cancel-test"){e.progress={phase,v in if ["voices","runtime"].contains(phase)&&v>0{e.cancel()}}};print(try e.install(URL(fileURLWithPath:d),URL(fileURLWithPath:c),URL(fileURLWithPath:p),pluginOnly:flag("--plugin-only")).path);exit(0)}catch{fputs(error.localizedDescription+"\n",stderr);exit(1)}
 }
@@ -145,6 +155,7 @@ final class Track:NSView{var value:Double=0{didSet{needsDisplay=true}};var tint=
 }
 final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
  var window:NSWindow!,heading:NSTextField!,intro:NSTextField!,path:NSTextField!,status:NSTextField!,targetLabel:NSTextField!,action:NSButton!,only:NSButton!,browse:NSButton!,cancel:NSButton!,help:NSButton!,languageMenu:NSButton!
+ var zoteroApp:URL?,zoteroProfile:ZoteroProfile?,pluginState="",pluginTimer:Timer?,didStage=false
  var titles:[NSTextField]=[],details:[NSTextField]=[],bars:[Track]=[],badges:[NSTextField]=[]
  var language=arg("--lang") ?? ((Locale.preferredLanguages.first ?? "").hasPrefix("zh") ? "zh":"en"),working=false,complete=false,root=arg("--preview-path").map{URL(fileURLWithPath:$0)} ?? defaultRoot(),engine:Engine?,xpi:URL?,started=Date(),currentPhase=""
  func t(_ cn:String,_ en:String)->String{language=="zh" ? cn:en}
@@ -152,10 +163,10 @@ final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
  func button(_ x:CGFloat,_ y:CGFloat,_ w:CGFloat,_ selector:Selector)->NSButton{let b=VoiceButton(title:"",target:self,action:selector);b.frame=NSRect(x:x,y:510-y-34,width:w,height:34);b.isBordered=false;b.wantsLayer=true;b.layer?.cornerRadius=9;b.layer?.backgroundColor=NSColor.white.cgColor;b.font=font(11,true);window.contentView!.addSubview(b);return b}
  func refresh(){window.title=t("Paper Voice 安装助手","Paper Voice Installer");heading.stringValue=t("让论文，读给你听。","Make room for listening.");intro.stringValue=t("按需下载。装好声音后，日常听读无需联网。","Download once. Listen offline, every day.")
   let names=[t("Zotero 插件","Zotero plugin"),t("声音引擎","Voice engine"),t("多语言声音","Multilingual voices")]
-  let descriptions=[t("听读与翻译 · 保存至下载/Paper Voice","Reading & translation · Downloads/Paper Voice"),t("为当前电脑准备本地运行环境","Local runtime for this computer"),t("英语 · 中文 · 日语 · 法语","English · Chinese · Japanese · French")]
+  let descriptions=[t("自动识别 Zotero，安装听读与翻译","Detect Zotero and set up the plugin"),t("为当前电脑准备本地运行环境","Local runtime for this computer"),t("英语 · 中文 · 日语 · 法语","English · Chinese · Japanese · French")]
   let assets=[config["plugin"] as! [String:Any],packages[1],packages[0]]
   for i in 0..<3{titles[i].stringValue=names[i];details[i].stringValue=descriptions[i];badges[i].stringValue=String(format:"%.1f MB",(assets[i]["bytes"] as! NSNumber).doubleValue/1e6)}
-  languageMenu.title=language=="zh" ? "English":"简体中文";targetLabel.stringValue=t("声音位置","Voice folder");path.stringValue=root.path.replacingOccurrences(of:fm.homeDirectoryForCurrentUser.path,with:"~");path.toolTip=root.path;browse.title=t("选择文件夹","Browse");help.title=t("帮助","Help");only.title=t("仅更新插件","Plugin only");cancel.title=t("取消","Cancel");action.title=complete ? t("查看插件文件","Show plugin file"):t("下载并安装","Download & install");status.stringValue=t("已有声音会先检查并复用，不重复下载。","Existing voices are checked and reused.")
+  languageMenu.title=language=="zh" ? "English":"简体中文";targetLabel.stringValue=t("声音位置","Voice folder");path.stringValue=root.path.replacingOccurrences(of:fm.homeDirectoryForCurrentUser.path,with:"~");path.toolTip=root.path;browse.title=t("选择文件夹","Browse");help.title=t("帮助","Help");only.title=t("仅更新插件","Plugin only");cancel.title=t("取消","Cancel");action.title=complete ? t("查看插件文件","Show plugin file"):t("下载并安装","Download & install");status.stringValue=t("已有声音会先检查并复用，不重复下载。","Existing voices are checked and reused.");if complete{refreshPluginUI()}
  }
  func applicationDidFinishLaunching(_ n:Notification){app.setActivationPolicy(.regular);window=NSWindow(contentRect:NSRect(x:0,y:0,width:640,height:510),styleMask:[.titled,.closable,.miniaturizable],backing:.buffered,defer:false);window.delegate=self;window.appearance=NSAppearance(named:.aqua);window.backgroundColor=color("paper");window.contentView!.wantsLayer=true;window.contentView!.layer?.backgroundColor=window.backgroundColor.cgColor
   _=label("PAPER VOICE  /  FOR ZOTERO",10,true,30,20,440,18);heading=label("",24,true,30,46,490,42);intro=label("",11,false,32,94,540,24);intro.textColor=muted
@@ -165,7 +176,10 @@ final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
   help=button(30,458,52,#selector(openHelp));languageMenu=button(91,458,110,#selector(changeLanguage));
   only=button(301,458,116,#selector(pluginOnly));cancel=button(301,458,116,#selector(cancelWork));cancel.isHidden=true;action=button(425,458,185,#selector(start));(action as! VoiceButton).primary=true;action.contentTintColor = .white;action.keyEquivalent="\r";refresh();window.center();window.makeKeyAndOrderFront(nil);app.activate(ignoringOtherApps:true)
   if flag("--progress-preview") || arg("--preview-state")=="progress"{busy(true);update("pluginDone",1);update("runtimeDone",1);update("voices",0.42)}
-  if arg("--preview-state")=="complete"{complete=true;update("pluginDone",1);update("runtimeDone",1);update("voicesDone",1);update("ready",1);action.title=t("查看插件文件","Show plugin file");status.stringValue=t("下一步：Zotero → 工具 → 插件 → 从文件安装，选择「下载/Paper Voice」中的 XPI。","Next: Zotero → Tools → Plugins → Install From File. Choose the XPI in Downloads/Paper Voice.")}
+  if ["complete","installed","running","multiple","missing"].contains(arg("--preview-state") ?? ""){
+   let state=arg("--preview-state")!;complete=true;update("pluginDone",1);update("runtimeDone",1);update("voicesDone",1);update("ready",1)
+   zoteroApp=state=="missing" ? nil:URL(fileURLWithPath:"/Applications/Zotero.app");zoteroProfile=["multiple","missing"].contains(state) ? nil:ZoteroProfile(name:"default",path:ZoteroInstall.profileBase.appendingPathComponent("Profiles/example.default"));didStage=["complete","installed"].contains(state);pluginState=state=="complete" ? "pending":state;refreshPluginUI()
+  }
   if arg("--preview-state")=="error"{action.title=t("重试","Retry");status.stringValue=t("下载未完成，请检查网络后重试。已有声音会保留。","Download interrupted. Check your connection and retry. Existing voices are kept.")}
   if let report=arg("--visual-report"){writeVisualReport(report)}
   if let shot=arg("--screenshot"){DispatchQueue.main.asyncAfter(deadline:.now()+0.6){let v=self.window.contentView!,r=v.bitmapImageRepForCachingDisplay(in:v.bounds)!;v.cacheDisplay(in:v.bounds,to:r);try? r.representation(using:.png,properties:[:])?.write(to:URL(fileURLWithPath:shot));self.working=false;app.terminate(nil)}}
@@ -179,7 +193,7 @@ final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
   try! JSONSerialization.data(withJSONObject:result,options:.prettyPrinted).write(to:URL(fileURLWithPath:destination))
  }
  @objc func changeLanguage(){language=language=="zh" ? "en":"zh";refresh()}
- @objc func choose(){let p=NSOpenPanel();p.canChooseDirectories=true;p.canChooseFiles=false;p.canCreateDirectories=true;p.directoryURL=root.deletingLastPathComponent();if p.runModal() == .OK,let url=p.url{root=url.lastPathComponent=="paper-voice-engine" ? url:url.appendingPathComponent("paper-voice-engine");complete=false;refresh()}}
+ @objc func choose(){if complete{chooseProfile();return};let p=NSOpenPanel();p.canChooseDirectories=true;p.canChooseFiles=false;p.canCreateDirectories=true;p.directoryURL=root.deletingLastPathComponent();if p.runModal() == .OK,let url=p.url{root=url.lastPathComponent=="paper-voice-engine" ? url:url.appendingPathComponent("paper-voice-engine");complete=false;refresh()}}
  @objc func openHelp(){NSWorkspace.shared.open(URL(string:"https://github.com/JunyanKang/paper-voice/blob/main/docs/INSTALL"+(language=="en" ? ".en":"")+".md")!)}
  @objc func cancelWork(){engine?.cancel();cancel.isEnabled=false;status.stringValue=t("正在取消，已下载文件留待重试。","Cancelling. Verified downloads will be kept.")}
  func update(_ phase:String,_ value:Double){if currentPhase != phase{currentPhase=phase;started=Date()};let index=phase.hasPrefix("plugin") ? 0:phase.hasPrefix("runtime") ? 1:2
@@ -192,10 +206,41 @@ final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
   else if phase=="ready"{for i in 1...2{badges[i].stringValue=t("✓ 已就绪","✓ Ready");details[i].stringValue=t("声音已安装，可以离线听读","Installed · Ready for offline listening")}}
  }
  func busy(_ b:Bool){working=b;action.isEnabled = !b;only.isEnabled = !b;browse.isEnabled = !b;languageMenu.isEnabled = !b;cancel.isHidden = !b;only.isHidden=b;cancel.isEnabled=true}
- @objc func pluginOnly(){run(true)}
- @objc func start(){if complete,let file=xpi{NSWorkspace.shared.activateFileViewerSelecting([file]);return};run(false)}
- func run(_ pluginOnly:Bool){busy(true);complete=false;let e=Engine();engine=e;e.progress={[weak self] p,v in DispatchQueue.main.async{self?.update(p,v)}};let destination=root,cache=fm.urls(for:.cachesDirectory,in:.userDomainMask)[0].appendingPathComponent("PaperVoiceInstaller"),pointer=location
-  DispatchQueue.global(qos:.userInitiated).async{let result=Result{try e.install(destination,cache,pointer,pluginOnly:pluginOnly)};DispatchQueue.main.async{self.busy(false);switch result{case .success(let file):self.xpi=file;self.complete=true;self.action.title=self.t("查看插件文件","Show plugin file");self.status.stringValue=self.t("下一步：Zotero → 工具 → 插件 → 从文件安装，选择「下载/Paper Voice」中的 XPI。","Next: Zotero → Tools → Plugins → Install From File. Choose the XPI in Downloads/Paper Voice.");case .failure(let error):self.action.title=self.t("重试","Retry");self.status.stringValue=e.cancelled ? self.t("已取消。原有声音保留，可继续下载。","Cancelled. Existing voices kept; retry to continue."):self.t("未完成：","Not completed: ")+error.localizedDescription;self.status.toolTip=error.localizedDescription};self.engine=nil}}
+ @objc func pluginOnly(){if complete,let file=xpi{NSWorkspace.shared.activateFileViewerSelecting([file]);return};run(true)}
+ @objc func start(){if complete{continuePlugin();return};run(false)}
+ func run(_ pluginOnly:Bool){busy(true);complete=false;didStage=false;pluginState="";pluginTimer?.invalidate();let e=Engine();engine=e;e.progress={[weak self] p,v in DispatchQueue.main.async{self?.update(p,v)}};let destination=root,cache=fm.urls(for:.cachesDirectory,in:.userDomainMask)[0].appendingPathComponent("PaperVoiceInstaller"),pointer=location
+  DispatchQueue.global(qos:.userInitiated).async{let result=Result{try e.install(destination,cache,pointer,pluginOnly:pluginOnly)};DispatchQueue.main.async{self.busy(false);switch result{case .success(let file):self.xpi=file;self.complete=true;self.preparePlugin();case .failure(let error):self.action.title=self.t("重试","Retry");self.status.stringValue=e.cancelled ? self.t("已取消。原有声音保留，可继续下载。","Cancelled. Existing voices kept; retry to continue."):self.t("未完成：","Not completed: ")+error.localizedDescription;self.status.toolTip=error.localizedDescription};self.engine=nil}}
+ }
+ func preparePlugin(){
+  zoteroApp=ZoteroInstall.applications().first;let profiles=ZoteroInstall.profiles(ZoteroInstall.profileBase);zoteroProfile=profiles.count==1 ? profiles[0]:nil
+  refreshPluginUI();if zoteroApp != nil && zoteroProfile != nil{continuePlugin()}
+  pluginTimer=Timer.scheduledTimer(withTimeInterval:1,repeats:true){[weak self] _ in guard let self=self,self.complete else{return};if !self.didStage{if self.zoteroApp==nil{self.zoteroApp=ZoteroInstall.applications().first};if self.zoteroProfile==nil{let profiles=ZoteroInstall.profiles(ZoteroInstall.profileBase);if profiles.count==1{self.zoteroProfile=profiles[0]}}};if self.pluginState=="running" && !ZoteroInstall.running(){self.continuePlugin()};if self.didStage,let profile=self.zoteroProfile{let asset=config["plugin"] as! [String:Any];self.pluginState=ZoteroInstall.status(profile.path,config["version"] as! String,asset["sha256"] as! String);self.refreshPluginUI()}}
+ }
+ func refreshPluginUI(){
+  targetLabel.stringValue="Zotero";path.stringValue=zoteroProfile?.name ?? t("选择用户配置","Select a profile");path.toolTip=zoteroProfile?.path.path;browse.title=t("选择配置","Profile");only.title=t("手动安装","Manual install")
+  if zoteroApp==nil{action.title=t("选择 Zotero","Locate Zotero");status.stringValue=t("未找到 Zotero 10。请选择应用，或先安装并打开一次。","Zotero 10 not found. Locate it, or install and open it once.");return}
+  if zoteroProfile==nil{action.title=t("选择配置","Select profile");status.stringValue=t("请选择要安装的用户配置；首次使用请先打开 Zotero 一次。","Choose a profile. First-time users: open Zotero once.");return}
+  action.title=didStage ? t("打开 Zotero","Open Zotero"):t("继续安装","Continue install")
+  if pluginState=="installed"{badges[0].stringValue=t("✓ 已安装","✓ Installed");details[0].stringValue=t("插件已启用，可以使用","Plugin enabled and ready");status.stringValue=t("安装完成。打开 Zotero 即可开始听读。","Setup complete. Open Zotero to start listening.")}
+  else if didStage{badges[0].stringValue=t("待启用","Enable in Zotero");details[0].stringValue=t("已放置并校验插件","Plugin placed and verified");status.stringValue=pluginState=="incompatible" ? t("Zotero 暂不能启用此版本，请检查兼容性。","Zotero cannot enable this version. Check compatibility."):t("打开 Zotero → 工具 → 插件，启用 Paper Voice。","Open Zotero → Tools → Plugins. Enable Paper Voice.")}
+  else if pluginState=="running"{status.stringValue=t("请先正常退出 Zotero，安装器会自动继续。","Quit Zotero normally. Setup will continue automatically.")}
+  else if pluginState != "error"{status.stringValue=t("将安装到所选配置；已有设置会保留。","Install into this profile. Existing settings are kept.")}
+ }
+ func chooseProfile(){
+  let profiles=ZoteroInstall.profiles(ZoteroInstall.profileBase)
+  if profiles.count>1{let alert=NSAlert();alert.messageText=t("选择 Zotero 配置","Choose a Zotero profile");alert.informativeText=t("仅安装到所选配置，其他配置保持不变。","Only the selected profile will receive the plugin.");let menu=NSPopUpButton(frame:NSRect(x:0,y:0,width:420,height:28));menu.addItems(withTitles:profiles.map{$0.name+" — "+$0.path.path});alert.accessoryView=menu;alert.addButton(withTitle:t("选择","Choose"));alert.addButton(withTitle:t("其他位置…","Browse…"));alert.addButton(withTitle:t("取消","Cancel"));let result=alert.runModal();if result == .alertFirstButtonReturn{zoteroProfile=profiles[menu.indexOfSelectedItem]}else if result == .alertSecondButtonReturn{pickProfile()}else{return}}
+  else{pickProfile()}
+  didStage=false;pluginState="";refreshPluginUI()
+ }
+ func pickProfile(){let picker=NSOpenPanel();picker.title=t("选择 Zotero 配置目录","Choose a Zotero profile folder");picker.canChooseDirectories=true;picker.canChooseFiles=false;picker.canCreateDirectories=false;picker.showsHiddenFiles=true;picker.directoryURL=ZoteroInstall.profileBase;if picker.runModal() == .OK,let url=picker.url{if ZoteroInstall.validProfile(url){zoteroProfile=ZoteroProfile(name:url.lastPathComponent,path:url)}else{status.stringValue=t("这不是 Zotero 配置目录。请选择含 prefs.js 的目录。","Choose a Zotero profile containing prefs.js.")}}}
+ func continuePlugin(){
+  if zoteroApp==nil{let picker=NSOpenPanel();picker.title=t("选择 Zotero 10","Locate Zotero 10");picker.canChooseFiles=true;picker.canChooseDirectories=false;picker.directoryURL=URL(fileURLWithPath:"/Applications");if picker.runModal() == .OK,let url=picker.url,ZoteroInstall.validApp(url){zoteroApp=url};refreshPluginUI();return}
+  guard let profile=zoteroProfile else{chooseProfile();return}
+  if didStage{do{if ZoteroInstall.running(){NSWorkspace.shared.runningApplications.first(where:{ZoteroInstall.bundleIDs.contains($0.bundleIdentifier ?? "")})?.activate(options:[])}else{try ZoteroInstall.launch(zoteroApp!,profile.path)}}catch{status.stringValue=error.localizedDescription};return}
+  if ZoteroInstall.running(){pluginState="running";refreshPluginUI();return}
+  guard let file=xpi else{return}
+  do{let asset=config["plugin"] as! [String:Any];pluginState=try ZoteroInstall.stage(file,profile.path,config["version"] as! String,asset["sha256"] as! String,fm.urls(for:.cachesDirectory,in:.userDomainMask)[0].appendingPathComponent("PaperVoiceInstaller/plugin-backups"));didStage=true;refreshPluginUI()}
+  catch{pluginState="error";refreshPluginUI();status.stringValue=error.localizedDescription}
  }
  func applicationShouldTerminate(_ sender:NSApplication)->NSApplication.TerminateReply{working ? .terminateCancel:.terminateNow}
  func windowShouldClose(_ sender:NSWindow)->Bool{!working}

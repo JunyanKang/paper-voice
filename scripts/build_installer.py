@@ -8,7 +8,8 @@ config={'version':version,'plugin':{'name':xpi.name,'url':f'https://kanglab.cool
 (out/'installer.json').write_text(json.dumps(config,ensure_ascii=False,separators=(',',':'))+'\n')
 if sys.platform=='darwin':
  app=out/'Paper Voice Installer.app';resources=app/'Contents/Resources';binary=app/'Contents/MacOS/Paper Voice Installer';resources.mkdir(parents=True,exist_ok=True);binary.parent.mkdir(parents=True,exist_ok=True)
- subprocess.run(['xcrun','swiftc','-O','-module-cache-path',str(out/'swift-cache'),'-target','arm64-apple-macos14.0','-framework','Cocoa',str(ROOT/'installers/macos/Installer.swift'),'-o',str(binary)],check=True)
+ native_source=out/'Installer.swift';native_source.write_text((ROOT/'installers/macos/ZoteroInstall.swift').read_text()+'\n'+(ROOT/'installers/macos/Installer.swift').read_text())
+ subprocess.run(['xcrun','swiftc','-O','-module-cache-path',str(out/'swift-cache'),'-target','arm64-apple-macos14.0','-framework','Cocoa',str(native_source),'-o',str(binary)],check=True)
  iconset=out/'PaperVoice.iconset';iconset.mkdir(exist_ok=True)
  for size in [16,32,128,256,512]:
   for factor in [1,2]:subprocess.run(['sips','-z',str(size*factor),str(size*factor),str(ROOT/'addon/assets/mascot.png'),'--out',str(iconset/f'icon_{size}x{size}{"@2x" if factor==2 else ""}.png')],check=True,stdout=subprocess.DEVNULL)
@@ -56,7 +57,7 @@ if sys.platform=='darwin':
 elif sys.platform=='win32':
  subprocess.run(['powershell','-NoProfile','-ExecutionPolicy','Bypass','-File',str(ROOT/'installers/windows/build.ps1'),'-Root',str(ROOT)],check=True)
  csc=Path(os.environ['WINDIR'])/'Microsoft.NET/Framework64/v4.0.30319/csc.exe';target=ROOT/'dist'/f'Paper-Voice-{version}-Windows.exe';target.parent.mkdir(exist_ok=True)
- subprocess.run([str(csc),'/nologo','/target:winexe','/platform:x64','/optimize+','/codepage:65001',*[f'/reference:{lib}.dll' for lib in ['System.Windows.Forms','System.Drawing','System.Core','System.Net.Http','System.Web.Extensions','System.IO.Compression','System.IO.Compression.FileSystem']],f'/win32icon:{ROOT / ".build/installers/PaperVoice.ico"}',f'/win32manifest:{ROOT / "installers/windows/app.manifest"}',f'/resource:{ROOT / "addon/assets/mascot.png"},mascot.png',f'/resource:{out / "installer.json"},installer.json',f'/resource:{ROOT / "installers/commit_runtime.py"},commit_runtime.py',*[f'/resource:{source},{source.name}' for source in sorted((ROOT/'installers/assets').glob('*'))],f'/out:{target}',str(ROOT/'installers/windows/Installer.cs')],check=True)
+ subprocess.run([str(csc),'/nologo','/target:winexe','/platform:x64','/optimize+','/codepage:65001',*[f'/reference:{lib}.dll' for lib in ['System.Windows.Forms','System.Drawing','System.Core','System.Net.Http','System.Web.Extensions','System.IO.Compression','System.IO.Compression.FileSystem']],f'/win32icon:{ROOT / ".build/installers/PaperVoice.ico"}',f'/win32manifest:{ROOT / "installers/windows/app.manifest"}',f'/resource:{ROOT / "addon/assets/mascot.png"},mascot.png',f'/resource:{out / "installer.json"},installer.json',f'/resource:{ROOT / "installers/commit_runtime.py"},commit_runtime.py',*[f'/resource:{source},{source.name}' for source in sorted((ROOT/'installers/assets').glob('*'))],f'/out:{target}',str(ROOT/'installers/windows/Installer.cs'),str(ROOT/'installers/windows/ZoteroInstall.cs')],check=True)
 else:raise SystemExit('Build on macOS or Windows')
 assert target.stat().st_size<20*1024*1024
 print(target)

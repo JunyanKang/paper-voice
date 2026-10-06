@@ -46,6 +46,7 @@ jobs:
       - run: python -m pip install fonttools==4.60.1
       - run: python scripts/validate_installer_fonts.py
       - run: python scripts/build_installer.py
+      - run: python scripts/validate_zotero_setup.py
       - run: python scripts/validate_installation.py
         if: ${{ inputs.ui_only != true }}
       - run: python scripts/capture_installer_ui.py
@@ -64,5 +65,6 @@ jobs:
             .build/online-installers/installer.json
             .build/online-installers/*.png
             .build/online-installers/test-report.json
+            .build/online-installers/zotero-*.json
             .build/online-installers/installer-*.json
             .build/online-installers/installer-*.error.txt
