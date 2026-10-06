@@ -12,7 +12,7 @@
 
 ## 1. Download the installer
 
-Install **Zotero 10** first. Choose a file under Assets on the [release page](https://github.com/JunyanKang/paper-voice/releases/latest):
+Install and open **Zotero 10** once first. Choose a file under Assets on the [release page](https://github.com/JunyanKang/paper-voice/releases/latest):
 
 | Computer | File | How to open |
 |---|---|---|
@@ -46,11 +46,15 @@ Cancel is available during downloads. Verified chunks are kept for retry, and an
 
 ## 3. Add the plugin to Zotero
 
-The XPI is saved in the visible **Downloads → Paper Voice** folder, outside the hidden cache. Select **Show plugin file** to reveal it. In Zotero, open:
+Setup finds Zotero 10 and its user profiles. One valid profile is selected automatically; if several are found, use **Select profile** to choose the one you use. A profile stores plugins and settings, separate from your paper library.
 
-**Tools → Plugins → gear → Install Plugin From File**
+If Zotero is running, quit it normally. Setup continues automatically, verifies the plugin and backs up any package it replaces. Your settings and other plugins are kept.
 
-Select the downloaded `paper-voice-….xpi` and follow Zotero's prompt. The installer prepares the file; Zotero installs the plugin.
+<p align="center"><img src="assets/installer-macos-enable-en.png" width="640" alt="Verified plugin awaiting first activation in Zotero"></p>
+
+Select **Open Zotero**. On first installation, enable Paper Voice under **Tools → Plugins**. **Enable in Zotero** means the file is ready but activation has not been confirmed. Setup shows **Installed** only after Zotero reports the plugin as active. Updates preserve your existing enabled or disabled choice.
+
+**If detection fails:** use **Locate Zotero** to select the application, or **Profile** to choose a profile folder containing `prefs.js`. Open Zotero once if no profile exists yet. **Manual install** reveals the XPI in **Downloads → Paper Voice**; install it through **Tools → Plugins → gear → Install Plugin From File**.
 
 Open a PDF with selectable text and select a passage. If automatic reading is off, press Play in the selection menu.
 
@@ -73,7 +77,7 @@ Connect an external drive before reading. If you move voices yourself, select th
 
 ## Updating an existing installation
 
-- **Coming from 1.3.10 or earlier:** the update address has moved. Run the new installer once, select **Plugin only**, and install its downloaded XPI in Zotero. Existing multilingual voices do not need reinstalling.
+- **Coming from 1.3.10 or earlier:** the update address has moved. Run the new installer once, select **Plugin only**, and quit Zotero when prompted so setup can place the updated plugin. Existing multilingual voices do not need reinstalling.
 - **Voices still come from 1.2.5 or earlier:** choose **Download & install** once to add Chinese, Japanese and French support.
 - **After migration:** keep using **Check → Install update** in the plugin. The daily, weekly and monthly check intervals and Skip this version remain available. Voice locations, preferences and reading progress are independent of plugin updates.
 

@@ -26,7 +26,7 @@ The main window folds away when you click or select PDF text, annotate, scroll m
 
 ### Install the voices and plugin
 
-Download the Mac DMG or Windows EXE from the [download page](../README.en.md#download-and-install). Choose a voice folder and select **Download & install**. Once voices are ready, select **Show plugin file**. In Zotero, open **Tools → Plugins → gear → Install Plugin From File** and choose the downloaded `.xpi`.
+Download the Mac DMG or Windows EXE from the [download page](../README.en.md#download-and-install). Choose a voice folder and select **Download & install**. Setup detects Zotero and your profile. Quit Zotero normally when prompted; the plugin is then placed and verified. Select **Open Zotero**, then enable Paper Voice under **Tools → Plugins** on first installation. If you have several profiles, choose the one you use.
 
 <p align="center"><img src="assets/installer-macos-en.png" width="640" alt="Installer showing the plugin, voice engine, multilingual voices and destination"></p>
 <p align="center"><sub>Complete existing voices are reused. Plugin only skips voices; language controls remain at the bottom.</sub></p>

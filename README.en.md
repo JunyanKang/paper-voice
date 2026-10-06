@@ -75,7 +75,7 @@ Intel / AMD 64-bit computers
 Apple Silicon (M series) · macOS 14 or later
 
 1. **Prepare voices.** Open the installer, choose a voice folder, and select **Download & install**. Complete existing voices are reused.
-2. **Add the plugin.** Select **Show plugin file**, then use Zotero → Tools → Plugins → Install Plugin From File to open the `.xpi` in Downloads/Paper Voice.
+2. **Enable the plugin.** The installer detects Zotero and your profile. Quit Zotero when prompted to let setup continue, then select **Open Zotero**. On first installation, enable Paper Voice under **Tools → Plugins**.
 3. **Start listening.** Open a PDF with selectable text and select a passage. Click the book companion to adjust your mode, voice and translation.
 
 <p align="center"><img src="docs/assets/installer-macos-en.png" width="640" alt="Small installer with three download items, a voice folder and aligned controls"></p>

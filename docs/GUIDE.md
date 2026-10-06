@@ -26,7 +26,7 @@
 
 ### 先安装声音与插件
 
-从 [下载页](../README.md#下载与安装) 获取 Mac DMG 或 Windows EXE 安装器。选择声音位置，点击 **下载并安装**；声音准备完成后，点击 **查看插件文件**，在 Zotero 的 **工具 → 插件 → 齿轮 → 从文件安装插件** 中选择下载好的 `.xpi`。
+从 [下载页](../README.md#下载与安装) 获取 Mac DMG 或 Windows EXE 安装器。选择声音位置，点击 **下载并安装**；安装器会自动识别 Zotero 和用户配置。按提示正常退出 Zotero 后，插件会自动放置并校验；点击 **打开 Zotero**，首次在 **工具 → 插件** 中启用 Paper Voice。多个配置时先选择要使用的配置。
 
 <p align="center"><img src="assets/installer-macos.png" width="640" alt="安装器显示插件、声音引擎、多语言声音及保存位置"></p>
 <p align="center"><sub>已有完整声音会复用；只更新插件时，可选择「仅更新插件」。底部可切换中英文。</sub></p>

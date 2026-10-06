@@ -75,7 +75,7 @@ Intel / AMD 64 位电脑
 Apple 芯片（M 系列）· macOS 14 或更新版本
 
 1. **准备声音。** 打开安装器，选择声音保存位置，点击「下载并安装」。已有完整声音会自动复用。
-2. **添加插件。** 点击「查看插件文件」，在 Zotero → 工具 → 插件 → 从文件安装插件，选择「下载/Paper Voice」中的 `.xpi`。
+2. **启用插件。** 安装器自动识别 Zotero 和用户配置；按提示退出 Zotero 后自动放置插件。点击「打开 Zotero」，首次在「工具 → 插件」中启用 Paper Voice。
 3. **开始听读。** 打开可选中文字的 PDF，划选正文；点击书页精灵调整模式、声音与翻译。
 
 <p align="center"><img src="docs/assets/installer-macos.png" width="640" alt="轻量安装器：三个下载项目、声音路径与底部操作区"></p>

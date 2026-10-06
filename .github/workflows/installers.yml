@@ -52,7 +52,6 @@ jobs:
       - run: python scripts/validate_installation.py
         if: ${{ inputs.ui_only != true }}
       - run: python scripts/capture_installer_ui.py
-        if: ${{ inputs.ui_only == true }}
       - name: Verify public HTTPS installation
         if: ${{ inputs.verify_public == true && inputs.ui_only != true }}
         run: python scripts/validate_public_installation.py

@@ -1,5 +1,14 @@
 # 更新记录
 
+## 1.4.6 · 2026-10-07
+
+- Mac 与 Windows 安装器自动识别 Zotero 10 和用户配置，支持多个配置选择与手动指定。
+- Zotero 运行时等待用户正常退出；插件经校验后放置，保留设置并备份被替换的旧包。
+- 完成后可打开 Zotero；准确区分待启用和已安装，保留首次启用确认及手动安装回退。
+- 同步中英文安装指南与界面截图。
+
+Installers now detect Zotero and profiles, wait for a normal exit, and place verified plugin files with backups. Multiple profiles and manual locations are supported. First activation remains under Zotero’s control; the installer reports enabled status only after verification. Includes updated bilingual guidance.
+
 ## 1.4.5 · 2026-10-07
 
 - 统一 Mac 与 Windows 安装器的字体字重、文字及按钮配色、卡片边线和进度条样式。
