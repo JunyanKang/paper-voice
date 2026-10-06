@@ -373,7 +373,10 @@ var PaperVoice = {
         const select=find('voice');select.replaceChildren();
         for(const v of PaperVoiceCore.voices.filter(v=>v.language===this.settingsVoiceLanguage())){const option=root.ownerDocument.createElement('option');option.value=v.id;option.textContent=v.label;select.append(option);}
       }
-      const enginePath=this.engineRoot(),location=find('engineLocation'),home=Services.dirsvc.get('Home',Components.interfaces.nsIFile).path;location.textContent=(enginePath.startsWith(home+'/')||enginePath.startsWith(home+'\\'))?'~'+enginePath.slice(home.length):enginePath;location.removeAttribute('title');delete location.dataset.pvTooltip;action('resetEngineFolder').hidden=!this.get('enginePath','');
+      const engineError=find('engineFolderError'),engineButton=action('chooseEngineFolder');
+      engineError.textContent=this.engineFolderError?this.t('声音不可用，请重选'):'';engineError.hidden=!this.engineFolderError;
+      engineButton.disabled=!!this.engineFolderTesting;engineButton.setAttribute('aria-busy',String(!!this.engineFolderTesting));
+      action('resetEngineFolder').hidden=!this.get('enginePath','')||!!this.engineFolderError;action('resetEngineFolder').disabled=!!this.engineFolderTesting;
       find('voice').value=this.settingsVoice();find('auto').checked=this.get('auto',true);
       find('rate').value=this.get('rate',1);find('rateLabel').textContent=`${Number(this.get('rate',1)).toFixed(2)}×`;
       find('documentRow').hidden=mode!=='document';find('documentStart').value=this.get('documentStart','begin');
@@ -661,13 +664,60 @@ var PaperVoice = {
       let path=picker.file.path;
       if(await IOUtils.exists(PathUtils.join(path,'paper-voice-engine','worker.py')))path=PathUtils.join(path,'paper-voice-engine');
       await this.setEngineFolder(path);
-    }catch(error){this.setStatus(this.t(error.message||String(error)));}finally{this.choosingEngineFolder=false;}
+    }catch(error){this.engineFolderError=true;if(!this.dead)this.syncSettings();}finally{this.choosingEngineFolder=false;}
   },
   async setEngineFolder(path) {
-    if(path){const required=['worker.py','models/kokoro-v1.0.onnx','models/voices-v1.0.bin',Zotero.isWin?'python/python.exe':'python/bin/python3'];
-      for(const name of required)if(!(await IOUtils.exists(PathUtils.join(path,...name.split('/')))))throw new Error('文件夹内没有完整的离线声音');}
-    this.set('enginePath',path||'');this.engineLocationDirty=true;this.syncSettings();
-    this.setStatus('声音位置已保存，下次开始朗读生效');
+    if(this.engineFolderTesting)return false;
+    this.engineFolderError=false;this.engineFolderTesting=true;this.syncSettings();
+    try {
+      if(path)await this.testEngineFolder(path);
+      if(this.dead)return false;
+      this.set('enginePath',path||'');this.engineLocationDirty=true;Services.prefs.savePrefFile(null);
+      return true;
+    }catch(_){this.engineFolderError=true;return false;}
+    finally{this.engineFolderTesting=false;if(!this.dead)this.syncSettings();}
+  },
+  async testEngineFolder(path) {
+    // Isolated from the playback worker: a failed candidate cannot stop reading
+    // or replace the last working path. Validate synthesis, not just filenames.
+    const required=['worker.py','models/kokoro-v1.0.onnx','models/voices-v1.0.bin',Zotero.isWin?'python/python.exe':'python/bin/python3'];
+    for(const name of required)if(!(await IOUtils.exists(PathUtils.join(path,...name.split('/')))))throw new Error('Incomplete voices');
+    const { Subprocess }=ChromeUtils.importESModule('resource://gre/modules/Subprocess.sys.mjs');
+    let proc,timer,expired=false;
+    try {
+      const timeout=new Promise((_,reject)=>{timer=this.host.setTimeout(()=>{expired=true;proc?.kill();reject(new Error('Voice test timed out'));},120000);});
+      const test=(async()=>{
+        proc=await Subprocess.call({command:PathUtils.join(path,...required[3].split('/')),arguments:['-E','-s','-B','-X','utf8',PathUtils.join(path,'worker.py')],environment:this.workerEnvironment(),stderr:'pipe'});
+        if(expired||this.dead){proc.kill();throw new Error('Voice test cancelled');}
+        this.engineTestProcess=proc;
+        (async()=>{try{while(await proc.stderr.readString()) {}}catch(_){}})();
+        let buffer='',requested=false;
+        const voice=this.settingsVoice(),language=PaperVoiceCore.voices.find(v=>v.id===voice)?.language||'en';
+        const text=({zh:'声音已就绪。',ja:'準備ができました。',fr:'La voix est prête.'})[language]||'The voice is ready.';
+        while(true){
+          const part=await proc.stdout.readString();if(!part)throw new Error('Voice test exited');buffer+=part;
+          if(buffer.length>8000000)throw new Error('Invalid voice response');
+          let end;while((end=buffer.indexOf('\n'))>=0){
+            const line=buffer.slice(0,end);buffer=buffer.slice(end+1);if(!line)continue;
+            const result=JSON.parse(line);
+            if(result.ready&&!requested){requested=true;await proc.stdin.write(JSON.stringify({id:'folder-test',text,voice,rate:1})+'\n');}
+            else if(result.id==='folder-test'){
+              if(!result.ok||!(result.duration>0)||typeof result.audio!=='string')throw new Error('Voice synthesis failed');
+              const wav=this.host.atob(result.audio);if(wav.length<=44||wav.slice(0,4)!=='RIFF'||wav.slice(8,12)!=='WAVE')throw new Error('Invalid voice audio');
+              return;
+            }
+          }
+        }
+      })();
+      await Promise.race([test,timeout]);
+    }finally{
+      this.host.clearTimeout(timer);
+      if(this.engineTestProcess===proc)this.engineTestProcess=null;
+      if(proc){
+        const cleanup=this.host.setTimeout(()=>proc.kill(),2000);
+        try{await proc.stdin.close();await proc.wait();}catch(_){proc.kill();}finally{this.host.clearTimeout(cleanup);}
+      }
+    }
   },
   workerEnvironment() {
     const home=Services.dirsvc.get('Home', Components.interfaces.nsIFile).path;
@@ -1135,7 +1185,7 @@ var PaperVoice = {
     this.saveReadingSession();
     // Flush the preference checkpoint before Zotero terminates or swaps versions.
     Services.prefs.savePrefFile(null);
-    this.dead=true;this.stopUpdateSchedule();for(const observer of this.toolbarObservers.values())observer.disconnect();this.toolbarObservers.clear();this.stop(false,true);this.currentReader=null;
+    this.dead=true;this.engineTestProcess?.kill();this.stopUpdateSchedule();for(const observer of this.toolbarObservers.values())observer.disconnect();this.toolbarObservers.clear();this.stop(false,true);this.currentReader=null;
     for(const xhr of this.llmRequests||[])xhr.abort();
     this.host.clearInterval(this.scanTimer);
     Services.obs.removeObserver(this.quitObserver,'quit-application-granted');

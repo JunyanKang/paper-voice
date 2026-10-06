@@ -65,7 +65,7 @@ The plugin detects the location recorded by the installer. Without a record, it 
 - Mac: `~/Library/Application Support/Zotero/paper-voice-engine`
 - Windows: `%APPDATA%\Zotero\Zotero\paper-voice-engine`
 
-To choose a location yourself, open **Settings → Voice → Voice folder** and click **Change…**. Select `paper-voice-engine` or its parent. Incomplete folders are rejected. A manual choice takes priority; **Use auto** appears after a manual choice and restores automatic discovery. Changes take effect when you next start reading.
+To choose a location, click the folder icon beside **Settings → Voice → Voice folder**. Select `paper-voice-engine` or its parent. Paper Voice tests the current voice without playing audio, then saves the folder for your next reading session. If the test fails, a short message appears beside the icon and your previous location is kept. **Use auto** restores the installer’s saved location.
 
 <p align="center"><img src="assets/settings-voice-en.png" width="360" alt="Voice settings with automatic discovery, folder selection and reset"></p>
 

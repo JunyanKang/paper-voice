@@ -65,9 +65,9 @@
 - Mac：`~/Library/Application Support/Zotero/paper-voice-engine`
 - Windows：`%APPDATA%\Zotero\Zotero\paper-voice-engine`
 
-需要人工指定时，打开 **设置 → 声音 → 声音位置**，点击 **更改…**，选择 `paper-voice-engine` 或它的上一级文件夹。只有包含完整声音的目录才会被接受。手动指定优先于自动识别；手动指定后显示 **恢复自动**，点击即可重新跟随安装器记录。更改在下次开始朗读时生效。
+需要人工指定时，点击 **设置 → 声音 → 声音位置** 右侧的文件夹图标，选择 `paper-voice-engine` 或它的上一级文件夹。插件会自动测试当前音色，测试期间不会播放声音；通过后保存，在下次开始朗读时生效。失败时图标前显示简短提示，原位置保持不变。手动指定后可点击 **恢复自动**，重新跟随安装器记录。
 
-<p align="center"><img src="assets/settings-voice-zh.png" width="360" alt="声音设置中的实际路径与更改按钮"></p>
+<p align="center"><img src="assets/settings-voice-zh.png" width="360" alt="声音设置中的文件夹选择按钮"></p>
 
 如果声音位于移动硬盘，请先连接硬盘再开始朗读。只移动文件夹不会自动更新位置，需重新指定。更换路径不会删除旧声音。
 

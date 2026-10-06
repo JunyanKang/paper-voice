@@ -975,6 +975,10 @@ var PaperVoiceI18n = (() => {
  const themeNames={en:['Sakura','Inkstone','Silver','Aurora','Velvet'],ja:['桜霞','墨竹','銀翼','オーロラ','酒紅'],fr:['Sakura','Encre','Argent','Aurore','Velours'],de:['Sakura','Tusche','Silber','Aurora','Samt']};
  for(const [lang,names] of Object.entries(themeNames))['樱雾','墨竹','银翼','极光','酒绒'].forEach((name,i)=>catalogs[lang][name]=names[i]);
  for(const [lang,label] of Object.entries({en:'Original / translated audio',ja:'原文／訳文の音声',fr:'Audio original / traduit',de:'Original / Übersetzung lesen'}))catalogs[lang]['原文／译文朗读']=label;
+ Object.assign(catalogs.en,{"声音不可用，请重选":"Choose another folder"});
+ Object.assign(catalogs.ja,{"声音不可用，请重选":"音声を再選択してください"});
+ Object.assign(catalogs.fr,{"声音不可用，请重选":"Choisir un autre dossier"});
+ Object.assign(catalogs.de,{"声音不可用，请重选":"Bitte neu wählen"});
  Object.assign(catalogs.en,{"更改…": "Change…", "恢复自动": "Use auto"});
  Object.assign(catalogs.ja,{"更改…": "変更…", "恢复自动": "自動に戻す"});
  Object.assign(catalogs.fr,{"更改…": "Modifier…", "恢复自动": "Auto"});

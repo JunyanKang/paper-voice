@@ -1,5 +1,13 @@
 # 更新记录
 
+## 1.4.4 · 2026-10-06
+
+- 声音位置改为紧凑的文件夹图标，不再显示路径文字。
+- 选择声音目录后自动测试当前音色；通过后保存，失败时在图标旁简短提示并保留原位置。
+- 测试过程独立于朗读，不播放测试声音；同步中英文指南及截图。
+
+Voice folder selection now uses a compact icon. New folders are checked with an independent synthesis test before saving. Failed tests show a short inline message and keep the previous location. Includes updated bilingual guides and screenshots.
+
 ## 1.4.3 · 2026-10-06
 
 - 声音位置显示实际路径，以「更改…」替代含义不清的图标组合；仅在手动指定位置后显示「恢复自动」。

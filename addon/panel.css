@@ -241,12 +241,16 @@
 .pv-update-row select,.pv-update-row .pv-select{width:64px;min-width:64px;max-width:64px;flex:none}.pv-update-row .pv-select-trigger{font-size:10px;padding:2px 0}.pv-update-row{gap:6px}
 @media(prefers-reduced-motion:reduce){.pv-update-badge{animation:none!important}}
 
-.pv-engine-location{display:flex;align-items:center;gap:7px;margin:3px 0;font:400 11px/1.5 system-ui;min-height:25px}.pv-engine-location [data-field=engineLocation]{margin-left:auto;color:var(--pv-muted)}.pv-engine-location button{display:flex;align-items:center;justify-content:center;width:24px;height:24px;padding:4px;border-radius:7px}.pv-engine-location .pv-icon{width:15px;height:15px}.pv-engine-location button:hover{background:var(--pv-soft)}
-
-/* A real path and a named action replace the ambiguous detection/icon cluster. */
-.pv-engine-location{display:block;margin:3px 0;min-width:0}
-.pv-engine-heading{display:flex;align-items:center;gap:10px;min-height:24px}
-.pv-engine-heading>span{margin-right:auto}
-.pv-engine-location .pv-engine-heading button{width:auto;height:24px;padding:0 4px;font:400 11px/1.5 system-ui,sans-serif;color:var(--pv-accent);white-space:nowrap}
-.pv-engine-location [data-field=engineLocation]{margin:0;max-width:100%;overflow:auto;scrollbar-width:none;white-space:nowrap;font:400 10px/16px system-ui,sans-serif;color:var(--pv-muted);direction:ltr;text-align:left;user-select:text}
-.pv-engine-path::-webkit-scrollbar{display:none}
+/* A quiet single-row folder action; only failed validation adds copy. */
+.pv-engine-location{display:flex;align-items:center;gap:8px;margin:3px 0;min-height:25px;min-width:0;font:400 11px/1.5 system-ui,sans-serif}
+.pv-engine-location>span:first-child{margin-right:auto;flex-shrink:0}
+.pv-engine-location button{display:flex;align-items:center;justify-content:center;flex-shrink:0;height:26px;padding:0 4px;border-radius:7px;color:var(--pv-accent);font:400 10px/1.5 system-ui,sans-serif;white-space:nowrap}
+.pv-engine-location button[data-action=chooseEngineFolder]{position:relative;width:28px;padding:5px}
+.pv-engine-location .pv-icon{width:17px;height:17px}
+.pv-engine-location button:hover{background:var(--pv-soft)}
+.pv-engine-error{min-width:0;font:400 10px/1.5 system-ui,sans-serif;color:var(--pv-accent);white-space:nowrap}
+.pv-engine-spinner{display:none;width:14px;height:14px;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:pv-engine-spin .9s linear infinite}
+.pv-engine-location button[aria-busy=true] .pv-icon{display:none}
+.pv-engine-location button[aria-busy=true] .pv-engine-spinner{display:block}
+@keyframes pv-engine-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.pv-engine-spinner{animation:none}}
