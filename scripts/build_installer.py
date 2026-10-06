@@ -38,10 +38,11 @@ if sys.platform=='darwin':
     view=store['.']['icvp'];view['backgroundType']=2
     view['backgroundImageAlias']=Alias.for_file(str(mount/app.name/'Contents/Resources/DMGBackground.tiff')).to_bytes()
     store['.']['icvp']=view
+   subprocess.run(['codesign','--verify','--deep','--strict',str(mount/app.name)],check=True)
  target=ROOT/'dist'/f'Paper-Voice-{version}-macOS.dmg'
  dmgbuild.build_dmg(str(target),'Paper Voice',settings={
   'files':[str(app)],'background':'#edf4f8','format':'UDZO',
-  'window_rect':((140,40),(760,700)),'icon_locations':{app.name:(380,150)},'hide_extensions':[app.name],
+  'window_rect':((140,40),(760,700)),'icon_locations':{app.name:(380,150)},
   'icon_size':88,'text_size':13,'show_toolbar':False,'show_status_bar':False,
   'show_pathbar':False,'show_sidebar':False,'show_tab_view':False,'default_view':'icon-view',
   'include_icon_view_settings':True,'include_list_view_settings':False},callback=configure_background)
