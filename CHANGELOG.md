@@ -1,5 +1,13 @@
 # 更新记录
 
+## 1.4.5 · 2026-10-07
+
+- 统一 Mac 与 Windows 安装器的字体字重、文字及按钮配色、卡片边线和进度条样式。
+- 内置字体扩充为完整字符集，中文路径不再依赖系统补字；修复 Windows 英文说明中的 `&` 被吞掉。
+- 增加中英文初始、下载、完成、错误及中文路径界面的原生截图与字体覆盖验证。
+
+Aligned installer typography, colours, card borders and progress indicators across Mac and Windows. Bundled fonts now retain their complete character coverage for Chinese folder names. Fixed Windows mnemonic parsing that removed ampersands. Added native visual-state and glyph checks.
+
 ## 1.4.4 · 2026-10-06
 
 - 声音位置改为紧凑的文件夹图标，不再显示路径文字。

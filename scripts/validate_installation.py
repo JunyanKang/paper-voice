@@ -35,7 +35,6 @@ with tempfile.TemporaryDirectory(prefix='voice-安装 test-') as scratch:
  corrupt=temp/'corrupt-assets';corrupt.mkdir();shutil.copyfile(assets/config['plugin']['name'],corrupt/config['plugin']['name']);part=runtime['packages'][1]['parts'][0];(corrupt/part['name']).write_bytes(b'corrupt');run(ok=False,package=corrupt);assert worker.read_bytes()==b'broken' and pointer.read_bytes()==oldPointer;checks.append('corrupt download rejected without activation')
  run();assert hashlib.sha256(worker.read_bytes()).hexdigest()==next(f['sha256'] for f in runtime['files'] if f['name']=='worker.py');checks.append('damaged voices repaired')
  assert not list(dest.parent.glob('.paper-voice-setup-*')) and not list(dest.parent.glob('*.install-*'));checks.append('staging directories cleaned')
- for lang in ['zh','en']:
-  subprocess.run([str(exe),'--screenshot',str(base/('installer-'+sys.platform+'-'+lang+'.png')),'--lang',lang],check=True,timeout=30)
- subprocess.run([str(exe),'--screenshot',str(base/('installer-'+sys.platform+'-progress.png')),'--lang','zh','--progress-preview'],check=True,timeout=30)
+ subprocess.run([sys.executable,str(r/'scripts/capture_installer_ui.py')],check=True)
+ checks.append('native UI glyph coverage and ten visual states captured')
  report={'version':config['version'],'platform':sys.platform,'checks':checks,'passed':True};(base/'test-report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))

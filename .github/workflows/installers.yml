@@ -38,6 +38,8 @@ jobs:
       - name: Install DMG layout builder
         if: runner.os == 'macOS'
         run: python -m pip install dmgbuild==1.6.7
+      - run: python -m pip install fonttools==4.60.1
+      - run: python scripts/validate_installer_fonts.py
       - run: python scripts/build_installer.py
       - run: python scripts/validate_installation.py
       - name: Verify public HTTPS installation
@@ -54,3 +56,4 @@ jobs:
             .build/online-installers/installer.json
             .build/online-installers/*.png
             .build/online-installers/test-report.json
+            .build/online-installers/installer-*.json

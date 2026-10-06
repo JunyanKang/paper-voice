@@ -1,0 +1,12 @@
+{
+  "colors": {
+    "paper": "F4F8FA", "ink": "193D4D", "muted": "596466",
+    "accent": "336E9E", "success": "2E785E", "track": "E0E8ED",
+    "line": "DCE4E9", "button": "FFFFFF", "hover": "EFF4F7",
+    "primaryHover": "2B5F89", "disabled": "E6ECEF", "disabledInk": "6F7D85"
+  },
+  "font": {"regular": "VoiceSans-Regular", "semibold": "VoiceSans-SemiBold"},
+  "buttonRadius": 9,
+  "cardRadius": 12,
+  "glyphProbe": "中文简体繁體科研資料聲音路径龘罕见字 ✓ → … &"
+}
