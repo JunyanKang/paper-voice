@@ -47,5 +47,7 @@ jobs:
           path: |
             dist/Paper-Voice-*.dmg
             dist/Paper-Voice-*.exe
+            dist/Paper Voice/paper-voice-*.xpi
+            .build/online-installers/installer.json
             .build/online-installers/*.png
             .build/online-installers/test-report.json
