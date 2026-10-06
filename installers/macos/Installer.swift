@@ -121,6 +121,7 @@ final class VoiceButton:NSButton {
  override func draw(_ dirtyRect:NSRect){
   let fill = !isEnabled ? color("disabled") : color(primary ? (hover ? "primaryHover":"accent"):(hover ? "hover":"button"))
   fill.setFill();NSBezierPath(roundedRect:bounds,xRadius:9,yRadius:9).fill()
+  if window?.firstResponder === self{accent.withAlphaComponent(0.6).setStroke();let ring=NSBezierPath(roundedRect:bounds.insetBy(dx:2,dy:2),xRadius:7,yRadius:7);ring.lineWidth=1;ring.stroke()}
   let style=NSMutableParagraphStyle();style.alignment = .center;style.lineBreakMode = .byTruncatingTail
   let attrs:[NSAttributedString.Key:Any]=[.font:font ?? NSFont.systemFont(ofSize:11),.foregroundColor:!isEnabled ? color("disabledInk"):(primary ? NSColor.white:ink),.paragraphStyle:style]
   let height=(title as NSString).size(withAttributes:attrs).height
@@ -148,7 +149,7 @@ final class UI:NSObject,NSApplicationDelegate,NSWindowDelegate{
   _=label("PAPER VOICE  /  FOR ZOTERO",10,true,30,20,440,18);heading=label("",24,true,30,46,490,42);intro=label("",11,false,32,94,540,24);intro.textColor=muted
   let image=NSImageView(frame:NSRect(x:541,y:407,width:72,height:80));image.image=NSImage(contentsOf:resources.appendingPathComponent("mascot.png"));image.imageScaling = .scaleProportionallyUpOrDown;window.contentView!.addSubview(image)
   for i in 0..<3{let y=CGFloat(135+i*70),card=NSView(frame:NSRect(x:30,y:510-y-62,width:580,height:62));card.wantsLayer=true;card.layer?.backgroundColor=NSColor.white.cgColor;card.layer?.cornerRadius=12;card.layer?.borderWidth=1;card.layer?.borderColor=color("line").cgColor;window.contentView!.addSubview(card);let number=label(String(format:"%02d",i+1),11,true,46,y+12,30,20);number.textColor=accent;titles.append(label("",13,true,82,y+8,360,23));let d=label("",11,false,82,y+33,455,20);d.textColor=muted;details.append(d);let badge=label("",10,false,509,y+10,85,20);badge.alignment = .right;badge.textColor=muted;badges.append(badge);let bar=Track(frame:NSRect(x:82,y:510-y-59,width:512,height:3));window.contentView!.addSubview(bar);bars.append(bar)}
-  targetLabel=label("",11,true,34,357,85,23);path=label("",11,false,120,357,367,23);path.maximumNumberOfLines=1;path.lineBreakMode = .byTruncatingMiddle;path.textColor=muted;browse=button(493,351,117,#selector(choose));status=label("",11,false,34,394,572,43);status.textColor=muted
+  targetLabel=label("",11,true,34,357,85,23);path=label("",12,false,120,356,367,25);path.maximumNumberOfLines=1;path.lineBreakMode = .byTruncatingMiddle;path.textColor=muted;browse=button(493,351,117,#selector(choose));status=label("",11,false,34,394,572,43);status.textColor=muted
   help=button(30,458,52,#selector(openHelp));languageMenu=button(91,458,110,#selector(changeLanguage));
   only=button(301,458,116,#selector(pluginOnly));cancel=button(301,458,116,#selector(cancelWork));cancel.isHidden=true;action=button(425,458,185,#selector(start));(action as! VoiceButton).primary=true;action.contentTintColor = .white;action.keyEquivalent="\r";refresh();window.center();window.makeKeyAndOrderFront(nil);app.activate(ignoringOtherApps:true)
   if flag("--progress-preview") || arg("--preview-state")=="progress"{busy(true);update("pluginDone",1);update("runtimeDone",1);update("voices",0.42)}

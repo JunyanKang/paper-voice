@@ -7,7 +7,7 @@ for language in ['zh','en']:
  for state in ['idle','progress','complete','error','path']:
   stem=base/f'installer-{sys.platform}-{language}-{state}'
   args=[str(exe),'--lang',language,'--screenshot',str(stem.with_suffix('.png')),'--visual-report',str(stem.with_suffix('.json')),'--preview-state',state]
-  if state=='path':args+=['--preview-path',r'C:\科研資料\龘字资料库\声音\paper-voice-engine' if win else '/Volumes/科研資料/龘字资料库/声音/paper-voice-engine']
+  if state=='path':args+=['--preview-path',r'C:\科研资料\论文听读\声音\paper-voice-engine' if win else '/Volumes/科研资料/论文听读/声音/paper-voice-engine']
   subprocess.run(args,check=True,timeout=40)
   report=json.loads(stem.with_suffix('.json').read_text(encoding='utf-8'))
   assert all(f['covered'] for f in report['fonts']),report['fonts']
