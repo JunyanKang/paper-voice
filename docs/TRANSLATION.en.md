@@ -51,7 +51,7 @@ To translate with your own model, choose **Settings → Translate → Service �
 <p align="center"><img src="assets/settings-llm-en.png" width="360" alt="LLM settings with provider, model, API URL, masked key input and Save & test"></p>
 <p align="center"><sub>Use your own API key, then save and test the connection.</sub></p>
 
-### Connect in three steps
+### Set up your provider
 
 1. **Choose a provider.** Presets include MiniMax, DeepSeek, Qwen, Doubao, GLM, Kimi, Hunyuan, Qianfan, OpenAI, Claude and Gemini, plus a custom OpenAI-compatible endpoint.
 2. **Enter your API key.** Get the key from the provider’s console. Presets fill the API URL and a suggested model; edit either for your region or account. Some services, including Doubao, require the model or endpoint ID shown in their console.

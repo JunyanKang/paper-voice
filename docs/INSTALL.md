@@ -49,6 +49,8 @@ Windows 双击 EXE；Mac 打开 DMG 后，再打开其中的安装器。底部�
 <p align="center"><img src="assets/installer-windows.png" width="560" alt="Windows 安装器 · 选择声音位置，再下载所需组件。"></p>
 <p align="center"><sub>Windows 安装器 · 选择声音位置，再下载所需组件。</sub></p>
 
+安装器会根据电脑平台下载所需组件，并分别显示进度。下面是各项下载的用途。
+
 <div align="center">
 
 <table align="center">
@@ -78,7 +80,7 @@ Windows 双击 EXE；Mac 打开 DMG 后，再打开其中的安装器。底部�
 
 进度会依次显示下载、校验、解压和声音测试。已有完整声音会复用；损坏或缺失部分会重新下载。首次安装建议预留 **3 GB** 空间，以容纳下载和解压文件。
 
-下载阶段可取消，已校验的文件保留供重试；未完成的声音不会覆盖原有可用声音。等待最终安装阶段完成后，再进入插件步骤。
+下载阶段可取消，已校验的文件保留供重试；未完成的声音不会覆盖原有可用声音。声音安装完成后，按提示安装 Zotero 插件。
 
 ## 3. 在 Zotero 启用插件
 
@@ -141,7 +143,7 @@ Windows 双击 EXE；Mac 打开 DMG 后，再打开其中的安装器。底部�
 
 配置通常位于 Windows 的 `%APPDATA%\Zotero\Zotero` 或 Mac 的 `~/Library/Application Support/Zotero` 下；安装器根据 `profiles.ini` 查找真实位置，也支持其中登记在其他磁盘的配置。首次使用还没有配置时，先打开一次 Zotero。
 
-**手动安装兜底：** 点击「手动安装」，在 **下载 → Paper Voice** 找到 XPI，再在 Zotero **工具 → 插件 → 齿轮 → 从文件安装插件** 中选择它。
+**手动安装：** 点击「手动安装」，在 **下载 → Paper Voice** 找到 XPI，再在 Zotero **工具 → 插件 → 齿轮 → 从文件安装插件** 中选择它。
 
 ## 声音位置
 
@@ -150,7 +152,7 @@ Windows 双击 EXE；Mac 打开 DMG 后，再打开其中的安装器。底部�
 - **Mac：** `~/Library/Application Support/Zotero/paper-voice-engine`
 - **Windows：** `%APPDATA%\Zotero\Zotero\paper-voice-engine`
 
-迁移声音后，在 **设置 → 声音** 点击文件夹图标，选择 `paper-voice-engine` 或其父目录。插件会静默测试当前声音，通过后保存；失败时给出简短提示，并保留原位置。手动指定后可「恢复自动」。
+迁移声音后，在 **设置 → 声音** 点击文件夹图标，选择 `paper-voice-engine` 或其父目录。插件会自动测试当前声音，通过后保存；失败时给出简短提示，并保留原位置。手动指定后可「恢复自动」。
 
 <p align="center"><img src="assets/settings-voice-zh.png" width="360" alt="声音设置中的文件夹图标用于选择实际声音位置。"></p>
 <p align="center"><sub>声音设置中的文件夹图标用于选择实际声音位置。</sub></p>

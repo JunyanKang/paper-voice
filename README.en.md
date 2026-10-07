@@ -8,39 +8,36 @@
 <p align="center"><b>Free & open source · Offline voices · Follow-along highlighting</b></p>
 <p align="center"><a href="https://github.com/JunyanKang/paper-voice/releases/latest">Download</a> · <a href="docs/INSTALL.en.md">Installation</a> · <a href="docs/GUIDE.en.md">User guide</a></p>
 
-Paper Voice adds natural speech and nearby translations to Zotero's PDF reader. Listen closely to a difficult sentence or continue through a paper, with the words you are hearing kept in view.
+Paper Voice is a free Zotero plugin that brings listening, reading and translation into one place. Take your time with a difficult sentence, or settle into a whole paper at your own pace.
 
 ## Made for reading papers
 
-- **A clearer listening flow.** Skips recognizable citations, headers, footers and captions, and improves readings of units, ratios and scripts. Your PDF and annotations stay unchanged.
-- **A voice that suits you.** Automatic language detection and 14 offline voices, including US and UK English with male and female options.
-- **Your reading space.** Customize shortcuts, themes and caption fonts. Open the panel when needed; it folds away when you return to the PDF.
-
-<p align="center"><img src="docs/assets/settings-appearance-en.png" width="340" alt="Appearance settings in one place; only the controls you need while reading."></p>
-<p align="center"><sub>Appearance settings in one place; only the controls you need while reading.</sub></p>
+- **Listen and keep your place.** The current sentence stays highlighted as the page follows along, so you can always see what you are hearing.
+- **Read across languages.** Translations appear beside the original, keeping unfamiliar expressions close to their context.
+- **Find your voice.** Listen offline in English, Chinese, Japanese and French. Choose US or UK English, male or female voices, and a pace that suits you.
 
 ## One sentence, or the whole paper
 
-Select a word to hear its full sentence or paragraph. Read just a selection, or continue from a chosen sentence. Repeat sentences, selections and paragraphs, and return to your latest position after restarting or updating.
+Replay a difficult sentence, spend time with a key paragraph, or keep listening through the paper. Four modes — selection, sentence, paragraph and full text — let you choose how much to hear.
 
-<p align="center"><img src="docs/assets/reading-panel-en.png" width="340" alt="Four modes let you choose how much to hear."></p>
-<p align="center"><sub>Four modes let you choose how much to hear.</sub></p>
+<p align="center"><img src="docs/assets/reading-panel-en.png" width="340" alt="Paper Voice reading panel with selection, sentence, paragraph and full-text modes."></p>
+<p align="center"><sub>Choose what to hear and read at your own pace.</sub></p>
 
-The page follows your place across columns and pages. Press **←** to repeat a sentence, **↓** to move forward, or **Space** to pause and resume. The floating controls also offer sentence and paragraph navigation.
+Keep your eyes on the words you are hearing. Highlighting and automatic scrolling help you follow longer passages. Pause, listen again, or pick up where you left off next time.
 
-<p align="center"><img src="docs/assets/reading-focus-en.png" width="720" alt="Actual interface · The current sentence stays highlighted with its translation nearby. Sample text for demonstration."></p>
-<p align="center"><sub>Actual interface · The current sentence stays highlighted with its translation nearby. Sample text for demonstration.</sub></p>
+<p align="center"><img src="docs/assets/reading-focus-en.png" width="720" alt="The current PDF sentence is highlighted, with its translation directly below."></p>
+<p align="center"><sub>Audio, text and translation share the same place. Shown with a sample passage.</sub></p>
 
 ## Translation, close to the text
 
-**Select to translate**, then choose a selection, sentence or paragraph as the scope. During playback, captions follow the current sentence. Turn on **Read translation** to hear only the translation while the original remains highlighted.
+Select text to see a translation, from a single word to a full paragraph, then start listening from that spot. You can also listen to the translation while following the original.
 
-<p align="center"><img src="docs/assets/selection-translation-en.png" width="400" alt="Choose a scope, read its translation, then start listening here."></p>
-<p align="center"><sub>Choose a scope, read its translation, then start listening here.</sub></p>
+<p align="center"><img src="docs/assets/selection-translation-en.png" width="400" alt="Selection translation card with scope options, translated text and a play button."></p>
+<p align="center"><sub>Select, translate and listen without leaving the passage.</sub></p>
 
-Choose Tencent, Microsoft or Google, or connect your own model API. Several translation targets are available; English, Chinese, Japanese and French have offline voices. [Translation and API setup →](docs/TRANSLATION.en.md)
+Translate into a range of languages using a built-in service, or connect your own AI provider. [Explore translation →](docs/TRANSLATION.en.md)
 
-## Download and install
+## Quick start
 
 For **Zotero 10**. Install and open Zotero first, then get the installer for your computer from the [official release page](https://github.com/JunyanKang/paper-voice/releases/latest).
 
@@ -67,17 +64,20 @@ For **Zotero 10**. Install and open Zotero first, then get the installer for you
 
 </div>
 
-1. **Prepare voices:** open the installer and select Download & install. The plugin and voices are downloaded as needed.
-2. **Enable the plugin:** quit Zotero when prompted. Setup installs into your selected profile; on first launch, enable Paper Voice under Tools → Plugins.
-3. **Start listening:** open a PDF with selectable text, select a passage, and use the book character to choose a reading mode.
+1. **Download the installer.** Choose Windows or Mac, open it and select **Download & install**.
+2. **Enable Paper Voice.** Follow the setup prompts, then enable the plugin under **Tools → Plugins** in Zotero.
+3. **Start listening.** Open a paper and select a passage to begin.
 
-[Installation steps, custom locations and upgrades →](docs/INSTALL.en.md)
+<p align="center"><img src="docs/assets/installer-windows-en.png" width="560" alt="Paper Voice English installer with Download & install and installation progress."></p>
+<p align="center"><sub>The installer prepares the plugin and offline voices. Windows version shown.</sub></p>
+
+Your PDF needs selectable text; scanned papers need text recognition (OCR) first. [Illustrated installation guide →](docs/INSTALL.en.md)
 
 ## Free to listen. Local by design.
 
-The plugin and offline narration are free, with no subscription or API key required. Download voices once, then listen locally. Scanned PDFs need OCR first.
+Paper Voice is open source, and offline listening is free with no subscription. Download voices once, then listen on your own computer.
 
-Translation needs internet access; selection translation is enabled by default. Only text needed for translation is sent, not your PDF or library. Optional model APIs use your own key and may incur provider charges. [Data and privacy →](PRIVACY.en.md)
+Translation requires internet access. Only the text to translate is sent, not your PDF or library. Optional AI services use your own API key and may incur provider charges. [Data and privacy →](PRIVACY.en.md)
 
 ## Documentation and support
 

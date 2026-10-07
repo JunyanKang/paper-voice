@@ -134,10 +134,10 @@ Open **Settings → Translate**, choose a service and target language, then sele
 
 </div>
 
+Selection scope completes partially selected English words; Sentence and Paragraph expand to the corresponding unit. The selection menu closes when playback begins.
+
 <p align="center"><img src="assets/selection-translation-en.png" width="400" alt="Selection, Sentence and Paragraph change the translation scope."></p>
 <p align="center"><sub>Selection, Sentence and Paragraph change the translation scope.</sub></p>
-
-Selection scope completes partially selected English words; Sentence and Paragraph expand to the corresponding unit. The selection menu closes when playback begins.
 
 On the floating bar, **click the caption button to cycle target languages; double-click to hide captions**. Hover over it and click the headset to switch original/translated audio: the theme accent means translated audio, gray means the original.
 
@@ -216,10 +216,10 @@ Use these in the PDF area **while playing or paused**. Search boxes, notes and s
 
 </div>
 
+Change keys under **Settings → Keys**. Your new assignment takes priority: the displaced action receives the released key if possible, or becomes Unassigned. The result appears below. Use × to clear one binding or Reset defaults to restore all. Common system conflicts are flagged, but not every third-party shortcut can be detected.
+
 <p align="center"><img src="assets/settings-shortcuts-en.png" width="360" alt="Click a shortcut, then press your preferred combination."></p>
 <p align="center"><sub>Click a shortcut, then press your preferred combination.</sub></p>
-
-Change keys under **Settings → Keys**. Your new assignment takes priority: the displaced action receives the released key if possible, or becomes Unassigned. The result appears below. Use × to clear one binding or Reset defaults to restore all. Common system conflicts are flagged, but not every third-party shortcut can be detected.
 
 ## Updates and common questions
 
@@ -233,7 +233,7 @@ Check that the PDF has a text layer, preview the voice, and check system volume 
 
 ### No translation appears
 
-Selection translation controls the selection menu; Captions controls the translation during playback. Check the relevant option, network and target language, then retry or switch services. The current Tencent channel does not offer Traditional Chinese; use Microsoft instead.
+Selection translation controls the selection menu; Captions controls the translation during playback. Check the relevant option, network and target language, then retry or switch services. Tencent currently does not support Traditional Chinese; use Microsoft instead.
 
 ### The reading language is wrong
 

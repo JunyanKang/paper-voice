@@ -49,6 +49,8 @@ Keep the default voice folder or choose a location with enough space, then selec
 <p align="center"><img src="assets/installer-windows-en.png" width="560" alt="Windows installer · Choose a voice location, then download the components."></p>
 <p align="center"><sub>Windows installer · Choose a voice location, then download the components.</sub></p>
 
+The installer downloads the components for your computer and shows progress for each. The table below explains what each download provides.
+
 <div align="center">
 
 <table align="center">
@@ -141,7 +143,7 @@ These locations serve different purposes:
 
 Profile information normally lives under `%APPDATA%\Zotero\Zotero` on Windows or `~/Library/Application Support/Zotero` on Mac. Setup reads `profiles.ini`, including profiles registered on other drives. If no profile exists, open Zotero once first.
 
-**Manual fallback:** select Manual install to reveal the XPI in **Downloads → Paper Voice**, then use Zotero **Tools → Plugins → gear → Install Plugin From File**.
+**Manual installation:** select Manual install to reveal the XPI in **Downloads → Paper Voice**, then use Zotero **Tools → Plugins → gear → Install Plugin From File**.
 
 ## Voice folder
 
@@ -150,7 +152,7 @@ The plugin first uses the location recorded by the installer. Without a record, 
 - **Mac:** `~/Library/Application Support/Zotero/paper-voice-engine`
 - **Windows:** `%APPDATA%\Zotero\Zotero\paper-voice-engine`
 
-After moving voices, click the folder icon under **Settings → Voice** and choose `paper-voice-engine` or its parent. The plugin silently tests the current voice before saving. If the test fails, it shows a short message and keeps the previous path. **Use auto** restores automatic discovery.
+After moving voices, click the folder icon under **Settings → Voice** and choose `paper-voice-engine` or its parent. The plugin automatically tests the current voice before saving. If the test fails, it shows a short message and keeps the previous path. **Use auto** restores automatic discovery.
 
 <p align="center"><img src="assets/settings-voice-en.png" width="360" alt="Use the folder icon to locate your installed voices."></p>
 <p align="center"><sub>Use the folder icon to locate your installed voices.</sub></p>
