@@ -77,7 +77,7 @@ Under **Document → Start**, choose the first page, current page, last position
 
 **Return to your place:** Last position includes the latest progress from every reading mode. Reopen the same PDF after a restart or update to resume an unfinished session, or use this starting point.
 
-The page follows playback across columns and pages. Clicking elsewhere does not stop continuous reading. Paper Voice filters recognizable citations, figure captions and publication details, and improves unit and script pronunciation. Complex layouts may still need manual selection; see [PDF support](COMPATIBILITY.en.md#voices-and-pdfs).
+The page follows playback across columns and pages. Clicking elsewhere does not stop continuous reading. Paper Voice filters recognizable citations, figure captions and publication details, and improves unit and script pronunciation. Complex layouts may still need manual selection; see [PDF support](COMPATIBILITY.en.md#pdf-and-positioning).
 
 ## Pause, navigate and replay
 
