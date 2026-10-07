@@ -1,5 +1,11 @@
 # 更新记录
 
+## 1.4.7 · 2026-10-07
+
+- PDF 工具栏图标改为柔和的圆角悬停与按下反馈，移除悬浮文字提示；切换界面语言后保持一致。
+
+The PDF toolbar icon now uses a subtle rounded hover and press background without a text tooltip, including after changing the interface language.
+
 ## 1.4.6 · 2026-10-07
 
 - Mac 与 Windows 安装器自动识别 Zotero 10 和用户配置，支持多个配置选择与手动指定。

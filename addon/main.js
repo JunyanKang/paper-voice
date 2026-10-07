@@ -11,7 +11,7 @@ var PaperVoice = {
   language() { return PaperVoiceI18n.resolveLanguage(this.get('interfaceLanguage','auto'),Zotero.locale||Services.locale?.appLocaleAsBCP47||'en'); },
   t(text) { return typeof PaperVoiceI18n==='undefined'?text:PaperVoiceI18n.translate(text,this.language()); },
   localize(root) { if(typeof PaperVoiceI18n!=='undefined')PaperVoiceI18n.apply(root,this.language());if(typeof PaperVoiceUI!=='undefined')PaperVoiceUI.syncSelects(root); },
-  setLanguage(value) { this.set('interfaceLanguage',value);this.syncSettings();for(const [reader] of this.panels){for(const el of reader._iframeWindow.document.querySelectorAll('[data-paper-voice="toolbar"]')){el.title=this.t('Paper Voice · 免费离线自然朗读');el.setAttribute('aria-label',this.t('Paper Voice 论文听读'));}for(const el of reader._iframeWindow.document.querySelectorAll('[data-paper-voice="selection"]'))el.textContent=this.t(this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection'?'▶ 从此句开始连读':'▶ 自然朗读');}for(const item of this.windows.values())item.setAttribute('label',this.t('Paper Voice · 论文听读'));this.updateSelectionAction(); },
+  setLanguage(value) { this.set('interfaceLanguage',value);this.syncSettings();for(const [reader] of this.panels){for(const el of reader._iframeWindow.document.querySelectorAll('[data-paper-voice="toolbar"]')){el.removeAttribute('title');el.setAttribute('aria-label',this.t('Paper Voice 论文听读'));}for(const el of reader._iframeWindow.document.querySelectorAll('[data-paper-voice="selection"]'))el.textContent=this.t(this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection'?'▶ 从此句开始连读':'▶ 自然朗读');}for(const item of this.windows.values())item.setAttribute('label',this.t('Paper Voice · 论文听读'));this.updateSelectionAction(); },
   get host() { return Zotero.getMainWindow(); },
   async start() {
     this.dead = false;
@@ -118,10 +118,18 @@ var PaperVoice = {
     const existing=this.toolbarNodes.get(doc);if(existing)return existing;
     // Old render callbacks can leave a node with an obsolete controller after an upgrade.
     for(const stale of doc.querySelectorAll('[data-paper-voice=toolbar]'))stale.remove();
-    const button = doc.createElement('button'); button.dataset.paperVoice = 'toolbar';
-    const icon=doc.createElement('img');icon.src=this.assetURI+'mascot.png';icon.alt='';icon.style.cssText='width:24px;height:24px;object-fit:contain;pointer-events:none;';button.append(icon);button.title='Paper Voice · 免费离线自然朗读';
+    const style=doc.createElement('style');style.dataset.paperVoice='toolbar-style';
+    style.textContent=`
+      button[data-paper-voice="toolbar"]{appearance:none;border:0;outline:none;box-shadow:none;border-radius:8px;background:transparent;transition:background-color .16s ease;}
+      button[data-paper-voice="toolbar"]:is(:hover,:focus-visible){background:var(--fill-quinary,rgba(128,112,104,.14));}
+      button[data-paper-voice="toolbar"]:active{background:var(--fill-quaternary,rgba(128,112,104,.22));}
+      @media(prefers-reduced-motion:reduce){button[data-paper-voice="toolbar"]{transition:none;}}
+    `;
+    doc.querySelector('[data-paper-voice="toolbar-style"]')?.remove();doc.head.append(style);
+    const button = doc.createElement('button');button.type='button';button.dataset.paperVoice = 'toolbar';
+    const icon=doc.createElement('img');icon.src=this.assetURI+'mascot.png';icon.alt='';icon.style.cssText='width:24px;height:24px;object-fit:contain;pointer-events:none;';button.append(icon);
     button.setAttribute('aria-label', 'Paper Voice 论文听读');
-    button.style.cssText = 'width:32px;min-width:32px;height:28px;padding:2px 4px;display:inline-flex;align-items:center;justify-content:center;';
+    button.style.cssText = 'width:32px;min-width:32px;height:30px;padding:3px;display:inline-flex;align-items:center;justify-content:center;';
     button.addEventListener('click', () => this.showPanel(reader, true));
     this.localize(button);button._paperToolbarLive=true;this.toolbarNodes.set(doc,button);return button;
   },
