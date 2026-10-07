@@ -1,111 +1,218 @@
-<p align="center"><img src="../addon/assets/mascot.png" width="64" alt="Paper Voice"></p>
+<p align="center"><img src="../addon/assets/mascot.png" width="72" alt="Paper Voice"></p>
 
-<h1 align="center">Install Paper Voice</h1>
+<h1 align="center">Install and update</h1>
 
+<p align="center">One small installer. Download the plugin and offline voices as needed.</p>
 <p align="center"><a href="INSTALL.md">简体中文</a> · <b>English</b></p>
-<p align="center">One small installer for your plugin and offline voices.</p>
+
 <p align="center"><a href="../README.en.md">Product home</a> · <a href="GUIDE.en.md">User guide</a> · <a href="COMPATIBILITY.en.md">Compatibility</a></p>
 
 ## Contents
 
-[Download](#1-download-the-installer) · [Prepare voices](#2-prepare-voices) · [Add the plugin](#3-add-the-plugin-to-zotero) · [Voice folder](#voice-folder) · [Updates](#updating-an-existing-installation) · [Help](#installation-help)
+[Download](#1-download-the-installer) · [Voices](#2-prepare-voices) · [Enable](#3-add-the-plugin-to-zotero) · [Custom locations](#zotero-in-a-custom-location) · [Voice folder](#voice-folder) · [Updates](#updating-an-existing-installation) · [Help](#installation-help) · [Uninstall](#uninstall)
 
 ## 1. Download the installer
 
-Install and open **Zotero 10** once first. Choose a file under Assets on the [release page](https://github.com/JunyanKang/paper-voice/releases/latest):
+Install and open **Zotero 10** once. Under Assets on the [official release page](https://github.com/JunyanKang/paper-voice/releases/latest), download:
 
-| Computer | File | How to open |
-|---|---|---|
-| Windows · Intel / AMD x64 | `Paper-Voice-…-Windows.exe` | Double-click to run |
-| Mac · Apple Silicon, macOS 14+ | `Paper-Voice-…-macOS.dmg` | Open the disk image, then its installer |
+<div align="center">
 
-The installer contains the setup interface and download configuration. It downloads voices on first use. Switch between English and Simplified Chinese at the bottom of the window.
+<table align="center">
+<thead>
+<tr>
+  <th align="center">Computer</th>
+  <th align="center">File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center">Windows · Intel / AMD x64</td>
+  <td align="center"><code>Paper-Voice-…-Windows.exe</code></td>
+</tr>
+<tr>
+  <td align="center">Mac · Apple Silicon · macOS 14+</td>
+  <td align="center"><code>Paper-Voice-…-macOS.dmg</code></td>
+</tr>
+</tbody>
+</table>
 
-<p align="center"><img src="assets/installer-macos-dmg.png" width="640" alt="Mac disk image: open the installer; if blocked, verify its source and follow the three steps."></p>
-<p align="center"><sub>Mac disk image: open the installer; if blocked, verify its source and follow the three steps.</sub></p>
+</div>
+
+On Windows, run the EXE. On Mac, open the DMG, then the installer inside it. Switch English and Chinese at the bottom; no separate Python installation is needed.
+
+**System security prompts:** the installer is not Apple Developer ID notarized or Windows Authenticode signed. On Mac, first try opening it once, then go to **System Settings → Privacy & Security → Open Anyway**. Allow it only after confirming it came from the official release page above. On Windows, verify the source too; do not disable system-wide protections.
 
 ## 2. Prepare voices
 
-Choose a **Voice folder** and select **Download & install**. The default works without adjustment; another drive is also supported. The installer creates a `paper-voice-engine` folder inside your selected location.
+Keep the default voice folder or choose a location with enough space, then select **Download & install**. Setup creates a `paper-voice-engine` folder inside your chosen location.
 
-<p align="center"><img src="assets/installer-windows-en.png" width="640" alt="Windows installer with download items, voice folder and aligned controls"></p>
-<p align="center"><sub>Help and language stay on the left; installation actions stay on the right. Cancel replaces Plugin only during download.</sub></p>
+<p align="center"><img src="assets/installer-windows-en.png" width="560" alt="Windows installer · Choose a voice location, then download the components."></p>
+<p align="center"><sub>Windows installer · Choose a voice location, then download the components.</sub></p>
 
-| Download | Purpose |
-|---|---|
-| Zotero plugin | Reading controls, PDF positioning and translation |
-| Voice engine | Local runtime for this computer |
-| Multilingual voices | English, Chinese, Japanese and French models and dictionaries |
+<div align="center">
 
-Each item shows its size. Downloads display real percentages and transferred bytes, followed by verification, extraction and a voice check. **Voice setup is complete when the items say Installed.** Complete existing voices are verified and reused; incomplete voices are downloaded again and repaired. A first installation downloads about 530 MB on Mac or 517 MB on Windows. The installer includes its own fonts for English and Chinese; no font installation is needed.
+<table align="center">
+<thead>
+<tr>
+  <th align="center">Download</th>
+  <th align="center">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center">Zotero plugin</td>
+  <td align="center">Reading controls, positioning and translation</td>
+</tr>
+<tr>
+  <td align="center">Voice engine</td>
+  <td align="center">Local runtime for your platform</td>
+</tr>
+<tr>
+  <td align="center">Multilingual voices</td>
+  <td align="center">English, Chinese, Japanese and French models and dictionaries</td>
+</tr>
+</tbody>
+</table>
 
-<p align="center"><img src="assets/installer-macos-progress-en.png" width="640" alt="Mac download progress showing verified items and a voice download"></p>
-<p align="center"><sub>Progress preview. Both platforms share the same information order and controls.</sub></p>
+</div>
 
-Cancel is available during downloads. Verified chunks are kept for retry, and an incomplete installation never replaces existing voices. Wait for the final setup stage to finish.
+Progress covers download, verification, extraction and a voice check. Complete existing voices are reused; missing or damaged parts are downloaded again. Allow **3 GB** free for downloads and extraction on a first installation.
+
+You can cancel during downloads; verified files remain for retry. Incomplete voices never replace working ones. Wait for final installation to finish before the plugin step.
 
 ## 3. Add the plugin to Zotero
 
-Setup finds Zotero 10 and its user profiles. One valid profile is selected automatically; if several are found, use **Select profile** to choose the one you use. A profile stores plugins and settings, separate from your paper library.
+Setup finds Zotero and its profiles. One profile is selected automatically; when several exist, choose the one you normally use.
 
-If Zotero is running, quit it normally. Setup continues automatically, verifies the plugin and backs up any package it replaces. Your settings and other plugins are kept.
+1. Quit Zotero normally when prompted. Setup continues automatically.
+2. Once the plugin is placed and verified, select **Open Zotero**.
+3. On first installation, enable Paper Voice under **Tools → Plugins**.
 
-<p align="center"><img src="assets/installer-macos-enable-en.png" width="640" alt="Verified plugin awaiting first activation in Zotero"></p>
+<p align="center"><img src="assets/installer-macos-enable-en.png" width="560" alt="Mac installer · After files are ready, enable the plugin in Zotero on first use."></p>
+<p align="center"><sub>Mac installer · After files are ready, enable the plugin in Zotero on first use.</sub></p>
 
-Select **Open Zotero**. On first installation, enable Paper Voice under **Tools → Plugins**. **Enable in Zotero** means the file is ready but activation has not been confirmed. Setup shows **Installed** only after Zotero reports the plugin as active. Updates preserve your existing enabled or disabled choice.
+**Enable in Zotero** means the file is ready but activation is not confirmed. Setup shows **Installed** only after Zotero reports an active plugin. Updates preserve the existing enabled state, settings and other plugins.
 
-**If detection fails:** use **Locate Zotero** to select the application, or **Profile** to choose a profile folder containing `prefs.js`. Open Zotero once if no profile exists yet. **Manual install** reveals the XPI in **Downloads → Paper Voice**; install it through **Tools → Plugins → gear → Install Plugin From File**.
+Open a PDF with selectable text to begin. [Your first reading →](GUIDE.en.md#your-first-reading)
 
-Open a PDF with selectable text and select a passage. If automatic reading is off, press Play in the selection menu.
+## Zotero in a custom location
 
-<p align="center"><img src="assets/quick-start-en.png" width="900" alt="Select text in a PDF to begin listening"></p>
+**Windows installations on D: or another custom drive are normally detected.** Setup reads the running program's path and installation records in the current-user and system registry. It also checks common system and per-user folders; C: is not required.
 
-Next: [Reading modes, voices and captions](GUIDE.en.md). Selection translation is on by default and needs internet access. Turn off Selection translation, Captions and Translated audio under **Settings → Translate** for fully offline reading.
+**Moved, portable or unregistered copies:** select **Locate Zotero** and choose `zotero.exe` in the actual installation folder; on Mac, choose `Zotero.app`. Setup verifies the application and version. You can also open Zotero so setup can find its running path, then quit normally to continue installation.
+
+These locations serve different purposes:
+
+<div align="center">
+
+<table align="center">
+<thead>
+<tr>
+  <th align="center">Location</th>
+  <th align="center">Purpose</th>
+  <th align="center">What to select</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center">Zotero application</td>
+  <td align="center">Launches Zotero</td>
+  <td align="center"><code>zotero.exe</code> or <code>Zotero.app</code></td>
+</tr>
+<tr>
+  <td align="center">Zotero profile</td>
+  <td align="center">Plugins and preferences</td>
+  <td align="center">Detected automatically; manually choose a folder with <code>prefs.js</code></td>
+</tr>
+<tr>
+  <td align="center">Voice folder</td>
+  <td align="center">Offline runtime and models</td>
+  <td align="center">Default or custom <code>paper-voice-engine</code></td>
+</tr>
+<tr>
+  <td align="center">Library folder</td>
+  <td align="center">Papers and database</td>
+  <td align="center">Not needed for plugin installation</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+Profile information normally lives under `%APPDATA%\Zotero\Zotero` on Windows or `~/Library/Application Support/Zotero` on Mac. Setup reads `profiles.ini`, including profiles registered on other drives. If no profile exists, open Zotero once first.
+
+**Manual fallback:** select Manual install to reveal the XPI in **Downloads → Paper Voice**, then use Zotero **Tools → Plugins → gear → Install Plugin From File**.
 
 ## Voice folder
 
-The plugin detects the location recorded by the installer. Without a record, it checks:
+The plugin first uses the location recorded by the installer. Without a record, it checks:
 
-- Mac: `~/Library/Application Support/Zotero/paper-voice-engine`
-- Windows: `%APPDATA%\Zotero\Zotero\paper-voice-engine`
+- **Mac:** `~/Library/Application Support/Zotero/paper-voice-engine`
+- **Windows:** `%APPDATA%\Zotero\Zotero\paper-voice-engine`
 
-To choose a location, click the folder icon beside **Settings → Voice → Voice folder**. Select `paper-voice-engine` or its parent. Paper Voice tests the current voice without playing audio, then saves the folder for your next reading session. If the test fails, a short message appears beside the icon and your previous location is kept. **Use auto** restores the installer’s saved location.
+After moving voices, click the folder icon under **Settings → Voice** and choose `paper-voice-engine` or its parent. The plugin silently tests the current voice before saving. If the test fails, it shows a short message and keeps the previous path. **Use auto** restores automatic discovery.
 
-<p align="center"><img src="assets/settings-voice-en.png" width="360" alt="Voice settings with automatic discovery, folder selection and reset"></p>
+<p align="center"><img src="assets/settings-voice-en.png" width="360" alt="Use the folder icon to locate your installed voices."></p>
+<p align="center"><sub>Use the folder icon to locate your installed voices.</sub></p>
 
-Connect an external drive before reading. If you move voices yourself, select their new location. Changing the path does not delete old voices.
+Keep external drives connected. Changing a path does not delete old voices; remove the old folder only after confirming the new location works.
 
 ## Updating an existing installation
 
-- **Coming from 1.3.10 or earlier:** the update address has moved. Run the new installer once, select **Plugin only**, and quit Zotero when prompted so setup can place the updated plugin. Existing multilingual voices do not need reinstalling.
-- **Voices still come from 1.2.5 or earlier:** choose **Download & install** once to add Chinese, Japanese and French support.
-- **After migration:** keep using **Check → Install update** in the plugin. The daily, weekly and monthly check intervals and Skip this version remain available. Voice locations, preferences and reading progress are independent of plugin updates.
+<div align="center">
 
-Releases provide DMG and EXE installers only. The installer retrieves the XPI and voices for you. Failed updates leave the installed version usable. A failed plugin check retries once, then tries again after about 15 minutes without consuming the normal check interval.
+<table align="center">
+<thead>
+<tr>
+  <th align="center">Current installation</th>
+  <th align="center">Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center">Plugin <strong>1.3.10 or earlier</strong></td>
+  <td align="center">Run the new installer with Plugin only to migrate the update address</td>
+</tr>
+<tr>
+  <td align="center">Voices from <strong>1.2.5 or earlier</strong></td>
+  <td align="center">Use Download &amp; install once for multilingual voices</td>
+</tr>
+<tr>
+  <td align="center">Migration already complete</td>
+  <td align="center">Use Check → Install update in the plugin; no voice reinstall needed</td>
+</tr>
+</tbody>
+</table>
 
-**Zotero’s built-in updater also works.** Choose Check for Updates in Tools → Plugins → gear. Background installation follows Paper Voice’s Automatic Updates choice in Zotero; the plugin no longer overrides it. Earlier versions may have switched this off. Choose Default or On in Zotero if you want automatic installation; manual checks still work when it is off. Skip this version hides the plugin’s reminder and does not change Zotero’s installation policy.
+</div>
+
+The installer prompts you to quit Zotero, then installs into the selected profile. Voice locations, preferences and reading progress are stored independently.
+
+**Two update routes:** Paper Voice settings and Zotero **Tools → Plugins → gear → Check for Updates**. Paper Voice can check daily, weekly or monthly and skip a version's reminder. Zotero's Automatic Updates setting controls its installation policy independently; choose Default or On if you want Zotero to install updates automatically.
+
+Releases contain DMG and EXE installers only. Setup and the updater retrieve the XPI from a separate download address; `updates.json` supplies its version, URL and hash, rather than containing the plugin. Failed downloads do not remove the installed plugin.
 
 ## Installation help
 
-**The system cannot verify the developer or publisher**<br>
-The installer is not Apple Developer ID notarized or Windows Authenticode signed. On Mac, first try opening the installer once. If macOS blocks it, go to **System Settings → Privacy & Security → Open Anyway**. Allow it only after verifying that it came from the [official Paper Voice release page](https://github.com/JunyanKang/paper-voice/releases). On Windows, also verify the source in the security prompt. Do not disable system-wide protections.
+**Zotero or a profile is missing**<br>
+Open Zotero once. Use Locate Zotero for a custom program location, or Profile for a custom profile. Do not select the library storage folder.
+
+**Download or verification fails**<br>
+Check access to `kanglab.cool/paper-voice` (hosted by GitHub Pages), then retry. Verified files can be reused. Check available disk space.
 
 **Windows reports a missing DLL**<br>
-Install the [Microsoft Visual C++ x64 runtime](https://aka.ms/vs/17/release/vc_redist.x64.exe), then reopen the installer.
+Install the [Microsoft Visual C++ x64 runtime](https://aka.ms/vs/17/release/vc_redist.x64.exe), then reopen setup.
 
-**A download or verification fails**<br>
-Downloads use GitHub Pages and require access to that service. Check your connection and retry. Verified chunks are reused; damaged files are fetched again. Allow space for downloads, extraction and installation; 3 GB free is recommended for a first installation.
+**Installation finished but there is no sound**<br>
+Preview a voice and check system volume and output. If voices moved or a drive disconnected, select their location again.
 
-**Voices cannot be found**<br>
-Check that installation completed, or choose the voice folder again in Settings. Reconnect an external drive if needed. The plugin does not modify PDFs or your library.
-
-See [Compatibility](COMPATIBILITY.en.md) for support details. For help, report your operating system, Zotero version and error message in [Issues](https://github.com/JunyanKang/paper-voice/issues). Do not attach unpublished papers or a private library.
+For unresolved issues, report the system, Zotero version, failing step and error in [Issues](https://github.com/JunyanKang/paper-voice/issues). Do not attach private libraries or unpublished papers.
 
 ## Uninstall
 
-Disable or remove Paper Voice in Zotero's plugin manager. If voices are no longer needed, delete the actual `paper-voice-engine` folder. You may also remove `paper-voice-location.json` beside the default voice folder. Download caches live at `~/Library/Caches/PaperVoiceInstaller` on Mac and `%LOCALAPPDATA%\PaperVoiceInstaller` on Windows.
+Disable or remove Paper Voice in Zotero's plugin manager. If no longer needed, delete the actual `paper-voice-engine` folder and `paper-voice-location.json` beside the default voice folder.
 
-Preferences and reading progress use Zotero's `extensions.paperVoice.*` preferences. Papers and annotations are unaffected.
+Installer caches are at `~/Library/Caches/PaperVoiceInstaller` on Mac and `%LOCALAPPDATA%\PaperVoiceInstaller` on Windows. Preferences and progress use Zotero's `extensions.paperVoice.*` settings. Papers and annotations are unaffected.
 
 ---
 

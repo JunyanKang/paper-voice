@@ -13,7 +13,35 @@ internal static class ZoteroInstall {
  internal static bool ValidProfile(string path){return Directory.Exists(path)&&(File.Exists(Path.Combine(path,"prefs.js"))||File.Exists(Path.Combine(path,"times.json")));}
  internal static List<ZoteroProfile> Profiles(string folder){var profiles=new List<ZoteroProfile>();var seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);foreach(var row in Ini(Path.Combine(folder,"profiles.ini"))){string section,path,relative,name;if(!row.TryGetValue("section",out section)||!section.StartsWith("Profile")||!row.TryGetValue("Path",out path)||path.Length==0)continue;row.TryGetValue("IsRelative",out relative);if(relative!="1"&&!Path.IsPathRooted(path))continue;try{path=Path.GetFullPath(relative=="1"?Path.Combine(folder,path):path);if(ValidProfile(path)&&seen.Add(path))profiles.Add(new ZoteroProfile(row.TryGetValue("Name",out name)?name:Path.GetFileName(path),path));}catch(ArgumentException){}catch(NotSupportedException){}}return profiles;}
  internal static bool ValidApp(string path){try{if(!File.Exists(path)||!string.Equals(Path.GetFileName(path),"zotero.exe",StringComparison.OrdinalIgnoreCase))return false;var info=FileVersionInfo.GetVersionInfo(path);if((info.ProductName??"").IndexOf("Zotero",StringComparison.OrdinalIgnoreCase)<0)return false;var folder=Path.GetDirectoryName(path);var rows=Ini(Path.Combine(folder,"application.ini")).Concat(Ini(Path.Combine(folder,"app","application.ini")));return rows.Any(r=>r.ContainsKey("Name")&&r["Name"]=="Zotero"&&r.ContainsKey("Version")&&r["Version"].StartsWith("10."));}catch{return false;}}
- internal static List<string> Applications(){var found=new List<string>();foreach(var p in Process.GetProcessesByName("zotero")){try{found.Add(p.MainModule.FileName);}catch{}finally{p.Dispose();}}foreach(var hive in new[]{RegistryHive.CurrentUser,RegistryHive.LocalMachine})foreach(var view in new[]{RegistryView.Registry64,RegistryView.Registry32})try{using(var root=RegistryKey.OpenBaseKey(hive,view)){using(var key=root.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\App Paths\zotero.exe")){if(key!=null)found.Add(Convert.ToString(key.GetValue(null)));}using(var keys=root.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall")){if(keys!=null)foreach(var name in keys.GetSubKeyNames())using(var key=keys.OpenSubKey(name)){if(key==null||!Convert.ToString(key.GetValue("DisplayName")).StartsWith("Zotero",StringComparison.OrdinalIgnoreCase))continue;string loc=Convert.ToString(key.GetValue("InstallLocation"));if(loc.Length>0)found.Add(Path.Combine(loc,"zotero.exe"));string icon=Convert.ToString(key.GetValue("DisplayIcon"));if(icon.Length>0)found.Add(icon.Split(',')[0].Trim('"'));}}}}catch{}foreach(var folder in new[]{Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)})if(folder.Length>0)found.Add(Path.Combine(folder,"Zotero","zotero.exe"));return found.Where(p=>!string.IsNullOrEmpty(p)&&ValidApp(p)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();}
+ // Registry values may quote paths, contain environment variables, or include an icon index.
+ // Only a terminal numeric icon index is metadata; commas inside directory names are valid.
+ internal static string ApplicationPath(string value,bool icon){
+  string path=(value??"").Trim();
+  if(icon)path=System.Text.RegularExpressions.Regex.Replace(path,@",\s*-?\d+\s*$","").Trim();
+  if(path.Length>=2&&path[0]=='"'&&path[path.Length-1]=='"')path=path.Substring(1,path.Length-2);
+  return Environment.ExpandEnvironmentVariables(path);
+ }
+ internal static List<string> Applications(){
+  var found=new List<string>();
+  foreach(var p in Process.GetProcessesByName("zotero")){try{found.Add(p.MainModule.FileName);}catch{}finally{p.Dispose();}}
+  foreach(var hive in new[]{RegistryHive.CurrentUser,RegistryHive.LocalMachine})foreach(var view in new[]{RegistryView.Registry64,RegistryView.Registry32})try{
+   using(var root=RegistryKey.OpenBaseKey(hive,view)){
+    try{using(var key=root.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\App Paths\zotero.exe"))if(key!=null)found.Add(ApplicationPath(Convert.ToString(key.GetValue(null)),false));}catch{}
+    using(var keys=root.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall")){
+     if(keys!=null)foreach(var name in keys.GetSubKeyNames())try{using(var key=keys.OpenSubKey(name)){
+      if(key==null||!Convert.ToString(key.GetValue("DisplayName")).StartsWith("Zotero",StringComparison.OrdinalIgnoreCase))continue;
+      string loc=ApplicationPath(Convert.ToString(key.GetValue("InstallLocation")),false);
+      if(loc.Length>0)found.Add(Path.Combine(loc,"zotero.exe"));
+      string icon=ApplicationPath(Convert.ToString(key.GetValue("DisplayIcon")),true);
+      if(icon.Length>0)found.Add(icon);
+     }}catch{} // One inaccessible or stale entry must not hide other installations.
+    }
+   }
+  }catch{}
+  foreach(var folder in new[]{Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)})if(folder.Length>0)found.Add(Path.Combine(folder,"Zotero","zotero.exe"));
+  found.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Programs","Zotero","zotero.exe"));
+  return found.Where(p=>!string.IsNullOrEmpty(p)&&ValidApp(p)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+ }
  internal static bool Running(){var processes=Process.GetProcessesByName("zotero");bool running=processes.Length>0;foreach(var p in processes)p.Dispose();return running;}
  static void NotLinked(string path){if((File.Exists(path)||Directory.Exists(path))&&(File.GetAttributes(path)&FileAttributes.ReparsePoint)!=0)throw new IOException("目录包含链接，请手动安装 / Linked directory: install manually");}
  internal static Dictionary<string,object> Metadata(string profile){try{var db=Setup.Parse(File.ReadAllText(Path.Combine(profile,"extensions.json")));return Setup.Rows(db["addons"]).FirstOrDefault(a=>Convert.ToString(a["id"])==AddonID);}catch{return null;}}

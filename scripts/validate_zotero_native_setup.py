@@ -5,7 +5,7 @@ r=Path(__file__).resolve().parents[1];base=r/'.build/online-installers';config=j
 installer=r/'dist'/f'Paper-Voice-{version}-Windows.exe' if win else base/'Paper Voice Installer.app/Contents/MacOS/Paper Voice Installer';xpi=r/'dist/Paper Voice'/config['plugin']['name'];host=r/'.build/zotero-setup-host';host.mkdir(exist_ok=True)
 release='10.0.3-beta.2%2B80bc5565e';prefix=f'https://download.zotero.org/client/beta/{release}/Zotero-{release}'
 if win:
- setup=host/'setup.exe';urllib.request.urlretrieve(prefix+'_x64_setup.exe',setup);app=host/'Zotero';subprocess.run([str(setup),'/S','/D='+str(app)],check=True,timeout=180);binary=app/'zotero.exe'
+ setup=host/'setup.exe';urllib.request.urlretrieve(prefix+'_x64_setup.exe',setup);app=host/'研究 Tools, custom'/'Zotero';app.parent.mkdir(parents=True,exist_ok=True);subprocess.run([str(setup),'/S','/D='+str(app)],check=True,timeout=180);binary=app/'zotero.exe'
 else:
  custom=os.environ.get('PAPER_VOICE_QA_APP')
  if custom:app=Path(custom)
@@ -23,6 +23,12 @@ with tempfile.TemporaryDirectory(prefix='voice-native-') as temp:
  def call(operation,ok=True):
   result=t/'result.json';args=[str(installer),'--zotero-action',operation,'--profile-base',str(t),'--profile',str(profile),'--xpi',str(xpi),'--backup-dir',str(t/'backup'),'--result',str(result)]
   p=subprocess.run(args,capture_output=True,timeout=40);assert (p.returncode==0)==ok,(p.returncode,result.read_text(errors='replace'));return json.loads(result.read_text(encoding='utf-8-sig')) if ok else None
+ if win:
+  # The official installer registers a non-default path. Test it before starting Zotero,
+  # so running-process discovery cannot mask broken registry discovery.
+  detected=call('discover')['applications']
+  assert str(binary).lower() in [p.lower() for p in detected],detected
+  checks.append('closed Zotero found at custom Chinese/spaced/comma path via registry')
  assert call('stage')['state']=='pending'
  log=open(base/'zotero-native.log','w',encoding='utf-8');proc=subprocess.Popen([str(binary),*(['-wait-for-browser'] if win else []),'-no-remote','-profile',str(profile),'-ZoteroDebugText'],stdout=log,stderr=subprocess.STDOUT)
  try:

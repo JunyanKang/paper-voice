@@ -1,9 +1,9 @@
-<p align="center"><img src="../addon/assets/mascot.png" width="64" alt="Paper Voice"></p>
+<p align="center"><img src="../addon/assets/mascot.png" width="72" alt="Paper Voice"></p>
 
 <h1 align="center">Compatibility & usage notes</h1>
 
-<p align="center"><a href="COMPATIBILITY.md">简体中文</a> · <b>English</b></p>
 <p align="center">Platform support, voice and translation behavior, and PDF processing limits.</p>
+<p align="center"><a href="COMPATIBILITY.md">简体中文</a> · <b>English</b></p>
 <p align="center"><a href="../README.en.md">Product home</a> · <a href="INSTALL.en.md">Installation</a> · <a href="GUIDE.en.md">User guide</a></p>
 
 ## Platforms
@@ -47,7 +47,7 @@ The installer downloads Misaki and offline Chinese/Japanese dictionaries, includ
 
 LLM translation uses your own API key and is separate from the free public translation channels. Domestic and international provider presets are included, with custom OpenAI-compatible endpoints and Anthropic Messages for Claude. Available models, regions and key types depend on the provider. MiniMax has been tested with real requests and streaming inside Zotero. Other presets have protocol and adapter parsing checks, but have not all been tested with paid credentials.
 
-Model translations can contain mistakes or awkward wording; check important terms, numbers and conclusions against the original. Rate limits, reasoning and network conditions affect latency. See the [LLM translation guide](GUIDE.en.md#llm-translation).
+Model translations can contain mistakes or awkward wording; check important terms, numbers and conclusions against the original. Rate limits, reasoning and network conditions affect latency. See the [LLM translation guide](TRANSLATION.en.md).
 
 ---
 

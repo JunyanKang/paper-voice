@@ -1,9 +1,9 @@
-<p align="center"><img src="addon/assets/mascot.png" width="64" alt="Paper Voice"></p>
+<p align="center"><img src="addon/assets/mascot.png" width="72" alt="Paper Voice"></p>
 
 <h1 align="center">Privacy</h1>
 
-<p align="center"><a href="PRIVACY.md">简体中文</a> · <b>English</b></p>
 <p align="center">What stays on your computer, and when an external service is contacted.</p>
+<p align="center"><a href="PRIVACY.md">简体中文</a> · <b>English</b></p>
 <p align="center"><a href="README.en.md">Product home</a> · <a href="docs/GUIDE.en.md">User guide</a> · <a href="docs/INSTALL.en.md">Install or uninstall</a></p>
 
 Paper Voice contains no telemetry, advertising, analytics SDK or user accounts. The plugin, offline speech and public translation channels are free. Optional LLM translation uses your own API key; provider fees apply.
@@ -24,15 +24,40 @@ Unfinished sessions also save the reading mode, text position, selection or sent
 
 Translation requires a connection to the service you select:
 
-| Feature | Default | Text sent |
-|---|---|---|
-| **Selection translation** | On | The selected scope; partial words are completed, and Sentence/Paragraph scopes expand to the containing passage |
-| **Show translation** | Off | The current source sentence and a prefetched next sentence |
-| **Read translation** | Off | The current source sentence and a prefetched next sentence |
+<div align="center">
+
+<table align="center">
+<thead>
+<tr>
+  <th align="center">Feature</th>
+  <th align="center">Default</th>
+  <th align="center">Text sent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center"><strong>Selection translation</strong></td>
+  <td align="center">On</td>
+  <td align="center">The selected scope; partial words are completed, and Sentence/Paragraph scopes expand to the containing passage</td>
+</tr>
+<tr>
+  <td align="center"><strong>Captions</strong></td>
+  <td align="center">Off</td>
+  <td align="center">The current source sentence and a prefetched next sentence</td>
+</tr>
+<tr>
+  <td align="center"><strong>Translated audio</strong></td>
+  <td align="center">Off</td>
+  <td align="center">The current source sentence and a prefetched next sentence</td>
+</tr>
+</tbody>
+</table>
+
+</div>
 
 The service may be Tencent, Microsoft, Google or your configured LLM API. The provider can receive the text, your IP address and ordinary request information; its own privacy policy applies. The plugin does not upload the entire PDF file, annotations or library.
 
-**For fully offline use:** turn off Selection, Show translation and Read translation under Settings → Translate.
+**For fully offline use:** turn off Selection translation, Captions and Translated audio under Settings → Translate.
 
 When a compatible Translate for Zotero version is installed, Paper Voice first requests the chosen free service through its public interface. It does not read that plugin's keys or select paid services. If the interface is unavailable, it uses the same service's free public channel.
 
@@ -46,7 +71,7 @@ LLM translation is used only after you select and configure it. No shared key is
 
 ## Updates, links and removal
 
-Zotero contacts GitHub when checking for plugin updates. These requests do not send paper content. Guide, feedback and privacy links open the corresponding GitHub pages.
+Zotero checks `kanglab.cool/paper-voice/updates.json` (hosted by GitHub Pages) and downloads the corresponding XPI. These requests do not send paper content. Guide, feedback and privacy links open the corresponding GitHub pages.
 
 Disabling the plugin stops speech and removes temporary interface elements. After uninstalling, follow the [removal instructions](docs/INSTALL.en.md#uninstall) to clean up the voice package and preferences.
 

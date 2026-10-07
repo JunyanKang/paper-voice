@@ -1,19 +1,43 @@
-<p align="center"><img src="../addon/assets/mascot.png" width="64" alt="Paper Voice"></p>
+<p align="center"><img src="../addon/assets/mascot.png" width="72" alt="Paper Voice"></p>
 
 <h1 align="center">兼容性与使用说明</h1>
 
-<p align="center"><b>简体中文</b> · <a href="COMPATIBILITY.en.md">English</a></p>
 <p align="center">平台支持、声音与翻译特性，以及 PDF 处理范围。</p>
+<p align="center"><b>简体中文</b> · <a href="COMPATIBILITY.en.md">English</a></p>
 <p align="center"><a href="../README.md">产品首页</a> · <a href="INSTALL.md">安装帮助</a> · <a href="GUIDE.md">使用指南</a></p>
 
 ## 平台范围
 
-| 组件 | 当前范围 |
-|---|---|
-| Zotero 插件 | Zotero 10 |
-| Mac 离线声音 | Apple Silicon（M 系列），macOS 14 或更新版本 |
-| Windows 离线声音 | Intel / AMD x64 |
-| Intel Mac、Windows ARM、Linux、旧版 Zotero | 当前未提供经过验证的安装器 |
+<div align="center">
+
+<table align="center">
+<thead>
+<tr>
+  <th align="center">组件</th>
+  <th align="center">当前范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center">Zotero 插件</td>
+  <td align="center">Zotero 10</td>
+</tr>
+<tr>
+  <td align="center">Mac 离线声音</td>
+  <td align="center">Apple Silicon（M 系列），macOS 14 或更新版本</td>
+</tr>
+<tr>
+  <td align="center">Windows 离线声音</td>
+  <td align="center">Intel / AMD x64</td>
+</tr>
+<tr>
+  <td align="center">Intel Mac、Windows ARM、Linux、旧版 Zotero</td>
+  <td align="center">当前未提供经过验证的安装器</td>
+</tr>
+</tbody>
+</table>
+
+</div>
 
 Mac 原生验证使用 Zotero 10.0.3 beta。Windows 自动化环境为 Windows Server 2022 x64 和官方 Zotero 10.0.3 beta，覆盖真实媒体解码、播放计时、暂停及结束事件；物理扬声器和耳机输出尚未进行 Windows 实机验收。这些记录说明验证边界，不代表对所有系统版本和硬件的兼容承诺。
 
@@ -47,11 +71,32 @@ Mac 原生验证使用 Zotero 10.0.3 beta。Windows 自动化环境为 Windows S
 
 划词翻译默认开启，将所选范围的文字发送至所选服务：划选范围会补全不完整单词，单句和段落范围会展开至所在句段。显示译文和朗读译文默认关闭；开启后会发送当前句及预取的下一句。在 **设置 → 译文** 关闭这三项后，可完全离线听读。
 
-| 服务 | 使用提示 |
-|---|---|
-| 腾讯 | 默认选项，优先面向大陆网络；当前适配通道不提供繁体中文。 |
-| 微软 | 可作为备用，并支持繁体中文。 |
-| Google | 需网络能够访问 Google 翻译；不同网络环境下可能超时。 |
+<div align="center">
+
+<table align="center">
+<thead>
+<tr>
+  <th align="center">服务</th>
+  <th align="center">使用提示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center">腾讯</td>
+  <td align="center">默认选项；当前适配通道不提供繁体中文。</td>
+</tr>
+<tr>
+  <td align="center">微软</td>
+  <td align="center">可作为备用，并支持繁体中文。</td>
+</tr>
+<tr>
+  <td align="center">Google</td>
+  <td align="center">需网络能够访问 Google 翻译；不同网络环境下可能超时。</td>
+</tr>
+</tbody>
+</table>
+
+</div>
 
 这些免费公共通道可能限流、调整或失效，不保证所有地区、运营商和校园网持续可用。腾讯和微软不依赖 Google 或 OpenAI 服务。显示译文失败不影响原文朗读；仅朗读译文时需要先成功获取译文。可切换服务重试。
 
@@ -63,7 +108,7 @@ Mac 原生验证使用 Zotero 10.0.3 beta。Windows 自动化环境为 Windows S
 
 大模型翻译使用用户自己的 API 密钥，不属于免费公共通道。国内外服务提供配置预设，也支持自定义 OpenAI 兼容地址；Claude 使用 Messages 格式。实际可用的模型、地区与密钥类型由服务商决定。MiniMax 已在 Zotero 中完成真实请求与流式显示验证；其他预设已检查接口格式和适配解析，未使用各家的付费密钥逐一实测。
 
-模型响应可能含有错误或不自然的表述；重要术语、数字和结论应对照原文。服务限流、模型思考与网络状况会影响等待时间。配置和使用方法见[大模型翻译指南](GUIDE.md#大模型翻译)。
+模型响应可能含有错误或不自然的表述；重要术语、数字和结论应对照原文。服务限流、模型思考与网络状况会影响等待时间。配置和使用方法见[大模型翻译指南](TRANSLATION.md)。
 
 ---
 

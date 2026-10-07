@@ -1,112 +1,219 @@
-<p align="center"><img src="../addon/assets/mascot.png" width="64" alt="Paper Voice"></p>
+<p align="center"><img src="../addon/assets/mascot.png" width="72" alt="Paper Voice"></p>
 
-<h1 align="center">安装 Paper Voice</h1>
+<h1 align="center">安装与升级</h1>
 
+<p align="center">下载一次安装器，按需准备插件与离线声音。</p>
 <p align="center"><b>简体中文</b> · <a href="INSTALL.en.md">English</a></p>
-<p align="center">一个轻量安装器，准备好插件与离线声音。</p>
+
 <p align="center"><a href="../README.md">产品首页</a> · <a href="GUIDE.md">使用指南</a> · <a href="COMPATIBILITY.md">兼容性</a></p>
 
 ## 目录
 
-[下载安装器](#1-下载安装器) · [准备声音](#2-准备声音) · [添加插件](#3-添加到-zotero) · [声音位置](#声音位置) · [升级](#更新已有插件) · [安装帮助](#安装遇到问题)
+[下载安装](#1-下载安装器) · [准备声音](#2-准备离线声音) · [启用插件](#3-在-zotero-启用插件) · [自定义路径](#zotero-安装在其他位置) · [声音位置](#声音位置) · [更新](#更新已有插件) · [排障](#安装遇到问题) · [卸载](#卸载)
 
 ## 1. 下载安装器
 
-先安装并打开一次 **Zotero 10**。在 [发布页](https://github.com/JunyanKang/paper-voice/releases/latest) 的 Assets 中选择：
+先安装并打开 **Zotero 10** 一次。到 [官方发布页](https://github.com/JunyanKang/paper-voice/releases/latest) 的 Assets 下载对应文件：
 
-| 电脑 | 文件 | 打开方式 |
-|---|---|---|
-| Windows · Intel / AMD x64 | `Paper-Voice-…-Windows.exe` | 双击运行 |
-| Mac · M 系列，macOS 14+ | `Paper-Voice-…-macOS.dmg` | 打开磁盘映像，再打开其中的安装助手 |
+<div align="center">
 
-安装器只包含安装界面与下载配置；首次使用会联网下载声音。窗口底部可以切换简体中文／English。
+<table align="center">
+<thead>
+<tr>
+  <th align="center">电脑</th>
+  <th align="center">安装文件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center">Windows · Intel / AMD x64</td>
+  <td align="center"><code>Paper-Voice-…-Windows.exe</code></td>
+</tr>
+<tr>
+  <td align="center">Mac · Apple 芯片 · macOS 14+</td>
+  <td align="center"><code>Paper-Voice-…-macOS.dmg</code></td>
+</tr>
+</tbody>
+</table>
 
-<p align="center"><img src="assets/installer-macos-dmg.png" width="640" alt="Mac 磁盘映像：双击安装助手；首次打开被阻止时，按图中步骤核对来源后允许打开。"></p>
-<p align="center"><sub>Mac 磁盘映像：双击安装助手；首次打开被阻止时，按图中步骤核对来源后允许打开。</sub></p>
+</div>
 
-## 2. 准备声音
+Windows 双击 EXE；Mac 打开 DMG 后，再打开其中的安装器。底部可切换中文和英文，无需另装 Python。
 
-选择 **声音位置**，点击 **下载并安装**。默认位置无需修改，也可选择其他磁盘。安装器会在所选文件夹内创建 `paper-voice-engine`。
+**遇到系统安全提示：** 当前安装器未进行 Apple Developer ID 公证或 Windows Authenticode 签名。Mac 请先尝试打开一次，再到 **系统设置 → 隐私与安全性 → 仍要打开**；仅在确认文件来自上方官方发布页时允许运行。Windows 同样先核对发布来源，无需关闭系统安全防护。
 
-<p align="center"><img src="assets/installer-macos.png" width="640" alt="Mac 安装器：下载项目、声音路径及统一底部按钮"></p>
-<p align="center"><sub>左侧为帮助和语言，右侧为安装操作。下载时「取消」替换「仅更新插件」，位置保持不变。</sub></p>
+## 2. 准备离线声音
 
-| 下载项目 | 用途 |
-|---|---|
-| Zotero 插件 | 阅读控制、PDF 定位与翻译功能 |
-| 声音引擎 | 当前电脑所需的本地运行环境 |
-| 多语言声音 | 英语、中文、日语、法语的声音模型与词典 |
+使用默认声音位置，或选择有足够空间的目录，然后点击 **下载并安装**。安装器会在所选位置创建 `paper-voice-engine` 文件夹。
 
-每项显示下载大小；下载中显示实际百分比与已下载字节，随后依次校验、解压并验证声音。**只有出现「声音已安装」后才算完成声音准备。** 已有完整声音会先校验并复用；不完整时会重新下载修复。首次下载约 530 MB（Mac）或 517 MB（Windows）。安装器已自带中英文字体，无需另装字体。
+<p align="center"><img src="assets/installer-windows.png" width="560" alt="Windows 安装器 · 选择声音位置，再下载所需组件。"></p>
+<p align="center"><sub>Windows 安装器 · 选择声音位置，再下载所需组件。</sub></p>
 
-<p align="center"><img src="assets/installer-windows-progress.png" width="640" alt="Windows 安装器下载进度：已校验项目与正在下载的声音"></p>
-<p align="center"><sub>进度展示示例。两平台使用相同的信息顺序、按钮布局与操作逻辑。</sub></p>
+<div align="center">
 
-下载中可以取消，已校验的下载分块保留供重试；原有声音不会被未完成的安装替换。最后配置阶段请等待完成。
+<table align="center">
+<thead>
+<tr>
+  <th align="center">下载项目</th>
+  <th align="center">用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center">Zotero 插件</td>
+  <td align="center">阅读控制、定位与翻译</td>
+</tr>
+<tr>
+  <td align="center">声音引擎</td>
+  <td align="center">当前平台的本地运行环境</td>
+</tr>
+<tr>
+  <td align="center">多语言声音</td>
+  <td align="center">中、英、日、法语音模型与词典</td>
+</tr>
+</tbody>
+</table>
 
-## 3. 添加到 Zotero
+</div>
 
-安装器会自动查找 Zotero 10 和用户配置。只有一个有效配置时自动选中；有多个配置时，点击 **选择配置** 确认安装位置。这里的配置保存插件与设置，不是论文所在的文献库。
+进度会依次显示下载、校验、解压和声音测试。已有完整声音会复用；损坏或缺失部分会重新下载。首次安装建议预留 **3 GB** 空间，以容纳下载和解压文件。
 
-如果 Zotero 正在运行，请正常退出；安装器会自动继续。放置前会验证插件文件，并备份需要替换的旧包，保留原有设置和其他插件。
+下载阶段可取消，已校验的文件保留供重试；未完成的声音不会覆盖原有可用声音。等待最终安装阶段完成后，再进入插件步骤。
 
-<p align="center"><img src="assets/installer-macos-enable.png" width="640" alt="插件已放置并校验，点击打开 Zotero 完成首次启用"></p>
+## 3. 在 Zotero 启用插件
 
-点击 **打开 Zotero**。首次安装通常需要在 **工具 → 插件** 中启用 Paper Voice；英文界面为 **Tools → Plugins → Enable**。安装器显示 **待启用** 时，表示文件已经准备好，尚未确认启用；只有读取到 Zotero 的启用状态后才显示 **已安装**。更新已有插件时保留原来的启用选择。
+安装器自动查找 Zotero 和用户配置。只有一个配置时直接使用；多个配置时，选择日常使用的那个。
 
-**识别不到时：** 点击 **选择 Zotero** 指定应用，或点击 **选择配置** 指定含 `prefs.js` 的配置目录。尚未生成配置时，先打开 Zotero 一次。仍无法自动安装，可点击 **手动安装**，在 Zotero 的 **工具 → 插件 → 齿轮 → 从文件安装插件** 中选择「下载 → Paper Voice」里的 XPI。
+1. Zotero 正在运行时，按提示正常退出，安装器会自动继续。
+2. 插件放置并校验完成后，点击 **打开 Zotero**。
+3. 首次安装，在 **工具 → 插件** 中启用 Paper Voice。
 
-打开可选中文字的 PDF，划选正文即可开始。关闭了自动朗读时，请点击选区菜单的播放按钮。
+<p align="center"><img src="assets/installer-macos-enable.png" width="560" alt="Mac 安装器 · 文件准备完毕后，首次仍需在 Zotero 中启用插件。"></p>
+<p align="center"><sub>Mac 安装器 · 文件准备完毕后，首次仍需在 Zotero 中启用插件。</sub></p>
 
-<p align="center"><img src="assets/quick-start-zh.png" width="900" alt="在 PDF 中划选并开始听读"></p>
+「待启用」表示文件已准备好，但尚未确认启用；只有 Zotero 报告插件处于启用状态后，才显示「已安装」。更新保留原有启用状态、设置及其他插件。
 
-下一步：[四种阅读模式、声音与随行译文](GUIDE.md)。划词翻译默认开启，需要联网；在 **设置 → 译文** 关闭划词翻译、显示译文和朗读译文后，可完全离线听读。
+打开可选中文字的 PDF，就可以开始听读。[第一次使用 →](GUIDE.md#开始第一次听读)
+
+## Zotero 安装在其他位置
+
+**Windows 装在 D 盘或自定义目录通常可直接识别。** 安装器读取运行中的 Zotero 路径，以及当前用户／系统注册表中的安装记录，不要求程序位于 C 盘。也会检查常见的系统与用户级安装目录。
+
+**移动过目录、便携版或注册信息缺失：** 点击 **选择 Zotero**，选中实际程序目录中的 `zotero.exe`；Mac 选择 `Zotero.app`。安装器会验证应用及版本。无法识别时也可先打开 Zotero，让安装器从运行中的程序获取位置，再正常退出后继续。
+
+这几个路径用途不同，请勿混淆：
+
+<div align="center">
+
+<table align="center">
+<thead>
+<tr>
+  <th align="center">位置</th>
+  <th align="center">用途</th>
+  <th align="center">如何选择</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center">Zotero 程序目录</td>
+  <td align="center">启动 Zotero</td>
+  <td align="center">选择 <code>zotero.exe</code> 或 <code>Zotero.app</code></td>
+</tr>
+<tr>
+  <td align="center">Zotero 用户配置</td>
+  <td align="center">存放插件与偏好设置</td>
+  <td align="center">自动识别，多个时选择；手动选含 <code>prefs.js</code> 的目录</td>
+</tr>
+<tr>
+  <td align="center">声音目录</td>
+  <td align="center">存放离线引擎与模型</td>
+  <td align="center">默认或自定义 <code>paper-voice-engine</code></td>
+</tr>
+<tr>
+  <td align="center">文献库目录</td>
+  <td align="center">保存论文与数据库</td>
+  <td align="center">无需选择，安装器不向这里安装插件</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+配置通常位于 Windows 的 `%APPDATA%\Zotero\Zotero` 或 Mac 的 `~/Library/Application Support/Zotero` 下；安装器根据 `profiles.ini` 查找真实位置，也支持其中登记在其他磁盘的配置。首次使用还没有配置时，先打开一次 Zotero。
+
+**手动安装兜底：** 点击「手动安装」，在 **下载 → Paper Voice** 找到 XPI，再在 Zotero **工具 → 插件 → 齿轮 → 从文件安装插件** 中选择它。
 
 ## 声音位置
 
-插件会自动查找安装器记录的位置；没有记录时，查找以下默认文件夹：
+插件优先读取安装器记录的声音位置；没有记录时检查默认目录：
 
-- Mac：`~/Library/Application Support/Zotero/paper-voice-engine`
-- Windows：`%APPDATA%\Zotero\Zotero\paper-voice-engine`
+- **Mac：** `~/Library/Application Support/Zotero/paper-voice-engine`
+- **Windows：** `%APPDATA%\Zotero\Zotero\paper-voice-engine`
 
-需要人工指定时，点击 **设置 → 声音 → 声音位置** 右侧的文件夹图标，选择 `paper-voice-engine` 或它的上一级文件夹。插件会自动测试当前音色，测试期间不会播放声音；通过后保存，在下次开始朗读时生效。失败时图标前显示简短提示，原位置保持不变。手动指定后可点击 **恢复自动**，重新跟随安装器记录。
+迁移声音后，在 **设置 → 声音** 点击文件夹图标，选择 `paper-voice-engine` 或其父目录。插件会静默测试当前声音，通过后保存；失败时给出简短提示，并保留原位置。手动指定后可「恢复自动」。
 
-<p align="center"><img src="assets/settings-voice-zh.png" width="360" alt="声音设置中的文件夹选择按钮"></p>
+<p align="center"><img src="assets/settings-voice-zh.png" width="360" alt="声音设置中的文件夹图标用于选择实际声音位置。"></p>
+<p align="center"><sub>声音设置中的文件夹图标用于选择实际声音位置。</sub></p>
 
-如果声音位于移动硬盘，请先连接硬盘再开始朗读。只移动文件夹不会自动更新位置，需重新指定。更换路径不会删除旧声音。
+外接磁盘需保持连接。改变路径不会删除旧声音；迁移完成并确认可用后，再自行清理旧目录。
 
 ## 更新已有插件
 
-- **从 1.3.10 及更早版本升级**：旧更新地址已迁移。运行新版安装器一次，选择 **仅更新插件**，按提示退出 Zotero，安装器会自动放置新版插件。已有多语言声音无需重装。
-- **声音仍来自 1.2.5 及更早版本**：选择 **下载并安装**，更新一次离线声音，才能使用中、日、法文朗读。
-- **完成迁移后**：继续使用插件内 **检查更新 → 安装更新**。自动检查的 1 天／1 周／1 月周期及「忽略此版本」仍然保留；声音位置、个人设置与阅读进度独立于插件更新。
+<div align="center">
 
-发布页只提供 DMG 和 EXE。XPI 与声音由安装器获取，不必自行寻找多个文件。更新失败时，现有版本仍可继续使用。插件内检查失败会重试一次，仍失败时保留原检查周期，约 15 分钟后再次尝试。
+<table align="center">
+<thead>
+<tr>
+  <th align="center">当前情况</th>
+  <th align="center">操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center">插件为 <strong>1.3.10 及更早版本</strong></td>
+  <td align="center">运行新版安装器，选「仅更新插件」，迁移更新地址</td>
+</tr>
+<tr>
+  <td align="center">声音来自 <strong>1.2.5 及更早版本</strong></td>
+  <td align="center">选「下载并安装」，一次更新多语言声音</td>
+</tr>
+<tr>
+  <td align="center">已完成上述迁移</td>
+  <td align="center">在插件中「检查更新 → 安装更新」，无需重装声音</td>
+</tr>
+</tbody>
+</table>
 
-**Zotero 自带更新也可使用。** 在「工具 → 插件」的齿轮菜单选择「检查更新」。后台自动安装由 Zotero 中 Paper Voice 的「自动更新」选项决定，新版不会覆盖该选择。旧版可能将此项设为了关闭，需要自动安装时请在 Zotero 中改为「默认」或「开启」；手动检查不受影响。插件的「忽略此版本」只隐藏本插件的提醒，不改变 Zotero 的自动安装策略。
+</div>
+
+安装器更新插件时同样会提示退出 Zotero，再自动安装到所选配置。声音位置、个人设置与阅读进度独立保存。
+
+**两种更新入口：** Paper Voice 设置中的检查更新，以及 Zotero「工具 → 插件 → 齿轮 → 检查更新」。插件可按天、周或月提醒，也可忽略一个版本；Zotero 的自动安装策略由插件管理器中的「自动更新」决定，二者互不替代。若希望 Zotero 自动安装，请将其设为默认或开启。
+
+发布页仅提供 DMG 和 EXE。安装器与更新器从独立下载地址获取 XPI；`updates.json` 提供版本、下载链接和校验信息，本身不是插件文件。下载失败不会移除现有插件。
 
 ## 安装遇到问题
 
-**系统提示无法验证开发者或发行者**<br>
-当前安装器未使用 Apple Developer ID 公证或 Windows Authenticode 证书。在 Mac 上，先尝试打开安装助手一次；若被拦截，再到 **系统设置 → 隐私与安全性 → 仍要打开**。仅在确认安装器来自 [Paper Voice 官方发布页](https://github.com/JunyanKang/paper-voice/releases) 时允许运行。在 Windows 安全提示中也请先核对来源。无需关闭全局系统保护。
+**没有找到 Zotero 或配置**<br>
+先打开 Zotero 一次；自定义程序位置用「选择 Zotero」，自定义配置用「选择配置」。不要选择文献库存储目录。
+
+**下载或校验失败**<br>
+确认网络可访问下载服务（`kanglab.cool/paper-voice`，由 GitHub Pages 托管），再重试。已校验文件可复用；确保有足够磁盘空间。
 
 **Windows 提示缺少 DLL**<br>
-安装 [Microsoft Visual C++ x64 运行库](https://aka.ms/vs/17/release/vc_redist.x64.exe)，再运行安装器。
+安装 [Microsoft Visual C++ x64 运行库](https://aka.ms/vs/17/release/vc_redist.x64.exe)，再打开安装器。
 
-**下载失败或文件校验失败**<br>
-下载由 GitHub Pages 提供，需要能够访问该服务。检查网络后点击重试；已校验的分块会继续使用，损坏的文件会重新获取。安装器需要为下载、解压和安装保留足够空间；首次安装建议预留 3 GB。
+**安装完成却没有声音**<br>
+先在声音设置中试听，检查音量与输出设备。声音目录移动过或磁盘未连接时，重新指定位置。
 
-**找不到声音**<br>
-确认安装已完成，或到声音设置重新选择声音文件夹。移动硬盘暂未连接时，先恢复连接。插件不会改写 PDF 或文献库。
-
-更多范围见 [兼容性](COMPATIBILITY.md)。需要帮助时，可到 [Issues](https://github.com/JunyanKang/paper-voice/issues) 提供系统版本、Zotero 版本和错误提示；请勿附带未公开论文或个人资料库。
+仍有问题时，在 [Issues](https://github.com/JunyanKang/paper-voice/issues) 提供系统、Zotero 版本、失败步骤与错误提示。不要附上私人文献库或未发表论文。
 
 ## 卸载
 
-在 Zotero 插件管理器中停用或移除 Paper Voice。若不再需要声音，可删除实际使用的 `paper-voice-engine` 文件夹。自动发现记录是默认目录旁的 `paper-voice-location.json`，也可删除。下载缓存位于 Mac 的 `~/Library/Caches/PaperVoiceInstaller` 或 Windows 的 `%LOCALAPPDATA%\PaperVoiceInstaller`。
+在 Zotero 插件管理器停用或移除 Paper Voice。不再需要声音时，可删除实际的 `paper-voice-engine` 目录，以及默认声音目录旁的 `paper-voice-location.json`。
 
-个人设置和阅读进度保存在 Zotero 偏好设置的 `extensions.paperVoice.*` 下。文献和批注不受影响。
+安装器缓存位于 Mac 的 `~/Library/Caches/PaperVoiceInstaller` 或 Windows 的 `%LOCALAPPDATA%\PaperVoiceInstaller`。偏好与进度使用 Zotero 的 `extensions.paperVoice.*` 设置；论文和批注不受影响。
 
 ---
 
-[产品首页](../README.md) · [使用指南](GUIDE.md) · [兼容性](COMPATIBILITY.md) · [隐私说明](../PRIVACY.md)
+[产品首页](../README.md) · [使用指南](GUIDE.md) · [兼容性](COMPATIBILITY.md) · [隐私](../PRIVACY.md)

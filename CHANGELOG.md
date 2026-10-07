@@ -1,5 +1,13 @@
 # 更新记录
 
+## 1.4.9 · 2026-10-07
+
+- 重整中英文 README、安装与使用指南；增加独立翻译指南，更新真实界面截图与统一文档导航。
+- Windows 安装器完善自定义 Zotero 路径识别：保留目录中的逗号，处理引号与环境变量，补充用户级程序目录；选错程序时显示提示。
+- 增加路径解析与官方 Zotero 自定义目录安装验证。
+
+Reorganized bilingual product and task documentation with current UI captures and a dedicated translation guide. Windows discovery now handles quoted paths, environment variables and commas in directory names, checks per-user program folders, and explains invalid manual selections. Includes compiled path fixtures and a real custom-directory Zotero installation check.
+
 ## 1.4.8 · 2026-10-07
 
 - 修复自定义提示系统仍为工具栏图标生成文字提示的问题，保留无障碍名称。

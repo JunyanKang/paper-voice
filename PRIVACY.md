@@ -1,9 +1,9 @@
-<p align="center"><img src="addon/assets/mascot.png" width="64" alt="Paper Voice"></p>
+<p align="center"><img src="addon/assets/mascot.png" width="72" alt="Paper Voice"></p>
 
 <h1 align="center">隐私说明</h1>
 
-<p align="center"><b>简体中文</b> · <a href="PRIVACY.en.md">English</a></p>
 <p align="center">了解哪些内容留在本机，以及何时会连接外部服务。</p>
+<p align="center"><b>简体中文</b> · <a href="PRIVACY.en.md">English</a></p>
 <p align="center"><a href="README.md">产品首页</a> · <a href="docs/GUIDE.md">使用指南</a> · <a href="docs/INSTALL.md">安装与卸载</a></p>
 
 Paper Voice 不含遥测、广告、统计 SDK 或用户账户。插件、离线朗读与公共翻译通道免费；可选大模型翻译使用用户自己的 API 密钥，费用由服务商收取。
@@ -24,11 +24,36 @@ Paper Voice 不含遥测、广告、统计 SDK 或用户账户。插件、离线
 
 翻译需要联网，由所选服务接收翻译所需文字：
 
-| 功能 | 默认状态 | 发送的内容 |
-|---|---|---|
-| **划词翻译** | 开启 | 所选范围的文字；划选范围补全不完整单词，单句／段落范围扩展到所在句段 |
-| **显示译文** | 关闭 | 当前原句及预取的下一句 |
-| **朗读译文** | 关闭 | 当前原句及预取的下一句 |
+<div align="center">
+
+<table align="center">
+<thead>
+<tr>
+  <th align="center">功能</th>
+  <th align="center">默认状态</th>
+  <th align="center">发送的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center"><strong>划词翻译</strong></td>
+  <td align="center">开启</td>
+  <td align="center">所选范围的文字；划选范围补全不完整单词，单句／段落范围扩展到所在句段</td>
+</tr>
+<tr>
+  <td align="center"><strong>显示译文</strong></td>
+  <td align="center">关闭</td>
+  <td align="center">当前原句及预取的下一句</td>
+</tr>
+<tr>
+  <td align="center"><strong>朗读译文</strong></td>
+  <td align="center">关闭</td>
+  <td align="center">当前原句及预取的下一句</td>
+</tr>
+</tbody>
+</table>
+
+</div>
 
 服务可以是腾讯、微软、Google 或用户配置的大模型 API。服务商可收到文字、IP 地址及一般网络请求信息，并适用其自身的隐私政策。插件不会上传整篇 PDF 文件、批注或文献库。
 
@@ -46,7 +71,7 @@ Paper Voice 不含遥测、广告、统计 SDK 或用户账户。插件、离线
 
 ## 更新、外部链接与卸载
 
-Zotero 检查插件更新时访问 GitHub，不发送论文内容。点击指南、反馈或隐私链接时，打开相应 GitHub 页面。
+Zotero 检查更新时访问 `kanglab.cool/paper-voice/updates.json`（由 GitHub Pages 托管），下载相应 XPI；这些请求不发送论文内容。点击指南、反馈或隐私链接时，打开相应 GitHub 页面。
 
 停用插件会停止朗读并移除临时界面。卸载后，声音包与偏好设置可按[安装指南中的卸载步骤](docs/INSTALL.md#卸载)清理。
 

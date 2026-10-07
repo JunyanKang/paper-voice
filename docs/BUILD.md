@@ -1,4 +1,8 @@
-# Build and release
+<p align="center"><img src="../addon/assets/mascot.png" width="72" alt="Paper Voice"></p>
+
+<h1 align="center">Build and release</h1>
+
+<p align="center">Developer reference · <a href="../README.en.md">Product home</a> · <a href="INSTALL.en.md">User installation</a></p>
 
 Paper Voice publishes two user-facing assets: a macOS DMG and a Windows EXE. The plugin, update feed and verified voice chunks are served separately through GitHub Pages.
 
@@ -44,6 +48,18 @@ Both interfaces share a 640 × 510 layout, the bundled Voice Sans subset, three 
 
 `--quiet`, `--package-dir`, `--destination`, `--pointer`, `--download-dir`, `--plugin-dir` and `--screenshot` exist for isolated validation. With no `--package-dir`, the actual HTTPS downloader is exercised. Never point validation at a user's existing voices.
 
+## Zotero application and profile discovery
+
+Application location and profile location are independent. Windows reads the running executable, both registry views of App Paths and Uninstall records under HKCU/HKLM, then common system and per-user folders. Paths are normalized without splitting commas in directory names. Each candidate must pass the executable identity and application.ini version check. No recursive disk scan is performed. Manual selection remains available for moved or unregistered applications.
+
+Both platforms read profiles.ini for relative and absolute profile paths. Installation requires a valid profile and an exclusive native profile lock; package replacement is verified and backed up. First-time activation remains Zotero's responsibility. The installer does not bypass addon security or rewrite the library database.
+
+Run `validate_zotero_setup.py` for disposable profile and atomic-placement fixtures, `validate_windows_discovery.py` for compiled Windows path parsing, and `validate_zotero_native_setup.py` against official Zotero. The Windows native test installs into a custom directory containing Chinese characters, spaces and a comma and checks discovery before launch.
+
+## Documentation
+
+README introduces the product; INSTALL owns setup, custom paths, updates and removal; GUIDE owns everyday reading; TRANSLATION owns service and API configuration; COMPATIBILITY owns support limits; PRIVACY owns data flows. Update Chinese and English counterparts together. Use actual UI captures from an isolated profile, tightly framed around the task, without unrelated desktop backgrounds. Preview and check local links with `python scripts/check_docs.py`; generated previews stay under `.build/`.
+
 ## Publish checklist
 
 1. Set the same version in `package.json` and `addon/manifest.json`; update the changelog and bilingual product documents.
@@ -52,7 +68,7 @@ Both interfaces share a 640 × 510 layout, the bundled Voice Sans subset, three 
 4. Create a release containing **only the DMG and EXE** as uploaded assets. Download both public assets and compare their hashes. GitHub's automatic source archive links are separate from uploaded assets.
 5. Do not publish test profiles, test reports, voice chunks, XPI or update JSON as current release attachments.
 
-Old clients through **1.3.10** use the previous Releases update URL. Because the new release contains only installers, these users must run the new installer once with **Plugin only** and install its XPI to migrate. Voices from **1.2.5 or earlier** require a full voice update. Future plugin updates preserve the configured voice location and reading progress.
+Old clients through **1.3.10** use the previous Releases update URL. Because the new release contains only installers, these users must run the new installer once with **Plugin only** and quit Zotero when prompted so setup can install into the selected profile. Voices from **1.2.5 or earlier** require a full voice update. Future plugin updates preserve the configured voice location and reading progress.
 
 `scripts/package_release.py` and **Restore release bundles** are historical pre-1.4 tooling. The ZIP packager refuses current versions. Rebuilding a historical package should use its historical checkout.
 

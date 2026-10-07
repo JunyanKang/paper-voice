@@ -1,99 +1,121 @@
-<p align="center"><img src="docs/assets/paper-voice-banner.png" width="960" alt="Paper Voice · 为论文阅读，多添一种节奏"></p>
+<p align="center"><img src="addon/assets/mascot.png" width="72" alt="Paper Voice"></p>
 
 <h1 align="center">论文，也可以听。</h1>
 
+<p align="center">在 Zotero 中听原文、看译文，按自己的节奏读懂论文。</p>
 <p align="center"><b>简体中文</b> · <a href="README.en.md">English</a></p>
 
-<p align="center">在 Zotero 里听论文，跟着原文理解，也让译文随行。<br>从精听一句，到连续读完一篇。</p>
-<p align="center"><b>免费开源 · 离线声音 · 原文随读高亮</b></p>
-<p align="center"><a href="#下载与安装">下载与安装</a> · <a href="docs/GUIDE.md">图文使用指南</a> · <a href="https://github.com/JunyanKang/paper-voice/issues">反馈问题</a></p>
+<p align="center"><b>免费开源 · 离线朗读 · 随读定位</b></p>
+<p align="center"><a href="https://github.com/JunyanKang/paper-voice/releases/latest">下载安装器</a> · <a href="docs/INSTALL.md">安装指南</a> · <a href="docs/GUIDE.md">使用指南</a></p>
 
-<p align="center"><img src="docs/assets/readme-reading-zh.png" width="960" alt="Paper Voice 在 Zotero 中朗读示例 PDF：原句高亮，译文就近显示，右侧面板控制阅读模式与播放"></p>
+Paper Voice 为 Zotero PDF 阅读器加入自然语音朗读与随句翻译。从一句难懂的论述，到连续读完整篇论文，让听、看和理解发生在同一处。
 
-## 按自己的节奏，读进去
+## 为论文阅读而设计
 
-难懂的长句，多听一次；熟悉的段落，继续向前。四种模式适配不同的阅读时刻。
+- **更连贯的正文听读。** 过滤可识别的文献标注、页眉页脚和图注，优化单位、比例、上下标的读法，不改动 PDF 或批注。
+- **适合自己的声音。** 自动识别朗读语言，提供 14 种离线声音，英语可选美音、英音及男女声。
+- **顺手的阅读空间。** 自定义快捷键、主题和译文字体；面板需要时展开，回到正文操作时自动收起。
 
-| 想怎么听 | 选择模式 | 怎样开始 |
-|---|---|---|
-| 听懂一句 | **单句** | 选中任意一个词，听所在完整句子 |
-| 聚焦一小段 | **划选** | 只读实际选中的文字 |
-| 理解整段论述 | **段落** | 选中段内文字，听完整段落 |
-| 连贯地往下读 | **全文** | 从首页、当前页、选定句或上次位置开始 |
+<p align="center"><img src="docs/assets/settings-appearance-zh.png" width="340" alt="外观集中设置，阅读时只留下需要的控件。"></p>
+<p align="center"><sub>外观集中设置，阅读时只留下需要的控件。</sub></p>
 
-单句、划选和段落支持循环播放。最近的听读位置会保留，重启或更新后也能接着听。
+## 一句精听，一篇连读
 
-## 声音向前，目光跟上
+选择一个词，就能听所在的完整句子或段落；也可以只读划选内容，或从选定句开始连续阅读。单句、划选和段落支持循环，最近的阅读位置会在重启、更新后保留。
 
-当前原句随读高亮，页面跟随滚动、换栏和翻页。悬浮控制条让暂停、重读和跳转触手可及，不必一直展开面板。
+<p align="center"><img src="docs/assets/reading-panel-zh.png" width="340" alt="四种阅读模式，把听读范围交给你。"></p>
+<p align="center"><sub>四种阅读模式，把听读范围交给你。</sub></p>
 
-为论文正文做了专门处理：略过可识别的引文标记、图注和出版信息，保留正文中有实际含义的图示说明；优化常见单位、比例与上下标的读法。**处理只用于听读，不改动 PDF 或批注。**
+页面随朗读滚动、换栏和翻页。遇到想再听一次的内容，按 **←** 重读当前句；按 **↓** 向下一句，按 **空格** 暂停或继续。悬浮控制条也能完成句子与段落跳转。
 
+<p align="center"><img src="docs/assets/reading-focus-zh.png" width="720" alt="实际界面 · 正在听的句子高亮，译文紧随原文。示例文字用于演示。"></p>
+<p align="center"><sub>实际界面 · 正在听的句子高亮，译文紧随原文。示例文字用于演示。</sub></p>
 
-<p align="center"><img src="docs/assets/pause-navigation-zh.png" width="440" alt="悬停暂停／继续，展开句子与段落导航。"></p>
-<p align="center"><sub>悬停暂停／继续，展开句子与段落导航。</sub></p>
+## 译文就在原句旁
 
-## 看懂另一种语言，也可以听懂
+**划选即译**，可在划选、单句和段落之间切换翻译范围。朗读时，译文跟随当前句；开启 **朗读译文** 后，只播放译文声音，原文仍保持高亮定位。
 
-- **划选即译。** 在选区旁查看译文，范围可切换为划选、单句或段落；英文单词未选完整时自动补全用于翻译。
-- **边听边看。** 译文跟随正在朗读的原句，按正文区域调整宽度，可放在原句上方或下方。
-- **直接听译文。** 切换后只播放译文声音，原文仍高亮定位。
+<p align="center"><img src="docs/assets/selection-translation-zh.png" width="400" alt="选择翻译范围，查看译文，再从这里开始听。"></p>
+<p align="center"><sub>选择翻译范围，查看译文，再从这里开始听。</sub></p>
 
-
-<p align="center"><img src="docs/assets/selection-translation-zh.png" width="440" alt="划选后就近查看译文，切换范围后再决定从哪里开始听。"></p>
-<p align="center"><sub>划选后就近查看译文，切换范围后再决定从哪里开始听。</sub></p>
-
-<p align="center"><img src="docs/assets/translation-audio-zh.png" width="360" alt="亮色耳麦表示正在使用译文朗读；点击可切回原文。"></p>
-<p align="center"><sub>亮色耳麦表示正在使用译文朗读；点击可切回原文。</sub></p>
-
-翻译服务可选 **腾讯、微软、Google**，也可接入自己的 **MiniMax、DeepSeek、通义千问、OpenAI、Claude、Gemini** 等大模型 API。[查看接入方法 →](docs/GUIDE.md#大模型翻译)
-
-**4 种朗读语言，14 种离线声音。** 支持英语、中文、日语与法语，自动识别语言，也可手动选择。英语提供美音、英音及男女声；译文朗读同样支持这四种语言。
-
-**9 种译文目标，5 种界面语言。** 简体、繁体和多种外语可作为翻译目标；界面支持中、英、日、法、德。[查看语言与声音 →](docs/GUIDE.md#选择语言与声音)
-
-<p align="center"><img src="docs/assets/settings-voice-zh.png" width="320" alt="Voice settings"> <img src="docs/assets/settings-translation-zh.png" width="320" alt="Translation settings"></p>
-<p align="center"><sub>选择声音与语速，再决定看译文还是听译文。</sub></p>
-
-## 顺手，才会一直用
-
-按 **空格** 暂停／继续，按 **↑ / ↓** 跳到上一句／下一句，按 **Esc** 停止。快捷键可自定义，修改时会检测冲突。[全部快捷键 →](docs/GUIDE.md#键盘快捷键)
-
-10 套主题、自定义背景和透明度，搭配本机字体与可调译文字号，让阅读界面适合你的习惯。书页精灵提供轻量互动，也可在设置中关闭。
-
-<p align="center"><img src="docs/assets/settings-themes-zh.png" width="320" alt="Ten themes in appearance settings"> <img src="docs/assets/settings-shortcuts-zh.png" width="320" alt="Custom keyboard shortcuts"></p>
-<p align="center"><sub>外观与快捷键各有独立设置页，按自己的习惯调整。</sub></p>
+翻译可选腾讯、微软、Google，也可接入自己的大模型 API。支持多种译文目标语言；英语、中文、日语与法语可使用离线声音朗读。[翻译设置与 API 接入 →](docs/TRANSLATION.md)
 
 ## 下载与安装
 
-适用于 **Zotero 10**。下载轻量安装器，按需获取插件与离线声音，无需另装 Python。
+适用于 **Zotero 10**。先安装并打开 Zotero，再从 [官方发布页](https://github.com/JunyanKang/paper-voice/releases/latest) 获取对应安装器。
 
-**[Windows 安装器 · EXE →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
-Intel / AMD 64 位电脑
+<div align="center">
 
-**[Mac 安装器 · DMG →](https://github.com/JunyanKang/paper-voice/releases/latest)**<br>
-Apple 芯片（M 系列）· macOS 14 或更新版本
+<table align="center">
+<thead>
+<tr>
+  <th align="center">Windows</th>
+  <th align="center">macOS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center"><strong>EXE 安装器</strong></td>
+  <td align="center"><strong>DMG 安装器</strong></td>
+</tr>
+<tr>
+  <td align="center">Intel / AMD x64</td>
+  <td align="center">Apple 芯片 · macOS 14+</td>
+</tr>
+</tbody>
+</table>
 
-1. **准备声音。** 打开安装器，选择声音保存位置，点击「下载并安装」。已有完整声音会自动复用。
-2. **启用插件。** 安装器自动识别 Zotero 和用户配置；按提示退出 Zotero 后自动放置插件。点击「打开 Zotero」，首次在「工具 → 插件」中启用 Paper Voice。
-3. **开始听读。** 打开可选中文字的 PDF，划选正文；点击书页精灵调整模式、声音与翻译。
+</div>
 
-<p align="center"><img src="docs/assets/installer-macos.png" width="640" alt="轻量安装器：三个下载项目、声音路径与底部操作区"></p>
+1. **准备声音：** 打开安装器，点击「下载并安装」，首次按需下载插件和声音。
+2. **启用插件：** 按提示退出 Zotero，安装器自动安装到所选配置；首次打开后，在「工具 → 插件」中启用 Paper Voice。
+3. **开始听读：** 打开可选中文字的 PDF，划选正文，点击书页精灵选择阅读模式。
 
-首次下载需要联网，声音装好后可离线听读。扫描版 PDF 需先完成文字识别。
-
-**[图文使用指南 →](docs/GUIDE.md)** · [安装与升级](docs/INSTALL.md) · [平台兼容性](docs/COMPATIBILITY.md)
-
-已有用户请先查看[升级说明](docs/INSTALL.md#更新已有插件)。安装器提供「仅更新插件」；完成迁移后，仍可在插件设置中检查更新。
+[详细安装步骤、其他安装路径与升级 →](docs/INSTALL.md)
 
 ## 免费与隐私
 
-**插件与离线朗读免费，无需订阅或 API 密钥。** 声音在本机生成；关闭翻译后，原文听读可完全离线使用。
+插件与离线朗读免费，无需订阅或 API 密钥。首次下载声音需要联网，之后原文朗读在本机完成。扫描件需先进行 OCR。
 
-翻译需要联网，划词翻译默认开启。所选服务只接收翻译所需文字，不上传整篇 PDF 或文献库；可在设置中关闭。可选的大模型 API 使用你自己的密钥，费用由服务商收取。[隐私说明 →](PRIVACY.md)
+翻译需要联网，划词翻译默认开启；仅发送翻译所需文字，不上传整篇 PDF 或文献库。可选大模型使用自己的 API 密钥，费用由服务商决定。[数据与隐私 →](PRIVACY.md)
 
----
+## 文档与支持
 
-[使用指南](docs/GUIDE.md) · [常见问题](docs/GUIDE.md#更新与常见问题) · [反馈与建议](https://github.com/JunyanKang/paper-voice/issues) · [致谢](docs/ACKNOWLEDGMENTS.md)
+<div align="center">
 
-Created by [Junyan Kang](https://github.com/JunyanKang) · [MIT License](LICENSE)
+<table align="center">
+<thead>
+<tr>
+  <th align="center">我想…</th>
+  <th align="center">阅读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td align="center">安装、升级或更换声音路径</td>
+  <td align="center"><a href="docs/INSTALL.md">安装指南</a></td>
+</tr>
+<tr>
+  <td align="center">了解模式、跳转和快捷键</td>
+  <td align="center"><a href="docs/GUIDE.md">使用指南</a></td>
+</tr>
+<tr>
+  <td align="center">设置翻译或接入大模型</td>
+  <td align="center"><a href="docs/TRANSLATION.md">翻译指南</a></td>
+</tr>
+<tr>
+  <td align="center">了解平台支持与限制</td>
+  <td align="center"><a href="docs/COMPATIBILITY.md">兼容性</a></td>
+</tr>
+<tr>
+  <td align="center">参与开发</td>
+  <td align="center"><a href="docs/BUILD.md">构建与发布</a></td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+问题与建议请提交至 [Issues](https://github.com/JunyanKang/paper-voice/issues)，附上系统、Zotero 版本和可复现的步骤。
+
+<p align="center">Created by <a href="https://github.com/JunyanKang">Junyan Kang</a> · <a href="LICENSE">MIT License</a> · <a href="docs/ACKNOWLEDGMENTS.md">致谢</a></p>
