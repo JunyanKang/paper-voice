@@ -54,10 +54,23 @@ with tempfile.TemporaryDirectory(prefix='voice-native-') as temp:
    subprocess.run(['powershell','-NoProfile','-Command','(Get-Item -LiteralPath '+chr(39)+str(binary).replace(chr(39),chr(39)*2)+chr(39)+').VersionInfo | Format-List ProductName,ProductVersion'],check=True)
   detection=call('discover');assert detection['profiles'][0]['name']=='QA';assert detection['applications'],detection;checks.append('official application detected and identity/version validated')
  finally:
-  if win:subprocess.run(['taskkill','/PID',str(proc.pid),'/T','/F'],capture_output=True)
+  if win:
+   # Zotero's launcher may exit after handing off to a new process. Stop only
+   # this disposable host, not an unrelated user's Zotero installation.
+   assert binary.is_relative_to(host)
+   subprocess.run(['powershell','-NoProfile','-Command',
+    "Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -eq $env:PV_QA_BINARY } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"],
+    env={**os.environ,'PV_QA_BINARY':str(binary)},check=True,capture_output=True)
   else:proc.terminate()
   try:proc.wait(timeout=30)
   except subprocess.TimeoutExpired:proc.kill();proc.wait(timeout=10)
   log.close()
+  if win:
+   # File handles can outlive process termination briefly on Windows.
+   for attempt in range(30):
+    try:shutil.rmtree(t);break
+    except PermissionError:
+     if attempt==29:raise
+     time.sleep(.2)
  report={'passed':True,'version':version,'platform':sys.platform,'checks':checks,'metadata':{k:metadata.get(k) for k in ['version','active','userDisabled','appDisabled','foreignInstall']}}
  (base/'zotero-native-setup.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
