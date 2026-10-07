@@ -36,17 +36,17 @@ Translation requires a connection to the service you select:
 </thead>
 <tbody>
 <tr>
-  <td align="center"><strong>Selection translation</strong></td>
+  <td align="center"><strong>Selection</strong></td>
   <td align="center">On</td>
   <td align="center">The selected scope; partial words are completed, and Sentence/Paragraph scopes expand to the containing passage</td>
 </tr>
 <tr>
-  <td align="center"><strong>Captions</strong></td>
+  <td align="center"><strong>Show translation</strong></td>
   <td align="center">Off</td>
   <td align="center">The current source sentence and a prefetched next sentence</td>
 </tr>
 <tr>
-  <td align="center"><strong>Translated audio</strong></td>
+  <td align="center"><strong>Read translation</strong></td>
   <td align="center">Off</td>
   <td align="center">The current source sentence and a prefetched next sentence</td>
 </tr>
@@ -57,7 +57,7 @@ Translation requires a connection to the service you select:
 
 The service may be Tencent, Microsoft, Google or your configured LLM API. The provider can receive the text, your IP address and ordinary request information; its own privacy policy applies. The plugin does not upload the entire PDF file, annotations or library.
 
-**For fully offline use:** turn off Selection translation, Captions and Translated audio under Settings → Translate.
+**For fully offline use:** turn off Selection, Show translation and Read translation under Settings → Translate.
 
 When a compatible Translate for Zotero version is installed, Paper Voice first requests the chosen free service through its public interface. It does not read that plugin's keys or select paid services. If the interface is unavailable, it uses the same service's free public channel.
 

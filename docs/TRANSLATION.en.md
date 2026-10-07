@@ -72,7 +72,7 @@ Domestic APIs can be configured for mainland China without routing through an ov
 
 Check the network, target language and selected service. For an API, check the model name, endpoint, key permissions and available balance, then select **Save & test**. Its sample result and elapsed time help you assess the connection. App subscriptions do not always include API access.
 
-For private or unpublished text, review your provider's data policy before enabling translation. For fully offline reading, turn off Selection translation, Captions and Translated audio. [Privacy](../PRIVACY.en.md)
+For private or unpublished text, review your provider's data policy before enabling translation. For fully offline reading, turn off Selection, Show translation and Read translation. [Privacy](../PRIVACY.en.md)
 
 ---
 

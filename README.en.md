@@ -33,7 +33,7 @@ The page follows your place across columns and pages. Press **←** to repeat a 
 
 ## Translation, close to the text
 
-**Select to translate**, then choose a selection, sentence or paragraph as the scope. During playback, captions follow the current sentence. Turn on **Translated audio** to hear only the translation while the original remains highlighted.
+**Select to translate**, then choose a selection, sentence or paragraph as the scope. During playback, captions follow the current sentence. Turn on **Read translation** to hear only the translation while the original remains highlighted.
 
 <p align="center"><img src="docs/assets/selection-translation-en.png" width="400" alt="Choose a scope, read its translation, then start listening here."></p>
 <p align="center"><sub>Choose a scope, read its translation, then start listening here.</sub></p>

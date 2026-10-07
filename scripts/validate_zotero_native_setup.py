@@ -5,7 +5,14 @@ r=Path(__file__).resolve().parents[1];base=r/'.build/online-installers';config=j
 installer=r/'dist'/f'Paper-Voice-{version}-Windows.exe' if win else base/'Paper Voice Installer.app/Contents/MacOS/Paper Voice Installer';xpi=r/'dist/Paper Voice'/config['plugin']['name'];host=r/'.build/zotero-setup-host';host.mkdir(exist_ok=True)
 release='10.0.3-beta.2%2B80bc5565e';prefix=f'https://download.zotero.org/client/beta/{release}/Zotero-{release}'
 if win:
- setup=host/'setup.exe';urllib.request.urlretrieve(prefix+'_x64_setup.exe',setup);app=host/'研究 Tools, custom'/'Zotero';app.parent.mkdir(parents=True,exist_ok=True);subprocess.run([str(setup),'/S','/D='+str(app)],check=True,timeout=180);binary=app/'zotero.exe'
+ setup=host/'setup.exe';urllib.request.urlretrieve(prefix+'_x64_setup.exe',setup)
+ app=host/'研究 Tools, custom'/'Zotero';app.parent.mkdir(parents=True,exist_ok=True)
+ # Zotero's Mozilla/NSIS wrapper accepts /INI, not the generic NSIS /D switch.
+ # UTF-16 is Windows INI's Unicode encoding, preserving Chinese directory names.
+ install_ini=host/'custom-install.ini'
+ install_ini.write_text('[Install]\nInstallDirectoryPath='+str(app)+'\nDesktopShortcut=false\nQuickLaunchShortcut=false\nStartMenuShortcuts=false\n',encoding='utf-16')
+ subprocess.run([str(setup),'/S','/INI='+str(install_ini)],check=True,timeout=180);binary=app/'zotero.exe'
+ assert binary.exists(),f'Official installer did not honor custom path: {binary}'
 else:
  custom=os.environ.get('PAPER_VOICE_QA_APP')
  if custom:app=Path(custom)

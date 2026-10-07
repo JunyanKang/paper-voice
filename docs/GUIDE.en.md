@@ -118,15 +118,15 @@ Open **Settings → Translate**, choose a service and target language, then sele
 </thead>
 <tbody>
 <tr>
-  <td align="center"><strong>Selection translation</strong></td>
+  <td align="center"><strong>Selection</strong></td>
   <td align="center">Translation beside a selection; on by default</td>
 </tr>
 <tr>
-  <td align="center"><strong>Captions</strong></td>
+  <td align="center"><strong>Show translation</strong></td>
   <td align="center">Translation follows the current sentence during playback</td>
 </tr>
 <tr>
-  <td align="center"><strong>Translated audio</strong></td>
+  <td align="center"><strong>Read translation</strong></td>
   <td align="center">Only the translation is spoken; the original stays highlighted</td>
 </tr>
 </tbody>

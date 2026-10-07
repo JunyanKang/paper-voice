@@ -6,7 +6,7 @@ from urllib.parse import unquote
 import re, json, markdown2, hashlib
 root=Path(__file__).resolve().parents[1]
 out=root/'.build/docs-preview';out.mkdir(parents=True,exist_ok=True)
-names=['README.md','README.en.md','PRIVACY.md','PRIVACY.en.md']+[str(p.relative_to(root)) for p in sorted((root/'docs').glob('*.md'))]
+names=['README.md','README.en.md','PRIVACY.md','PRIVACY.en.md']+[str(p.relative_to(root)) for p in sorted((root/'docs').glob('*.md')) if p.name!='release-research.md']
 css='''body{margin:0;color:#1f2328;background:#f6f8fa;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}article{max-width:830px;margin:24px auto;padding:32px;background:white;border:1px solid #d1d9e0;border-radius:6px}h1{font-size:32px}h2{font-size:24px;border-bottom:1px solid #d1d9e0;padding-bottom:.3em;margin-top:32px}h3{font-size:20px;margin-top:24px}img{max-width:100%;height:auto}a{color:#0969da;text-decoration:none}table{border-collapse:collapse;margin-top:16px;margin-bottom:16px;max-width:100%}td,th{padding:6px 13px;border:1px solid #d1d9e0}tr:nth-child(2n){background:#f6f8fa}code{background:#eff1f3;padding:2px 4px;border-radius:4px;overflow-wrap:anywhere}pre{overflow:auto;background:#eff1f3;padding:16px}li{margin:4px 0}sub{font-size:13px;color:#57606a}hr{border:0;border-top:1px solid #d1d9e0;margin:28px 0}@media(max-width:700px){article{margin:0;padding:20px;border:0}h1{font-size:28px}h2{font-size:22px}table{font-size:13px}td,th{padding:6px 8px}}'''
 def slug(s):return re.sub(r'[^\w\-\s]','',re.sub(r'<[^>]+>','',s).lower()).replace(' ','-')
 checks=[]
