@@ -348,7 +348,7 @@ var PaperVoice = {
     if(this.caption){this.applyCaptionTypography(this.caption.box);this.positionTranslation(this.caption);}
     for(const reader of Zotero.Reader._readers)for(const box of reader._iframeWindow?.document.querySelectorAll('.pv-selection-translation')||[])this.applyCaptionTypography(box);
   },
-  surfaceOpacity() {return 1-Math.max(0,Math.min(40,Number(this.get('surfaceTransparency',12))||0))/100;},
+  surfaceOpacity() {return 1-Math.max(0,Math.min(40,Number(this.get('surfaceTransparency',0))||0))/100;},
   async setCaptionPlacement(value) {
     if(!['above','below'].includes(value))return;
     this.set('captionPlacement',value);Services.prefs.savePrefFile(null);this.syncSettings();
@@ -376,7 +376,7 @@ var PaperVoice = {
       if(find('companion'))find('companion').checked=this.get('companionInteractions',true);
       if(find('captionPlacement'))find('captionPlacement').value=this.get('captionPlacement','below');
       if(find('captionFont')){this.syncCaptionFonts(find('captionFont'));find('captionSize').value=this.get('captionSize',12);}
-      if(find('transparency')){find('transparency').value=this.get('surfaceTransparency',12);find('transparencyLabel').textContent=this.get('surfaceTransparency',12)+'%';}
+      if(find('transparency')){find('transparency').value=this.get('surfaceTransparency',0);find('transparencyLabel').textContent=this.get('surfaceTransparency',0)+'%';}
       if(find('language')){find('language').value=this.get('interfaceLanguage','auto');find('language').querySelector('[value=auto]').textContent=this.t('跟随系统');}
       if(find('speechLanguage')) {
         find('speechLanguage').value=this.get('speechLanguage','auto');

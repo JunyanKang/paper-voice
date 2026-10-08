@@ -1,5 +1,12 @@
 # 更新记录
 
+## 1.4.11 · 2026-10-08
+
+- 移除透明度滑块获得焦点时多出的矩形底色与外框，保留圆点上的轻量键盘焦点提示。
+- 默认透明度调整为 0%，保留已有的个人设置；包含上一版的点击、拖动与即时保存修复。
+
+Removed the rectangular fill and frame around the focused transparency slider, with a subtle keyboard focus indicator on the thumb. New installations default to 0% transparency; saved preferences are preserved. Includes the previous click, drag and save fixes.
+
 ## 1.4.10 · 2026-10-08
 
 - 修复透明度滑块点击与拖动不响应的问题，扩大可操作区域，保留键盘微调。

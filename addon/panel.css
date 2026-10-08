@@ -110,7 +110,7 @@
 .pv-shell button:focus-visible,.pv-shell select:focus-visible,.pv-shell input:focus-visible{outline:none;outline-offset:0}
 .pv-shell button:focus-visible,.pv-shell .pv-select-trigger:focus-visible{background:var(--pv-soft)}
 .pv-llm-row input:focus,.pv-llm-row input:focus-visible{outline:none;box-shadow:none;border-color:color-mix(in srgb,var(--pv-muted) 16%,transparent);background:var(--pv-paper);caret-color:var(--pv-accent)}
-.pv-shell input[type=range]:focus-visible{background:color-mix(in srgb,var(--pv-accent) 28%,var(--pv-soft))}
+.pv-shell input[type=range]:focus-visible{background:transparent}
 /* Standalone guidance uses a centered axis; field labels keep their shared edge. */
 .pv-mode-note{display:block;text-align:center;height:34px;line-height:17px;text-wrap:balance}
 .pv-status,.pv-privacy,.pv-sample,.pv-llm-result,.pv-settings-title{text-align:center}
@@ -203,6 +203,8 @@
 .pv-shell[data-theme] .pv-shortcut-key{background:var(--pv-soft);color:var(--pv-accent)}
 .pv-shell[data-theme] .pv-quick::before,.pv-shell[data-theme] .pv-nav-card::before,.pv-shell[data-theme] .pv-audio-toggle::before{background-image:linear-gradient(var(--pv-control-mask),var(--pv-control-mask)),var(--pv-art)}
 .pv-shell[data-theme] button:focus-visible,.pv-shell[data-theme] input:focus-visible{box-shadow:0 0 0 2px color-mix(in srgb,var(--pv-focus) 50%,transparent);outline:none}
+.pv-shell[data-theme] input[type=range]:focus-visible{background:transparent;box-shadow:none;outline:none}
+.pv-shell[data-theme] input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 2px color-mix(in srgb,var(--pv-focus) 35%,transparent)}
 .pv-shell[data-theme] .pv-tooltip{border-color:var(--pv-line);background:var(--pv-surface);color:var(--pv-muted)}
 
 /* A quiet continuous rim and common light direction separate every floating surface. */
