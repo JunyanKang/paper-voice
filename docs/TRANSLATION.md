@@ -42,7 +42,9 @@
 
 译文目标包括简体、繁体中文、英语、日语、法语、德语、西班牙语、韩语和俄语；离线声音支持英语、中文、日语和法语。界面语言单独设置。
 
-<p align="center"><img src="assets/settings-translation-zh.png" width="360" alt="选择翻译服务、目标语言与译文字体。"></p>
+译文位置也在此页设置，可选择原文上方或下方，默认下方。
+
+<p align="center"><img src="assets/settings-translation-zh.png" width="360" alt="选择翻译服务、目标语言、译文字体与位置。"></p>
 <p align="center"><sub>选择翻译服务、目标语言与译文字体。</sub></p>
 ## 大模型翻译
 

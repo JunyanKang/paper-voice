@@ -143,13 +143,15 @@ On the floating bar, **click the caption button to cycle target languages; doubl
 
 Caption fonts come from the fonts installed on your computer. Font size is adjustable, and overflowing text scrolls without a visible scrollbar. English, Chinese, Japanese and French support translated audio; other targets display text only.
 
+Under **Settings → Translate → Caption position**, place captions above or below the original. Below is the default; width follows the current text region.
+
 ### LLM translation
 
 See the [translation guide](TRANSLATION.en.md) for services, API keys and connection tests. Translation sends the required text to the selected service. Turn off all three translation options for offline original-text reading.
 
 ## Make the interface yours
 
-Under **Settings → Style**, choose a theme, transparency, caption position and interface language, or import a background. Captions appear below the original by default; choose Above to place them above it. Width follows the current text region.
+Under **Settings → Style**, choose a theme, transparency and interface language, or import a background.
 
 <p align="center"><img src="assets/settings-appearance-en.png" width="360" alt="Use the ellipsis to reveal all themes; choosing one closes the expanded list."></p>
 <p align="center"><sub>Use the ellipsis to reveal all themes; choosing one closes the expanded list.</sub></p>

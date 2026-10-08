@@ -42,7 +42,9 @@ Choose **LLM · API** to use your own model. This is optional; the plugin does n
 
 Caption targets include Simplified and Traditional Chinese, English, Japanese, French, German, Spanish, Korean and Russian. Offline audio is available for English, Chinese, Japanese and French. Interface language is a separate setting.
 
-<p align="center"><img src="assets/settings-translation-en.png" width="360" alt="Choose a service, target language and caption font."></p>
+Caption position is on this page too. Choose above or below the original; below is the default.
+
+<p align="center"><img src="assets/settings-translation-en.png" width="360" alt="Choose a service, target language, caption font and position."></p>
 <p align="center"><sub>Choose a service, target language and caption font.</sub></p>
 ## LLM translation
 

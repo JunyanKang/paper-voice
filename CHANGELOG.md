@@ -1,5 +1,12 @@
 # 更新记录
 
+## 1.4.12 · 2026-10-08
+
+- 将「译文位置」从外观设置移至译文设置，与译文语言、字体集中排列，保留已有位置选择。
+- 同步中英文使用与翻译指南。
+
+Moved Caption position from Style to Translate settings, alongside caption language and font, preserving the saved position. Updated the Chinese and English guides.
+
 ## 1.4.11 · 2026-10-08
 
 - 移除透明度滑块获得焦点时多出的矩形底色与外框，保留圆点上的轻量键盘焦点提示。
