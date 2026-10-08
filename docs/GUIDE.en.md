@@ -136,6 +136,8 @@ Open **Settings → Translate**, choose a service and target language, then sele
 
 Selection scope completes partially selected English words; Sentence and Paragraph expand to the corresponding unit. The selection menu closes when playback begins.
 
+While speech is being prepared, the button shows a loading animation. Click it again to cancel; your selection and translation stay in place so you can start again.
+
 <p align="center"><img src="assets/selection-translation-en.png" width="400" alt="Selection, Sentence and Paragraph change the translation scope."></p>
 <p align="center"><sub>Selection, Sentence and Paragraph change the translation scope.</sub></p>
 

@@ -1,5 +1,12 @@
 # 更新记录
 
+## 1.4.14 · 2026-10-08
+
+- 划选朗读的准备动画改为轻量波形，移除旋转箭头；准备时再次点击原按钮即可取消，保留划选和译文，支持重新开始。
+- 包含悬浮图标更新进度提示与动画改进。
+
+Selection playback preparation now uses a subtle wave instead of a rotating arrow. Click the same button again to cancel without losing the selection or translation, then start again when ready. Includes the mascot update progress improvements.
+
 ## 1.4.13 · 2026-10-08
 
 - 悬浮图标更新弹窗显示连接、下载、校验和安装状态，下载时显示真实进度；未获取总量时显示循环动画。

@@ -1019,6 +1019,10 @@ var PaperVoiceI18n = (() => {
  Object.assign(catalogs.ja,{'更新进度':'更新の進行状況','正在校验…':'検証中…','正在安装…':'インストール中…'});
  Object.assign(catalogs.fr,{'更新进度':'Progression','正在校验…':'Vérification…','正在安装…':'Installation…'});
  Object.assign(catalogs.de,{'更新进度':'Update-Fortschritt','正在校验…':'Wird geprüft…','正在安装…':'Wird installiert…'});
+ Object.assign(catalogs.en,{'点击取消':'Click to cancel','已取消准备':'Preparation cancelled'});
+ Object.assign(catalogs.ja,{'点击取消':'クリックでキャンセル','已取消准备':'準備をキャンセルしました'});
+ Object.assign(catalogs.fr,{'点击取消':'Annuler','已取消准备':'Préparation annulée'});
+ Object.assign(catalogs.de,{'点击取消':'Abbrechen','已取消准备':'Vorbereitung abgebrochen'});
  const keys=Object.keys(catalogs.en).sort((a,b)=>b.length-a.length);
  const pattern=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
  const sources=new WeakMap();

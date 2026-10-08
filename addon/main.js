@@ -182,14 +182,15 @@ var PaperVoice = {
     const position=params.annotation?.position;
     const selected={text,rawText:params.annotation?.text,pageIndex:position?.pageIndex??null,position:position?JSON.parse(JSON.stringify(position)):null,anchorOffset:this.selectionAnchor?.(reader,position)??null};
     button.addEventListener('click', async e => {
-      e.preventDefault();e.stopPropagation();if(button.disabled)return;
+      e.preventDefault();e.stopPropagation();if(this.cancelSelectionPreparation(button)||button.disabled)return;
       this.clearSelectionTimers();this.selectionContexts.set(reader,selected);this.lastText=text;this.lastReader=reader;
       this.currentSentence='';this.readProgress=null;
-      button.disabled=true;button.dataset.state='loading';PaperVoiceSelectionUI.updateButton(button,this.t('定位中…'),true);button.setAttribute('aria-busy','true');
+      button.dataset.state='loading';PaperVoiceSelectionUI.updateButton(button,this.t('定位中… · 点击取消'),true);button.setAttribute('aria-busy','true');
+      let generation;
       try{
         if(this.get('mode','selection')==='document'&&!fromSelection()){this.stop();this.set('mode','selection');this.syncSettings();}
-        await this.beginSelectionReading(reader,selected,button,fromSelection()?'selection':null);
-      }catch(error){this.setStatus(error.message||String(error),'error');}
+        const task=this.beginSelectionReading(reader,selected,button,fromSelection()?'selection':null);generation=this.generation;await task;
+      }catch(error){if(generation===this.generation)this.setStatus(error.message||String(error),'error');}
       finally{this.updateSelectionAction();}
     });
     selected.button=button;
@@ -454,15 +455,20 @@ var PaperVoice = {
     this.selectionAction={button,reader,generation:this.generation,...captured};
     this.updateSelectionAction();return task;
   },
+  cancelSelectionPreparation(button) {
+    const action=this.selectionAction;
+    if(this.state!=='loading'||action?.button!==button||action.generation!==this.generation||action.reader!==this.currentReader)return false;
+    this.stop(false);this.setStatus('已取消准备','idle');return true;
+  },
   updateSelectionAction() {
     const action=this.selectionAction;if(!action)return;
     const {button,reader,generation}=action;
     const current=generation===this.generation&&reader===this.currentReader,active=current&&['loading','playing','paused'].includes(this.state);
     if(!button)return;
-    button.disabled=!!active;button.setAttribute('aria-busy',String(current&&this.state==='loading'));
+    button.disabled=!!active&&this.state!=='loading';button.setAttribute('aria-busy',String(current&&this.state==='loading'));
     button.dataset.state=current?this.state:'idle';
     const loadingLabel=this.status?.startsWith('正在读取')?'读取正文…':this.status==='正在定位所选文字…'?'定位中…':this.status==='正在启动声音…'?'启动声音…':this.status==='正在生成语音…'?'生成语音…':this.status==='正在准备译文…'?'翻译中…':'准备中…';
-    const label=active?(this.state==='loading'?loadingLabel:this.state==='playing'?'正在朗读':'已暂停'):current&&this.state==='error'?'重试朗读':this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection'?'▶ 从此句开始连读':'▶ 自然朗读';
+    const label=active?(this.state==='loading'?loadingLabel+' · 点击取消':this.state==='playing'?'正在朗读':'已暂停'):current&&this.state==='error'?'重试朗读':this.get('mode','selection')==='document'&&this.get('documentStart','begin')==='selection'?'▶ 从此句开始连读':'▶ 自然朗读';
     if(button.classList?.contains('pv-selection-read'))PaperVoiceSelectionUI.updateButton(button,this.t(label.replace(/^▶\s*/,'')),current&&this.state==='loading',this.loadingProgress);else button.textContent=this.t(label);button.title=current?this.t(this.status):'';
     const popup=reader._internalReader?._state?.[action.popupKey];
     if(!current||!button.isConnected&&(!action.popup||popup?.annotation!==action.popup.annotation))this.selectionAction=null;
