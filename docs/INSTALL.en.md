@@ -192,6 +192,8 @@ The installer prompts you to quit Zotero, then installs into the selected profil
 
 **Two update routes:** Paper Voice settings and Zotero **Tools → Plugins → gear → Check for Updates**. Paper Voice can check daily, weekly or monthly and skip a version's reminder. Zotero's Automatic Updates setting controls its installation policy independently; choose Default or On if you want Zotero to install updates automatically.
 
+The update reminder beside the mascot shows download progress and installation status. Its badge keeps animating if you close the reminder. If the update fails, retry from the same card.
+
 Releases contain DMG and EXE installers only. Setup and the updater retrieve the XPI from a separate download address; `updates.json` supplies its version, URL and hash, rather than containing the plugin. Failed downloads do not remove the installed plugin.
 
 ## Installation help

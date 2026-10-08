@@ -1,5 +1,12 @@
 # 更新记录
 
+## 1.4.13 · 2026-10-08
+
+- 悬浮图标更新弹窗显示连接、下载、校验和安装状态，下载时显示真实进度；未获取总量时显示循环动画。
+- 收起弹窗后，更新角标继续显示运转动画；失败时在原处说明并允许重试，避免按钮变灰后像卡住。
+
+The mascot update card now shows connection, download, verification and installation stages, with real download progress or an indeterminate animation when the size is unknown. Its badge keeps animating when the card is closed. Failures show an explanation and restore the update action.
+
 ## 1.4.12 · 2026-10-08
 
 - 将「译文位置」从外观设置移至译文设置，与译文语言、字体集中排列，保留已有位置选择。

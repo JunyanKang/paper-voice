@@ -1,6 +1,6 @@
 /* Delegate download, hash validation and installation to Zotero's add-on manager. */
 var PaperVoiceUpdater = {
- updateState:'idle',updateMessage:'通过 GitHub 获取插件更新',updateAuto:true,
+ updateState:'idle',updateMessage:'通过 GitHub 获取插件更新',updateAuto:true,updatePhase:'',updateProgress:null,
  updateInterval(){const days=Number(this.get('updateCheckDays',7));return [1,7,30].includes(days)?days:7;},
  availableUpdateVersion(){const v=this.updateInstall?.version||this.get('availableUpdateVersion','');try{return v&&Services.vc.compare(v,this.version||this.installedVersion)>0?v:'';}catch(_){return '';}},
  hasUpdateNotice(){const version=this.availableUpdateVersion();return !!version&&version!==this.get('ignoredUpdateVersion','');},
@@ -10,22 +10,33 @@ var PaperVoiceUpdater = {
  startUpdateSchedule(){this.stopUpdateSchedule();this.updateScheduleHost=this.host;this.updateScheduleTimer=this.updateScheduleHost.setInterval(()=>this.checkScheduledUpdate(),60000);this.updateStartupTimer=this.updateScheduleHost.setTimeout(()=>this.checkScheduledUpdate(),15000);},
  stopUpdateSchedule(){this.updateScheduleHost?.clearInterval(this.updateScheduleTimer);this.updateScheduleHost?.clearTimeout(this.updateStartupTimer);this.updateScheduleTimer=this.updateStartupTimer=null;},
  addonManager(){return ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs').AddonManager;},
- setUpdateState(state,message){this.updateState=state;this.updateMessage=message;if(!this.dead)this.updateUpdateControls();},
+ setUpdateState(state,message){this.updateState=state;this.updateMessage=message;if(state!=='installing'){this.updatePhase='';this.updateProgress=null;}if(!this.dead)this.updateUpdateControls();},
  updateUpdateControls(){
   const available=this.availableUpdateVersion(),notice=this.hasUpdateNotice(),fresh=notice&&this.get('announcedUpdateVersion','')!==available;
+  const busy=['checking','installing'].includes(this.updateState),phase=this.updateState==='checking'?'连接中…':({download:'正在下载…',verify:'正在校验…',install:'正在安装…'})[this.updatePhase]||'连接中…';
+  const progress=this.updateState==='installing'&&this.updatePhase==='download'?this.updateProgress:null;
   const panels=[...this.livePanels()];for(const {root,find,action} of panels){
    const version=this.version||this.installedVersion;
    if(version)find('aboutVersion').textContent='v'+version+' · Junyan Kang';
    find('autoUpdate').checked=!!this.updateAuto;
    find('updateInterval').value=String(this.updateInterval());find('updateInterval').disabled=!this.updateAuto;
    const badge=action('updateNotice');badge.hidden=!notice;if(badge.dataset.version!==available){badge.dataset.version=available;badge.dataset.fresh=String(fresh);}badge.setAttribute('aria-label',this.t('发现新版本')+' '+available);
+   badge.dataset.busy=String(busy);if(busy)badge.setAttribute('aria-label',this.t(phase)+(progress===null?'':' '+progress+'%'));
    find('updateNoticeVersion').textContent=available?'v'+available:'';
+   const card=find('updateNotice');card.dataset.busy=String(busy);
+   find('updateNoticeActions').hidden=busy;
+   const feedback=find('updateFeedback');feedback.hidden=!busy&&this.updateState!=='error';feedback.dataset.busy=String(busy);
+   find('updatePhase').textContent=busy?phase:this.updateMessage;
+   find('updatePercent').textContent=progress===null?'':progress+'%';
+   const meter=find('updateMeter');meter.hidden=!busy;meter.dataset.indeterminate=String(progress===null);meter.setAttribute('aria-valuetext',this.t(phase)+(progress===null?'':' '+progress+'%'));
+   if(progress===null)meter.removeAttribute('aria-valuenow');else meter.setAttribute('aria-valuenow',String(progress));
+   find('updateFill').style.width=progress===null?'':progress+'%';
    if(!notice){PaperVoiceUI.visibility(find('updateNotice'),false);badge.setAttribute('aria-expanded','false');}
    action('installNotice').disabled=['checking','installing'].includes(this.updateState);
    action('installNotice').textContent=this.updateState==='installing'?'正在更新':'安装更新';
    action('ignoreUpdate').disabled=this.updateState==='installing';
-   const status=find('updateStatus'),percent=this.updateMessage.match(/\d+%/);
-   status.textContent=({idle:this.updateAuto?'定期检查':'手动检查',checking:'连接中…',available:'有新版本',current:'已是最新',error:this.updateFailure==='install'?'更新失败':'检查失败',installing:percent?percent[0]:'正在下载…'})[this.updateState]||this.updateMessage;
+   const status=find('updateStatus');
+   status.textContent=({idle:this.updateAuto?'定期检查':'手动检查',checking:'连接中…',available:'有新版本',current:'已是最新',error:this.updateFailure==='install'?'更新失败':'检查失败',installing:progress===null?phase:progress+'%'})[this.updateState]||this.updateMessage;
    if(available===this.get('ignoredUpdateVersion','')&&available&&this.updateState==='available')status.textContent='已忽略此版本';
    status.title=this.updateMessage;
    action('checkUpdate').textContent=(this.updateState==='available'||available)&&!['checking','installing'].includes(this.updateState)?'安装更新':this.updateState==='checking'?'正在检查':this.updateState==='installing'?'正在更新':'检查更新';
@@ -73,12 +84,17 @@ var PaperVoiceUpdater = {
   if(['checking','installing'].includes(this.updateState))return;
   if(!this.updateInstall)await this.checkForUpdates();
   const install=this.updateInstall;if(!install||this.updateState!=='available')return;
-  this.updateFailure='install';this.setUpdateState('installing','正在下载并校验插件…');
-  const fail=()=>{install.removeListener(listener);this.updateInstall=null;this.setUpdateState('error','更新未完成，原版本保留，请重新检查');};
+  this.updateFailure='install';this.updatePhase='connect';this.updateProgress=null;this.setUpdateState('installing','连接中…');
+  let finished=false;
+  const phase=(value,message,progress=null)=>{if(finished||this.dead)return;this.updatePhase=value;this.updateProgress=progress;this.setUpdateState('installing',message);};
+  const fail=()=>{if(finished)return;finished=true;install.removeListener(listener);this.updateInstall=null;this.setUpdateState('error','更新未完成，原版本保留，请重新检查');};
   const listener={
-   onDownloadProgress:()=>{if(install.maxProgress>0)this.setUpdateState('installing','正在下载更新 '+Math.round(install.progress/install.maxProgress*100)+'%');},
+   onDownloadStarted:()=>phase('download','正在下载…'),
+   onDownloadProgress:()=>{const n=Number(install.progress),total=Number(install.maxProgress),percent=Number.isFinite(n)&&Number.isFinite(total)&&n>=0&&total>0?Math.min(100,Math.floor(n/total*100)):null;phase('download',percent===null?'正在下载…':'正在下载更新 '+percent+'%',percent);},
+   onDownloadEnded:()=>phase('verify','正在校验…'),
+   onInstallStarted:()=>phase('install','正在安装…'),
    onDownloadFailed:fail,onInstallFailed:fail,onDownloadCancelled:fail,onInstallCancelled:fail,
-   onInstallEnded:()=>{install.removeListener(listener);this.updateInstall=null;this.setUpdateState('current','更新已安装');},
+   onInstallEnded:()=>{if(finished)return;finished=true;install.removeListener(listener);this.updateInstall=null;this.set('availableUpdateVersion','');this.setUpdateState('current','更新已安装');},
   };
   install.addListener(listener);try{await install.install();}catch(_){fail();}
  },

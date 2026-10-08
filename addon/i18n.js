@@ -1015,6 +1015,10 @@ var PaperVoiceI18n = (() => {
  Object.assign(catalogs.ja,{'Zotero 自动安装已开启':'Zotero の自動インストールは有効です'});
  Object.assign(catalogs.fr,{'Zotero 自动安装已开启':'Installation automatique activée dans Zotero'});
  Object.assign(catalogs.de,{'Zotero 自动安装已开启':'Automatische Installation in Zotero aktiviert'});
+ Object.assign(catalogs.en,{'更新进度':'Update progress','正在校验…':'Verifying…','正在安装…':'Installing…'});
+ Object.assign(catalogs.ja,{'更新进度':'更新の進行状況','正在校验…':'検証中…','正在安装…':'インストール中…'});
+ Object.assign(catalogs.fr,{'更新进度':'Progression','正在校验…':'Vérification…','正在安装…':'Installation…'});
+ Object.assign(catalogs.de,{'更新进度':'Update-Fortschritt','正在校验…':'Wird geprüft…','正在安装…':'Wird installiert…'});
  const keys=Object.keys(catalogs.en).sort((a,b)=>b.length-a.length);
  const pattern=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
  const sources=new WeakMap();
