@@ -12,6 +12,35 @@ var PaperVoiceUI = {
   const animation=element._pvFade=element.animate([{opacity:current},{opacity:visible?1:0}],{duration:160,easing:'ease-out',fill:'both'});
   animation.finished.then(()=>{if(element._pvFade!==animation)return;element.hidden=!visible;animation.cancel();element._pvFade=null;},()=>{});
  },
+ // Zotero's reader can leave native range pointer input inert. Keep the native
+ // input for keyboard/accessibility, and handle primary pointer gestures locally.
+ bindRangePointer(input) {
+  const win=input.ownerDocument.defaultView;let pointer=null;
+  const update=e=>{
+   const box=input.getBoundingClientRect(),min=Number(input.min)||0,max=Number(input.max)||100,step=Number(input.step)||1;
+   const inset=Math.min(6,box.width/2),width=box.width-2*inset;if(width<=0)return;
+   let ratio=Math.max(0,Math.min(1,(e.clientX-box.left-inset)/width));
+   if(win.getComputedStyle(input).direction==='rtl')ratio=1-ratio;
+   const value=Math.max(min,Math.min(max,min+Math.round(ratio*(max-min)/step)*step));
+   if(Number(input.value)===value)return;
+   input.value=String(value);input.dispatchEvent(new win.Event('input',{bubbles:true}));
+  };
+  const down=e=>{
+   if(input.disabled||e.button!==0||e.isPrimary===false||pointer!==null)return;
+   e.preventDefault();e.stopPropagation();pointer=e.pointerId;
+   input.focus({preventScroll:true});input.setPointerCapture(pointer);update(e);
+  };
+  const move=e=>{if(e.pointerId!==pointer)return;e.preventDefault();update(e);};
+  const finish=e=>{
+   if(e.pointerId!==pointer)return;
+   if(e.type==='pointerup')update(e);
+   const id=pointer;pointer=null;if(input.hasPointerCapture(id))input.releasePointerCapture(id);
+   input.dispatchEvent(new win.Event('change',{bubbles:true}));
+  };
+  const handlers={pointerdown:down,pointermove:move,pointerup:finish,pointercancel:finish,lostpointercapture:finish};
+  for(const [name,handler] of Object.entries(handlers))input.addEventListener(name,handler);
+  return ()=>{const id=pointer;pointer=null;if(id!==null&&input.hasPointerCapture(id))input.releasePointerCapture(id);for(const [name,handler] of Object.entries(handlers))input.removeEventListener(name,handler);};
+ },
  syncSelects(root) {root._pvSelects?.sync();},
  installTooltips(root,controller) {
   const doc=root.ownerDocument,win=doc.defaultView,tip=doc.createElement('div');tip.className='pv-tooltip';tip.setAttribute('role','tooltip');tip.id='pv-tooltip';tip.hidden=true;root.append(tip);
@@ -241,6 +270,8 @@ var PaperVoiceUI = {
   find('captionFont').onchange=e=>controller.setCaptionStyle('captionFont',e.target.value);find('captionSize').onchange=e=>controller.setCaptionStyle('captionSize',e.target.value);
   find('captionPlacement').onchange=e=>controller.setCaptionPlacement(e.target.value);
   find('transparency').oninput=e=>controller.setSurfaceTransparency(e.target.value);
+  find('transparency').onchange=()=>Services.prefs.savePrefFile(null);
+  const disposeTransparency=this.bindRangePointer(find('transparency'));
   find('readTranslation').onchange=e=>controller.setReadTranslation(e.target.checked);
   find('selectionTranslation').onchange=e=>{controller.set('selectionTranslation',e.target.checked);controller.syncSettings();};
   find('translation').onchange=e=>controller.toggleTranslation(e.target.checked);
@@ -408,7 +439,7 @@ var PaperVoiceUI = {
    if(takeBreak)lastBreakAt=elapsed;
    nextInteraction=now+controller.companionIntervalMs();playCompanion(takeBreak?'rest':undefined);
   };
-  const dispose=()=>{doc.removeEventListener('pointerdown',outsideUpdateNotice,true);find('updateNotice')._pvFade?.cancel();dockMotion.dispose();doc.defaultView.removeEventListener('keydown',themeEscape,true);doc.removeEventListener('pointerdown',closeThemesOutside,true);doc.removeEventListener('focusin',closeThemesOutside);themePicker._pvFade?.cancel();pageEvents?.off('pagechanging',onPageChanged);if(pageAnimationTimer!==null)doc.defaultView.clearTimeout(pageAnimationTimer);doc.defaultView.removeEventListener('keydown',recordShortcut,true);doc.removeEventListener('pointerdown',cancelOutside,true);recordingShortcut=null;root._pvSelects?.dispose();root._pvTooltips?.dispose();doc.defaultView.clearTimeout(closeTimer);doc.defaultView.clearTimeout(audioCloseTimer);player.dispose();for(const el of [panel,navigation,audioPopover])el._pvFade?.cancel();root.remove();};
+  const dispose=()=>{disposeTransparency();doc.removeEventListener('pointerdown',outsideUpdateNotice,true);find('updateNotice')._pvFade?.cancel();dockMotion.dispose();doc.defaultView.removeEventListener('keydown',themeEscape,true);doc.removeEventListener('pointerdown',closeThemesOutside,true);doc.removeEventListener('focusin',closeThemesOutside);themePicker._pvFade?.cancel();pageEvents?.off('pagechanging',onPageChanged);if(pageAnimationTimer!==null)doc.defaultView.clearTimeout(pageAnimationTimer);doc.defaultView.removeEventListener('keydown',recordShortcut,true);doc.removeEventListener('pointerdown',cancelOutside,true);recordingShortcut=null;root._pvSelects?.dispose();root._pvTooltips?.dispose();doc.defaultView.clearTimeout(closeTimer);doc.defaultView.clearTimeout(audioCloseTimer);player.dispose();for(const el of [panel,navigation,audioPopover])el._pvFade?.cancel();root.remove();};
   doc.body.append(root);this.installSelects(root,controller);root._pvTooltips=this.installTooltips(root,controller);return {root,panel,find,action,syncShortcutBindings,cancelShortcutRecording,closeNavigation,closeAudioPopover,tickCompanion,finishInteraction,syncCompanionPose,resetCompanionSchedule,dispose};
  }
 };

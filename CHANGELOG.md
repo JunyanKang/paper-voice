@@ -1,5 +1,12 @@
 # 更新记录
 
+## 1.4.10 · 2026-10-08
+
+- 修复透明度滑块点击与拖动不响应的问题，扩大可操作区域，保留键盘微调。
+- 调整完成后立即保存透明度设置。
+
+Fixed unresponsive clicks and drags on the transparency slider, with a larger interaction area and keyboard adjustment preserved. Transparency is saved when adjustment finishes.
+
 ## 1.4.9 · 2026-10-07
 
 - 重整中英文 README、安装与使用指南；增加独立翻译指南，更新真实界面截图与统一文档导航。
