@@ -81,7 +81,9 @@ The page follows playback across columns and pages. Clicking elsewhere does not 
 
 ## Pause, navigate and replay
 
-On the floating bar, the **mode button** switches modes, **Pause/Resume** controls playback, and the **book character** opens the panel. Hover over Pause/Resume to reveal navigation:
+Hover over the **book character** to reveal the controls. They stay open while you use the buttons or submenus and close after you leave. Clicking the character still opens or closes the main panel. Keyboard users can focus the character, then press Tab to enter the controls.
+
+On the bar, the **mode button** switches modes and **Pause/Resume** controls playback. Hover over Pause/Resume to reveal navigation:
 
 - **Sentence:** previous, repeat current, next.
 - **Paragraph:** previous, repeat current, next; available in Document and Paragraph modes.

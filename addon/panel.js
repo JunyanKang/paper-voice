@@ -12,6 +12,38 @@ var PaperVoiceUI = {
   const animation=element._pvFade=element.animate([{opacity:current},{opacity:visible?1:0}],{duration:160,easing:'ease-out',fill:'both'});
   animation.finished.then(()=>{if(element._pvFade!==animation)return;element.hidden=!visible;animation.cancel();element._pvFade=null;},()=>{});
  },
+ bindQuickReveal(root,bar,orb,onHide) {
+  const doc=root.ownerDocument,win=doc.defaultView;let timer=null,animation=null,opened=false,overOrb=false,overBar=false,disposed=false;
+  const listen=(el,type,fn,capture=false)=>{el.addEventListener(type,fn,capture);return ()=>el.removeEventListener(type,fn,capture);},off=[];
+  const clear=()=>{win.clearTimeout(timer);timer=null;};
+  const keyboardInside=()=>{const el=doc.activeElement;return (el===orb||bar.contains(el))&&el?.matches(':focus-visible');};
+  const layout=()=>{
+   if(bar.hidden)return;bar.style.top='auto';bar.style.right=(orb.offsetWidth+7)+'px';bar.style.bottom=Math.max(0,(orb.offsetHeight-bar.offsetHeight)/2)+'px';bar.dataset.placement='side';
+   const o=orb.getBoundingClientRect();if(o.left-7-bar.offsetWidth<8){bar.style.right='0px';bar.style.bottom=(orb.offsetHeight+8)+'px';bar.dataset.placement='above';if(o.top-8-bar.offsetHeight<8){bar.style.bottom='auto';bar.style.top=(orb.offsetHeight+8)+'px';bar.dataset.placement='below';}const left=o.right-bar.offsetWidth;if(left<8)bar.style.right=(left-8)+'px';}
+  };
+  const setOpen=show=>{
+   if(disposed||opened===show)return;opened=show;clear();
+   const hidden=bar.hidden,style=win.getComputedStyle(bar),from={opacity:hidden?'0':style.opacity,transform:hidden?'translateX(9px) scale(.97)':style.transform};
+   animation?.cancel();animation=null;bar.dataset.revealed=String(show);bar.inert=!show;bar.style.pointerEvents=show?'':'none';
+   if(!show)onHide();bar.hidden=false;if(show)layout();
+   if(win.matchMedia('(prefers-reduced-motion: reduce)').matches||!bar.animate){bar.hidden=!show;return;}
+   const offset=bar.dataset.placement==='above'?'translateY(7px)':bar.dataset.placement==='below'?'translateY(-7px)':'translateX(9px)';if(hidden)from.transform=offset+' scale(.97)';
+   const end=show?{opacity:1,transform:'none'}:{opacity:0,transform:offset+' scale(.98)'};
+   const current=animation=bar.animate([from,end],{duration:show?240:180,easing:show?'cubic-bezier(.16,1,.3,1)':'cubic-bezier(.4,0,1,1)',fill:'both'});
+   current.finished.then(()=>{if(animation!==current)return;bar.hidden=!show;current.cancel();animation=null;},()=>{});
+  };
+  const leave=()=>{clear();timer=win.setTimeout(()=>{if(!overOrb&&!overBar&&!keyboardInside())setOpen(false);},420);};
+  const hide=()=>{clear();overOrb=overBar=false;setOpen(false);};
+  // DOM order gives keyboard users the controls immediately after the mascot.
+  orb.after(bar);bar.hidden=true;bar.inert=true;bar.dataset.revealed='false';bar.setAttribute('role','group');bar.setAttribute('aria-label','Paper Voice 朗读控制');
+  off.push(listen(orb,'pointerenter',()=>{overOrb=true;clear();setOpen(true);}),listen(orb,'pointerleave',()=>{overOrb=false;leave();}));
+  off.push(listen(bar,'pointerenter',()=>{overBar=true;clear();}),listen(bar,'pointerleave',()=>{overBar=false;leave();}));
+  for(const el of [orb,bar]){off.push(listen(el,'focusin',e=>{if(e.target.matches(':focus-visible')){clear();setOpen(true);}}),listen(el,'focusout',()=>{overOrb=orb.matches(':hover');overBar=bar.matches(':hover');leave();}));}
+  off.push(listen(orb,'keydown',e=>{if(e.key==='Tab'&&!e.shiftKey){setOpen(true);}else if(e.key==='ArrowLeft'){e.preventDefault();setOpen(true);bar.querySelector('button:not([hidden]):not(:disabled)')?.focus();}}));
+  off.push(listen(doc,'pointerdown',e=>{if(!orb.contains(e.target)&&!bar.contains(e.target))hide();},true),listen(win,'blur',hide),listen(win,'resize',()=>{onHide();layout();}),listen(doc,'visibilitychange',()=>{if(doc.hidden)hide();}));
+  const observer=new win.ResizeObserver(()=>{if(opened)layout();});observer.observe(bar);observer.observe(orb);
+  return {hide,layout,dispose(){disposed=true;clear();animation?.cancel();observer.disconnect();for(const remove of off)remove();}};
+ },
  // Zotero's reader can leave native range pointer input inert. Keep the native
  // input for keyboard/accessibility, and handle primary pointer gestures locally.
  bindRangePointer(input) {
@@ -354,6 +386,7 @@ var PaperVoiceUI = {
   const leaveAudioPopover=()=>{doc.defaultView.clearTimeout(audioCloseTimer);audioCloseTimer=doc.defaultView.setTimeout(()=>{if(!translationTools.matches(':hover,:focus-within'))closeAudioPopover();},180);};
   translationTools.addEventListener('pointerenter',openAudioPopover);translationTools.addEventListener('pointerleave',leaveAudioPopover);
   translationTools.addEventListener('focusin',openAudioPopover);translationTools.addEventListener('focusout',e=>{if(!translationTools.contains(e.relatedTarget))leaveAudioPopover();});
+  const quickReveal=this.bindQuickReveal(root,find('quick'),action('orb'),()=>{closeNavigation();closeAudioPopover();});
   action('quickReadTranslation').onclick=()=>controller.setReadTranslation(!controller.get('readTranslation',false));
   root.addEventListener('pointerdown',e=>{if(!tools.contains(e.target))closeNavigation();if(!translationTools.contains(e.target))closeAudioPopover();});
   action('quickMode').onclick=()=>controller.cycleMode();
@@ -374,7 +407,7 @@ var PaperVoiceUI = {
   action('sample').onclick=()=>controller.speak(PaperVoiceCore.speechLanguages.find(x=>x.id===controller.settingsVoiceLanguage()).sample,reader,true);
   let drag=null,moved=false;
   action('orb').addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,right:parseFloat(root.style.right)||18,bottom:parseFloat(root.style.bottom)||18};moved=false;action('orb').setPointerCapture(e.pointerId);});
-  action('orb').addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>5)moved=true;if(moved){dockMotion.finish();closeNavigation();root.style.right=Math.max(8,Math.min(doc.defaultView.innerWidth-root.querySelector('.pv-mini').offsetWidth-8,drag.right-dx))+'px';root.style.bottom=Math.max(8,Math.min(doc.defaultView.innerHeight-70,drag.bottom-dy))+'px';if(!panel.hidden)fit();}});
+  action('orb').addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>5)moved=true;if(moved){dockMotion.finish();quickReveal.hide();closeNavigation();root.style.right=Math.max(8,Math.min(doc.defaultView.innerWidth-root.querySelector('.pv-mini').offsetWidth-8,drag.right-dx))+'px';root.style.bottom=Math.max(8,Math.min(doc.defaultView.innerHeight-70,drag.bottom-dy))+'px';if(!panel.hidden)fit();}});
   action('orb').addEventListener('pointerup',()=>{drag=null;});
   action('orb').addEventListener('click',e=>{if(moved){e.stopImmediatePropagation();e.preventDefault();moved=false;}},true);
   let nextInteraction=Date.now()+controller.companionIntervalMs(),readingSince=null,readingElapsed=0,lastBreakAt=0;
@@ -439,7 +472,7 @@ var PaperVoiceUI = {
    if(takeBreak)lastBreakAt=elapsed;
    nextInteraction=now+controller.companionIntervalMs();playCompanion(takeBreak?'rest':undefined);
   };
-  const dispose=()=>{disposeTransparency();doc.removeEventListener('pointerdown',outsideUpdateNotice,true);find('updateNotice')._pvFade?.cancel();dockMotion.dispose();doc.defaultView.removeEventListener('keydown',themeEscape,true);doc.removeEventListener('pointerdown',closeThemesOutside,true);doc.removeEventListener('focusin',closeThemesOutside);themePicker._pvFade?.cancel();pageEvents?.off('pagechanging',onPageChanged);if(pageAnimationTimer!==null)doc.defaultView.clearTimeout(pageAnimationTimer);doc.defaultView.removeEventListener('keydown',recordShortcut,true);doc.removeEventListener('pointerdown',cancelOutside,true);recordingShortcut=null;root._pvSelects?.dispose();root._pvTooltips?.dispose();doc.defaultView.clearTimeout(closeTimer);doc.defaultView.clearTimeout(audioCloseTimer);player.dispose();for(const el of [panel,navigation,audioPopover])el._pvFade?.cancel();root.remove();};
+  const dispose=()=>{quickReveal.dispose();disposeTransparency();doc.removeEventListener('pointerdown',outsideUpdateNotice,true);find('updateNotice')._pvFade?.cancel();dockMotion.dispose();doc.defaultView.removeEventListener('keydown',themeEscape,true);doc.removeEventListener('pointerdown',closeThemesOutside,true);doc.removeEventListener('focusin',closeThemesOutside);themePicker._pvFade?.cancel();pageEvents?.off('pagechanging',onPageChanged);if(pageAnimationTimer!==null)doc.defaultView.clearTimeout(pageAnimationTimer);doc.defaultView.removeEventListener('keydown',recordShortcut,true);doc.removeEventListener('pointerdown',cancelOutside,true);recordingShortcut=null;root._pvSelects?.dispose();root._pvTooltips?.dispose();doc.defaultView.clearTimeout(closeTimer);doc.defaultView.clearTimeout(audioCloseTimer);player.dispose();for(const el of [panel,navigation,audioPopover])el._pvFade?.cancel();root.remove();};
   doc.body.append(root);this.installSelects(root,controller);root._pvTooltips=this.installTooltips(root,controller);return {root,panel,find,action,syncShortcutBindings,cancelShortcutRecording,closeNavigation,closeAudioPopover,tickCompanion,finishInteraction,syncCompanionPose,resetCompanionSchedule,dispose};
  }
 };

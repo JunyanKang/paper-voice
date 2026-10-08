@@ -1,5 +1,12 @@
 # 更新记录
 
+## 1.4.15 · 2026-10-08
+
+- 悬浮功能栏默认隐藏，悬停书页精灵时轻柔展开；移入按钮或子菜单时保持显示，离开后延迟收起。
+- 图标拖动时收起功能栏，靠近窗口边缘时自动调整展开方向；支持键盘访问与系统减少动态效果设置。
+
+The floating controls now stay hidden until you hover over the mascot. They remain available while using buttons or submenus, then gently close after you leave. The bar adapts near window edges and hides during dragging, with keyboard access and reduced-motion support.
+
 ## 1.4.14 · 2026-10-08
 
 - 划选朗读的准备动画改为轻量波形，移除旋转箭头；准备时再次点击原按钮即可取消，保留划选和译文，支持重新开始。

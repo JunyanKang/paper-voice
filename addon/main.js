@@ -507,7 +507,6 @@ var PaperVoice = {
       action('quickTranslate').title='单击切换译文语言 · 双击关闭译文 · '+language.label+(this.get('readTranslation',false)?' · '+this.t('朗读译文'):'')+(this.shortcutBindings().translation?' · '+this.shortcutLabel('translation'):'');
       action('quickTranslate').setAttribute('aria-keyshortcuts',PaperVoiceShortcuts.aria(this.shortcutBindings().translation));
       action('quickTranslate').setAttribute('aria-label',action('quickTranslate').title);
-      find('quick').hidden=false;
       action('quickStop').hidden=!active;action('quickTranslate').hidden=!this.get('translation',false);
       if(find('translationTools'))find('translationTools').hidden=!this.get('translation',false);
       if(!this.get('translation',false))closeAudioPopover?.();

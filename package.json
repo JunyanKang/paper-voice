@@ -1,6 +1,6 @@
 {
   "name": "paper-voice",
-  "version": "1.4.14",
+  "version": "1.4.15",
   "private": true,
   "scripts": {
     "build": "python3 scripts/build.py"
