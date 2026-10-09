@@ -1,5 +1,14 @@
 # 更新记录
 
+## 1.4.16 · 2026-10-09
+
+- 优先准备起读句，全文按需逐页解析，保留跨栏、跨页句子的完整性。
+- 增加声音预热与有容量限制的内存音频缓存，重读可复用已生成的声音。
+- 长句及译文逐块生成、连续播放；优先处理当前操作，取消后清除过期的待生成任务。
+- 暂停继续保留音频位置，后台缓冲根据音频时长调整，闲置后释放语音引擎。
+
+Reading now prioritizes the starting sentence and processes subsequent pages as needed. Voice warm-up, bounded in-memory audio reuse, progressive long-sentence playback, and priority scheduling reduce avoidable waits. Playback preserves its position when paused and releases the idle speech engine.
+
 ## 1.4.15 · 2026-10-08
 
 - 悬浮功能栏默认隐藏，悬停书页精灵时轻柔展开；移入按钮或子菜单时保持显示，离开后延迟收起。

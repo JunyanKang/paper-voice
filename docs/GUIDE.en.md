@@ -140,6 +140,8 @@ Selection scope completes partially selected English words; Sentence and Paragra
 
 While speech is being prepared, the button shows a loading animation. Click it again to cancel; your selection and translation stay in place so you can start again.
 
+The first use of a voice may take a little longer. Opening the reading panel prepares the voice in advance. Long documents start with the selected sentence while later content is prepared in the background. Replaying recent content can reuse audio held in memory instead of generating it again.
+
 <p align="center"><img src="assets/selection-translation-en.png" width="400" alt="Selection, Sentence and Paragraph change the translation scope."></p>
 <p align="center"><sub>Selection, Sentence and Paragraph change the translation scope.</sub></p>
 

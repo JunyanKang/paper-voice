@@ -17,6 +17,9 @@ async function startup({ rootURI, version }, reason) {
   Services.scriptloader.loadSubScript(rootURI + 'updater.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'themes.js', PaperVoiceScope);
   Services.scriptloader.loadSubScript(rootURI + 'main.js', PaperVoiceScope);
+  Services.scriptloader.loadSubScript(rootURI + 'pipeline.js', PaperVoiceScope);
+  Services.scriptloader.loadSubScript(rootURI + 'stream-player.js', PaperVoiceScope);
+  Services.scriptloader.loadSubScript(rootURI + 'performance.js', PaperVoiceScope);
   const resources=Services.io.getProtocolHandler('resource').QueryInterface(Components.interfaces.nsIResProtocolHandler);
   PaperVoiceScope.assetResource='paper-voice-'+version.replace(/\./g,'-');
   resources.setSubstitutionWithFlags(PaperVoiceScope.assetResource,Services.io.newURI(rootURI),resources.ALLOW_CONTENT_ACCESS);

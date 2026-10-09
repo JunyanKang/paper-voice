@@ -387,6 +387,8 @@ var PaperVoiceUI = {
   translationTools.addEventListener('pointerenter',openAudioPopover);translationTools.addEventListener('pointerleave',leaveAudioPopover);
   translationTools.addEventListener('focusin',openAudioPopover);translationTools.addEventListener('focusout',e=>{if(!translationTools.contains(e.relatedTarget))leaveAudioPopover();});
   const quickReveal=this.bindQuickReveal(root,find('quick'),action('orb'),()=>{closeNavigation();closeAudioPopover();});
+  action('orb').addEventListener('pointerenter',()=>controller.scheduleWarmup());
+  action('orb').addEventListener('pointerleave',()=>{if(panel.hidden){controller.host.clearTimeout(controller.warmupTimer);controller.warmupTimer=null;}});
   action('quickReadTranslation').onclick=()=>controller.setReadTranslation(!controller.get('readTranslation',false));
   root.addEventListener('pointerdown',e=>{if(!tools.contains(e.target))closeNavigation();if(!translationTools.contains(e.target))closeAudioPopover();});
   action('quickMode').onclick=()=>controller.cycleMode();
