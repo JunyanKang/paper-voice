@@ -1,3 +1,5 @@
+> **Paper Voice and Paper Nexus are now Paper Loom.** [Open Paper Loom](https://github.com/JunyanKang/paper-loom) · [Download 1.1.0](https://github.com/JunyanKang/paper-loom/releases/tag/v1.1.0). Existing users can check for updates in the old plugin: this transition release installs Paper Loom 1.1.0, preserves your library, settings and voice assets, then disables the previous plugins. If the download fails, keep using the old plugin and retry from **Tools → Move to Paper Loom**.
+
 <p align="center"><img src="addon/assets/mascot.png" width="72" alt="Paper Voice"></p>
 
 <h1 align="center">Make room to listen.</h1>
@@ -6,7 +8,7 @@
 <p align="center"><a href="README.md">简体中文</a> · <b>English</b></p>
 
 <p align="center"><b>Free & open source · Offline voices · Follow-along highlighting</b></p>
-<p align="center"><a href="https://github.com/JunyanKang/paper-voice/releases/latest">Download</a> · <a href="docs/INSTALL.en.md">Installation</a> · <a href="docs/GUIDE.en.md">User guide</a></p>
+<p align="center"><a href="https://github.com/JunyanKang/paper-loom/releases/latest">Download</a> · <a href="docs/INSTALL.en.md">Installation</a> · <a href="docs/GUIDE.en.md">User guide</a></p>
 
 Paper Voice is a free Zotero plugin that brings listening, reading and translation into one place. Take your time with a difficult sentence, or settle into a whole paper at your own pace.
 
@@ -39,7 +41,7 @@ Translate into a range of languages using a built-in service, or connect your ow
 
 ## Quick start
 
-For **Zotero 10**. Install and open Zotero first, then get the installer for your computer from the [official release page](https://github.com/JunyanKang/paper-voice/releases/latest).
+For **Zotero 10**. Install and open Zotero first, then get the installer for your computer from the [official release page](https://github.com/JunyanKang/paper-loom/releases/latest).
 
 <div align="center">
 

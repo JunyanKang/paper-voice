@@ -1,3 +1,5 @@
+> **Paper Voice 与 Paper Nexus 已整合为 Paper Loom。** [前往 Paper Loom](https://github.com/JunyanKang/paper-loom) · [下载 1.1.0](https://github.com/JunyanKang/paper-loom/releases/tag/v1.1.0)。已有用户可在旧插件中检查并安装更新，1.4.17 迁移版会安装 Paper Loom 1.1.0，保留文献、设置和声音包，并停用旧插件。网络失败时原插件继续可用，可从「工具 → 迁移到 Paper Loom」重试。
+
 <p align="center"><img src="addon/assets/mascot.png" width="72" alt="Paper Voice"></p>
 
 <h1 align="center">论文，也可以听。</h1>
@@ -6,7 +8,7 @@
 <p align="center"><b>简体中文</b> · <a href="README.en.md">English</a></p>
 
 <p align="center"><b>免费开源 · 离线朗读 · 随读定位</b></p>
-<p align="center"><a href="https://github.com/JunyanKang/paper-voice/releases/latest">下载安装器</a> · <a href="docs/INSTALL.md">安装指南</a> · <a href="docs/GUIDE.md">使用指南</a></p>
+<p align="center"><a href="https://github.com/JunyanKang/paper-loom/releases/latest">下载 Paper Loom</a> · <a href="docs/INSTALL.md">安装指南</a> · <a href="docs/GUIDE.md">使用指南</a></p>
 
 Paper Voice 是一款免费的 Zotero 听读插件，把朗读、原文和翻译放在同一个阅读空间。从一句难懂的论述，到一篇想仔细读完的论文，都可以按自己的节奏听下去。
 
@@ -39,7 +41,7 @@ Paper Voice 是一款免费的 Zotero 听读插件，把朗读、原文和翻译
 
 ## 快速安装
 
-适用于 **Zotero 10**。先安装并打开 Zotero，再从 [官方发布页](https://github.com/JunyanKang/paper-voice/releases/latest) 获取对应安装器。
+适用于 **Zotero 10**。先安装并打开 Zotero，再从 [官方发布页](https://github.com/JunyanKang/paper-loom/releases/latest) 获取对应安装器。
 
 <div align="center">
 

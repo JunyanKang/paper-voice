@@ -28,8 +28,11 @@ async function startup({ rootURI, version }, reason) {
   PaperVoiceScope.PaperVoice.cssText = PaperVoiceScope.PaperVoiceStyle;
   PaperVoiceScope.PaperVoice.initTranslation();
   await PaperVoiceScope.PaperVoice.start();
+  Services.scriptloader.loadSubScript(rootURI+'loom-migration.js', PaperVoiceScope);
+  PaperVoiceScope.PaperLoomMigration.start('paper-voice@local.research',version);
 }
 async function shutdown(data, reason) {
+  PaperVoiceScope?.PaperLoomMigration?.stop();
   const assetResource=PaperVoiceScope?.assetResource;
   if (PaperVoiceScope) await PaperVoiceScope.PaperVoice.shutdown();
   PaperVoiceScope = null;

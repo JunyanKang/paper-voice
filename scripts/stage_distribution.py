@@ -25,3 +25,6 @@ shutil.copyfile(p,dest/p.name);shutil.copyfile(r/'dist/Paper Voice/updates.json'
 catalog[v]={'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()};(out/'catalog.json').write_text(json.dumps(catalog,indent=2)+'\n')
 assert sum(p.stat().st_size for p in out.rglob('*') if p.is_file())<950*1024**2
 print('Verified download distribution staged; installers contain no voice runtime')
+
+# Redirect the landing page only; legacy feeds and immutable downloads stay available.
+(out/'index.html').write_text('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0; url=https://kanglab.cool/paper-loom/"><link rel="canonical" href="https://kanglab.cool/paper-loom/"><title>Moved to Paper Loom</title><body><p>Paper Voice and Paper Nexus are now Paper Loom.</p><p><a href="https://kanglab.cool/paper-loom/">Continue to Paper Loom · 前往 Paper Loom</a></p></body></html>',encoding='utf-8')
